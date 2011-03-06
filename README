@@ -1,0 +1,14 @@
+Quick instructions for NTRUEncrypt
+
+- NtruEncrypt.generateKeyPair() generates an encryption key pair
+- EncryptionKeyPair.priv.getEncoded() and EncryptionKeyPair.pub.getEncoded() convert the generated keys to byte arrays
+- EncryptionPrivateKey(byte[], EncryptionParameters) and EncryptionPublicKey(byte[], EncryptionParameters) convert a byte array to a key
+- NtruEncrypt.encrypt() and NtruEncrypt.decrypt() for encryption/decryption
+
+
+Quick instructions for NTRUSign
+
+- NtruSign.generateKeyPair() generates an encryption key pair
+- SignaturePrivateKey.getEncoded() and SignaturePublicKey.getEncoded() convert the generated keys to byte arrays
+- SignaturePrivateKey(byte[], SignatureParameters) and SignaturePublicKey(byte[], SignatureParameters) convert a byte array to a key
+- NtruSign.sign() and NtruSign.verify() for signing/verification
