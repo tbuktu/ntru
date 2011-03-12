@@ -176,4 +176,31 @@ public class IntegerPolynomialTest {
             assertEquals(BigInteger.ZERO, (b.coeffs[0].subtract(b.coeffs[b.coeffs.length-1]).mod(r.res)));
         assertEquals(b.coeffs[0].subtract(r.res), b.coeffs[b.coeffs.length-1].negate());
     }
+
+    @Test
+    public void testResultantMod() {
+        int p = 46337;   // prime; must be less than sqrt(2^31) or integer overflows will occur
+        
+        IntegerPolynomial a = new IntegerPolynomial(new int[] {0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 0, 1, -1, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1, -1, 0, -1, 1, -1, 0, -1, 0, -1, -1, -1, 0, 0, 0, 1, 1, -1, -1, -1, 0, -1, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 1, 1, -1, 0, 1, -1, 0, 1, 0, 1, 0, -1, -1, 0, 1, 0, -1, 1, 1, 1, 1, 0, 0, -1, -1, 1, 0, 0, -1, -1, 0, -1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 1, 0, 1, 0, 1, -1, 0, 0, 1, 1, 1, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, -1, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, -1, -1, 0, -1, -1, 1, 1, 0, 0, -1, 1, 0, 0, 0, -1, 1, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 0, 0, -1, 1, 1, 0, 0, -1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, -1, 0, 1, 0, -1, -1, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 1, -1, 1, -1, -1, 1, -1, 0, 1, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, -1, 0, 1, -1, 0, 0, 1, 1, 0, 0, 1, 1, 0, -1, 0, -1, 1, -1, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, 1, -1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, 0, -1, -1, 0, 0, -1, 0, 1, 1, -1, 1, -1, 0, 0, 0, 1});
+        verifyResultant(a, a.resultant(p), p);
+        
+        for (int i=0; i<10; i++) {
+            a = IntegerPolynomial.generateRandom(853);
+            verifyResultant(a, a.resultant(p), p);
+        }
+    }
+    
+    // verifies that res=rho*a mod x^n-1 mod p
+    private void verifyResultant(IntegerPolynomial a, Resultant r, int p) {
+        BigIntPolynomial b = new BigIntPolynomial(a).mult(r.rho);
+        b.mod(BigInteger.valueOf(p));
+        
+        for (int j=1; j<b.coeffs.length-1; j++)
+            assertEquals(BigInteger.ZERO, b.coeffs[j]);
+        if (r.res.equals(BigInteger.ZERO))
+            assertEquals(BigInteger.ZERO, b.coeffs[0].subtract(b.coeffs[b.coeffs.length-1]));
+        else
+            assertEquals(BigInteger.ZERO, (b.coeffs[0].subtract(b.coeffs[b.coeffs.length-1]).subtract(r.res).mod(BigInteger.valueOf(p))));
+        assertEquals(BigInteger.ZERO, b.coeffs[0].subtract(r.res).subtract(b.coeffs[b.coeffs.length-1].negate()).mod(BigInteger.valueOf(p)));
+    }
 }
