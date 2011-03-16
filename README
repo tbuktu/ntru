@@ -1,7 +1,7 @@
 Quick instructions for NTRUEncrypt
 
 - NtruEncrypt.generateKeyPair() generates an encryption key pair
-- EncryptionKeyPair.priv.getEncoded() and EncryptionKeyPair.pub.getEncoded() convert the generated keys to byte arrays
+- EncryptionKeyPair.getPrivate().getEncoded() and EncryptionKeyPair.getPublic().getEncoded() convert the generated keys to byte arrays
 - EncryptionPrivateKey(byte[], EncryptionParameters) and EncryptionPublicKey(byte[], EncryptionParameters) convert a byte array to a key
 - NtruEncrypt.encrypt() and NtruEncrypt.decrypt() for encryption/decryption
 

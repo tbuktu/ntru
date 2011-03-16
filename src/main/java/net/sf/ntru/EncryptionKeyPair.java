@@ -19,11 +19,19 @@
 package net.sf.ntru;
 
 public class EncryptionKeyPair {
-    public EncryptionPrivateKey priv;
-    public EncryptionPublicKey pub;
+    EncryptionPrivateKey priv;
+    EncryptionPublicKey pub;
     
     public EncryptionKeyPair(EncryptionPrivateKey priv, EncryptionPublicKey pub) {
         this.priv = priv;
         this.pub = pub;
+    }
+    
+    public EncryptionPrivateKey getPrivate() {
+        return priv;
+    }
+    
+    public EncryptionPublicKey getPublic() {
+        return pub;
     }
 }

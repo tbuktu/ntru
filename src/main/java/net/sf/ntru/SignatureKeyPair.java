@@ -19,11 +19,19 @@
 package net.sf.ntru;
 
 public class SignatureKeyPair {
-    public SignaturePrivateKey priv;
-    public SignaturePublicKey pub;
+    SignaturePrivateKey priv;
+    SignaturePublicKey pub;
     
     public SignatureKeyPair(SignaturePrivateKey priv, SignaturePublicKey pub) {
         this.priv = priv;
         this.pub = pub;
+    }
+    
+    public SignaturePrivateKey getPrivate() {
+        return priv;
+    }
+    
+    public SignaturePublicKey getPublic() {
+        return pub;
     }
 }
