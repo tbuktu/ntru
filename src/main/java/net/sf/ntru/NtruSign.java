@@ -169,10 +169,10 @@ public class NtruSign {
         s = s.clone();
         s.shiftGap(q);
         
-        int ssum = 0;
-        int s2sum = 0;
-        int tsum = 0;
-        int t2sum = 0;
+        long ssum = 0;
+        long s2sum = 0;
+        long tsum = 0;
+        long t2sum = 0;
         for (int j=0; j<N; j++) {
             int sj = s.coeffs[j];
             ssum += sj;
@@ -181,8 +181,8 @@ public class NtruSign {
             tsum += tj;
             t2sum += tj * tj;
         }
-        int centeredNormSq = s2sum - ssum*ssum/N;
-        centeredNormSq += (int)(betaSq * (t2sum - tsum*tsum/N));
+        long centeredNormSq = s2sum - ssum*ssum/N;
+        centeredNormSq += (long)(betaSq * (t2sum - tsum*tsum/N));
         
         return centeredNormSq <= normBoundSq;
     }

@@ -32,7 +32,7 @@ public class NtruSignTest {
     
     @Test
     public void testSignVerify() {
-        SignatureParameters params = SignatureParameters.T157;
+        SignatureParameters params = SignatureParameters.TEST157;
         SignatureKeyPair kp = NtruSign.generateKeyPair(params);
         
         IntegerPolynomial i = new IntegerPolynomial(params.N);
@@ -88,15 +88,15 @@ public class NtruSignTest {
         byte[] msg = "test message".getBytes();
         
         // verify that the message representative is reproducible
-        IntegerPolynomial i1 = NtruSign.createMsgRep(msg, 1, SignatureParameters.T349);
-        IntegerPolynomial i2 = NtruSign.createMsgRep(msg, 1, SignatureParameters.T349);
+        IntegerPolynomial i1 = NtruSign.createMsgRep(msg, 1, SignatureParameters.TEST157);
+        IntegerPolynomial i2 = NtruSign.createMsgRep(msg, 1, SignatureParameters.TEST157);
         assertArrayEquals(i1.coeffs, i2.coeffs);
-        i1 = NtruSign.createMsgRep(msg, 5, SignatureParameters.T349);
-        i2 = NtruSign.createMsgRep(msg, 5, SignatureParameters.T349);
+        i1 = NtruSign.createMsgRep(msg, 5, SignatureParameters.TEST157);
+        i2 = NtruSign.createMsgRep(msg, 5, SignatureParameters.TEST157);
         assertArrayEquals(i1.coeffs, i2.coeffs);
         
-        i1 = NtruSign.createMsgRep(msg, 2, SignatureParameters.T349);
-        i2 = NtruSign.createMsgRep(msg, 3, SignatureParameters.T349);
+        i1 = NtruSign.createMsgRep(msg, 2, SignatureParameters.TEST157);
+        i2 = NtruSign.createMsgRep(msg, 3, SignatureParameters.TEST157);
         assertFalse(Arrays.equals(i1.coeffs, i2.coeffs));
     }
 }

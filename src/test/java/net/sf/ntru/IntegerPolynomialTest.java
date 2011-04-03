@@ -156,7 +156,7 @@ public class IntegerPolynomialTest {
     
     @Test
     public void testResultant() {
-        SignatureParameters params = SignatureParameters.T349;
+        SignatureParameters params = SignatureParameters.MAR2011_439;
         IntegerPolynomial a = IntegerPolynomial.generateRandomSmall(params.N, params.d, params.d);
         verifyResultant(a, a.resultant());
         
