@@ -44,6 +44,7 @@ public class NtruSign {
         List<Future<Basis>> bases = new ArrayList<Future<Basis>>();
         for (int k=params.B; k>=0; k--)
             bases.add(executor.submit(new BasisGenerationTask(params)));
+        executor.shutdown();
         
         for (int k=params.B; k>=0; k--) {
             Future<Basis> basis = bases.get(k);
