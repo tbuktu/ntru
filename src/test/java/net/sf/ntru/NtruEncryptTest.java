@@ -34,9 +34,9 @@ public class NtruEncryptTest {
 
         // encrypt and decrypt a polynomial
         IntegerPolynomial m = IntegerPolynomial.generateRandom(params.N);
-        IntegerPolynomial r = IntegerPolynomial.generateRandomSmall(params.N, params.dr, params.dr);
+        SparseTernaryPolynomial r = SparseTernaryPolynomial.generateRandom(params.N, params.dr, params.dr);
         IntegerPolynomial e = NtruEncrypt.encrypt(m, r, kp.pub.h, params);
-        IntegerPolynomial c = NtruEncrypt.decrypt(e, kp.priv.f, params);
+        IntegerPolynomial c = NtruEncrypt.decrypt(e, kp.priv.f, kp.priv.fp, params);
         assertArrayEquals(m.coeffs, c.coeffs);
         
         // encrypt and decrypt text

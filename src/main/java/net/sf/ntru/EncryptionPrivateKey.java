@@ -20,20 +20,24 @@ package net.sf.ntru;
 
 public class EncryptionPrivateKey {
     private EncryptionParameters params;
-    IntegerPolynomial f;
+    SparseTernaryPolynomial f;
+    IntegerPolynomial fp;
 
-    EncryptionPrivateKey(IntegerPolynomial f, EncryptionParameters params) {
+    EncryptionPrivateKey(SparseTernaryPolynomial f, EncryptionParameters params) {
         this.f = f;
         this.params = params;
+        fp = f.toIntegerPolynomial().invertF3();
     }
     
     public EncryptionPrivateKey(byte[] b, EncryptionParameters params) {
         this.params = params;
-        f = IntegerPolynomial.fromBinary3Arith(b, params.N);
-        f.modCenter(params.q);
+        IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(b, params.N);
+        fInt.modCenter(params.q);
+        fp = fInt.invertF3();
+        f = new SparseTernaryPolynomial(fInt);
     }
     
     public byte[] getEncoded() {
-        return f.toBinary3Arith();
+        return f.toIntegerPolynomial().toBinary3Arith();
     }
 }

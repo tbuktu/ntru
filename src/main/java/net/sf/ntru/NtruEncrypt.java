@@ -43,14 +43,14 @@ public class NtruEncrypt {
             fp = f.invertF3();
             fq = f.invertFq(q);
         } while (fp==null || fq==null);   // repeat until f is invertible
-        IntegerPolynomial g = IntegerPolynomial.generateRandomSmall(N, dg, dg);
-        IntegerPolynomial h = fq.mult(g, q);
+        SparseTernaryPolynomial g = SparseTernaryPolynomial.generateRandom(N, dg, dg);
+        IntegerPolynomial h = g.mult(fq, q);
         h.mult3(q);
         h.ensurePositive(q);
         g.clear();
         fq.clear();
         
-        EncryptionPrivateKey priv = new EncryptionPrivateKey(f, params);
+        EncryptionPrivateKey priv = new EncryptionPrivateKey(new SparseTernaryPolynomial(f), params);
         EncryptionPublicKey pub = new EncryptionPublicKey(h, params);
         return new EncryptionKeyPair(priv, pub);
     }
@@ -105,7 +105,7 @@ public class NtruEncrypt {
             sDataBuffer.put(hTrunc);
             byte[] sData = sDataBuffer.array();
             
-            IntegerPolynomial r = generateBlindingPoly(sData, M, params);
+            SparseTernaryPolynomial r = generateBlindingPoly(sData, M, params);
             IntegerPolynomial R = r.mult(pub, q);
             IntegerPolynomial R4 = R.clone();
             R4.modPositive(4);
@@ -127,14 +127,14 @@ public class NtruEncrypt {
         }
     }
     
-    static IntegerPolynomial encrypt(IntegerPolynomial m, IntegerPolynomial r, IntegerPolynomial pubKey, EncryptionParameters params) {
+    static IntegerPolynomial encrypt(IntegerPolynomial m, SparseTernaryPolynomial r, IntegerPolynomial pubKey, EncryptionParameters params) {
         IntegerPolynomial e = r.mult(pubKey, params.q);
         e.add(m, params.q);
         e.ensurePositive(params.q);
         return e;
     }
     
-    private static IntegerPolynomial generateBlindingPoly(byte[] seed, byte[] M, EncryptionParameters params) throws NoSuchAlgorithmException {
+    private static SparseTernaryPolynomial generateBlindingPoly(byte[] seed, byte[] M, EncryptionParameters params) throws NoSuchAlgorithmException {
         int N = params.N;
         int dr = params.dr;
         
@@ -150,7 +150,7 @@ public class NtruEncrypt {
                 }
             }
         }
-        return new IntegerPolynomial(r);
+        return new SparseTernaryPolynomial(new IntegerPolynomial(r));
     }
     
     // XXX verify this correctly implements MGF-TP-1
@@ -172,7 +172,8 @@ public class NtruEncrypt {
     }
 
     public static byte[] decrypt(byte[] data, EncryptionKeyPair kp, EncryptionParameters params) throws NoSuchAlgorithmException {
-        IntegerPolynomial priv = kp.priv.f;
+        SparseTernaryPolynomial priv_f = kp.priv.f;
+        IntegerPolynomial priv_fp = kp.priv.fp;
         IntegerPolynomial pub = kp.pub.h;
         int N = params.N;
         int q = params.q;
@@ -189,7 +190,7 @@ public class NtruEncrypt {
         int bLen = db / 8;
         
         IntegerPolynomial e = IntegerPolynomial.fromBinary(data, N, q);
-        IntegerPolynomial ci = decrypt(e, priv, params);
+        IntegerPolynomial ci = decrypt(e, priv_f, priv_fp, params);
         
         if (ci.count(-1) < dm0)
             throw new RuntimeException("More than dm0 coefficients equal -1");
@@ -231,7 +232,7 @@ public class NtruEncrypt {
         sDataBuffer.put(hTrunc);
         byte[] sData = sDataBuffer.array();
         
-        IntegerPolynomial cr = generateBlindingPoly(sData, cm, params);
+        SparseTernaryPolynomial cr = generateBlindingPoly(sData, cm, params);
         IntegerPolynomial cRPrime = cr.mult(pub, q);
         if (cRPrime.equals(cr))
             throw new RuntimeException("Invalid message encoding");
@@ -239,12 +240,11 @@ public class NtruEncrypt {
         return cm;
     }
     
-    static IntegerPolynomial decrypt(IntegerPolynomial e, IntegerPolynomial privKey, EncryptionParameters params) {
-        IntegerPolynomial a = privKey.mult(e, params.q);
+    static IntegerPolynomial decrypt(IntegerPolynomial e, SparseTernaryPolynomial priv_f, IntegerPolynomial priv_fp, EncryptionParameters params) {
+        IntegerPolynomial a = priv_f.mult(e, params.q);
         a.center0(params.q);
         a.mod3();
-        IntegerPolynomial fp = privKey.invertF3();
-        IntegerPolynomial c = fp.mult(a, 3);
+        IntegerPolynomial c = priv_fp.mult(a, 3);
         c.center0(3);
         return c;
     }
