@@ -21,6 +21,7 @@ package net.sf.ntru;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.NoSuchAlgorithmException;
@@ -222,6 +223,7 @@ public class NtruSign {
         int q = params.q;
         int d = params.d;
         BasisType basisType = params.basisType;
+        int decimalPlaces = params.keyGenerationDecimalPlaces;
         
         IntegerPolynomial f;
         IntegerPolynomial g;
@@ -247,31 +249,23 @@ public class NtruSign {
             r = BigIntEuclidean.calculate(rf.res, rg.res);
         } while (!r.gcd.equals(ONE));
         
-        BigIntPolynomial F = rg.rho;
-        F.mult(r.y.negate().multiply(BigInteger.valueOf(q)));
-        BigIntPolynomial G = rf.rho;
-        G.mult(r.x.multiply(BigInteger.valueOf(q)));
+        BigIntPolynomial A = rf.rho.clone();
+        A.mult(r.x.multiply(BigInteger.valueOf(q)));
+        BigIntPolynomial B = rg.rho.clone();
+        B.mult(r.y.multiply(BigInteger.valueOf(-q)));
         
-        int[] fRevCoeffs = new int[N];
-        int[] gRevCoeffs = new int[N];
-        fRevCoeffs[0] = f.coeffs[0];
-        gRevCoeffs[0] = g.coeffs[0];
-        for (int i=1; i<N; i++) {
-            fRevCoeffs[i] = f.coeffs[N-i];
-            gRevCoeffs[i] = g.coeffs[N-i];
-        }
-        IntegerPolynomial fRev = new IntegerPolynomial(fRevCoeffs);
-        IntegerPolynomial gRev = new IntegerPolynomial(gRevCoeffs);
+        BigDecimalPolynomial fInv = rf.rho.div(new BigDecimal(rf.res), decimalPlaces);
+        BigDecimalPolynomial gInv = rg.rho.div(new BigDecimal(rg.res), decimalPlaces);
         
-        IntegerPolynomial t = f.mult(fRev);
-        t.add(g.mult(gRev));
-        Resultant rt = t.resultant();
-        BigIntPolynomial c = F.mult(fRev);
-        c.add(G.mult(gRev));
-        c = c.mult(rt.rho);
-        c.div(rt.res);
-        F.sub(c.mult(f));
-        G.sub(c.mult(g));
+        BigDecimalPolynomial Cdec = fInv.mult(B);
+        Cdec.add(gInv.mult(A));
+        Cdec.halve();
+        BigIntPolynomial C = Cdec.round();
+        
+        BigIntPolynomial F = B.clone();
+        F.sub(C.mult(f));
+        BigIntPolynomial G = A.clone();
+        G.sub(C.mult(g));
 
         if (!equalsQ(f, g, F, G, q, N))
             throw new RuntimeException("this shouldn't happen");

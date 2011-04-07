@@ -21,7 +21,9 @@ package net.sf.ntru;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -196,12 +198,21 @@ class BigIntPolynomial {
         mult(BigInteger.valueOf(factor));
     }
     
+    /** integer division */
     void div(BigInteger divisor) {
         BigInteger d = divisor.add(ONE).divide(BigInteger.valueOf(2));
         for (int i=0; i<coeffs.length; i++) {
             coeffs[i] = coeffs[i].compareTo(ZERO)>0 ? coeffs[i].add(d) : coeffs[i].add(d.negate());
             coeffs[i] = coeffs[i].divide(divisor);
         }
+    }
+    
+    /** fractional division */
+    BigDecimalPolynomial div(BigDecimal divisor, int decimalPlaces) {
+        BigDecimalPolynomial p = new BigDecimalPolynomial(coeffs.length);
+        for (int i=0; i<coeffs.length; i++)
+            p.coeffs[i] = new BigDecimal(coeffs[i]).divide(divisor, decimalPlaces, RoundingMode.HALF_EVEN);
+        return p;
     }
     
     void mod(BigInteger modulus) {
