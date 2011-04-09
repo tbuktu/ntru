@@ -135,31 +135,6 @@ class BigIntPolynomial {
         }
     }
     
-    /** O(n²) multiplication */
-    BigIntPolynomial multSimple(BigIntPolynomial poly2) {
-        BigInteger[] a = coeffs;
-        BigInteger[] b = poly2.coeffs;
-        if (b.length != a.length)
-            throw new RuntimeException("Number of coefficients must be the same");
-        int N = a.length;
-        BigInteger[] c = new BigInteger[N];
-        
-        for(int k=N-1; k>=0; k--)
-        {
-            c[k] = BigInteger.ZERO;
-            int j = k + 1;
-            for(int i=N-1; i>=0; i--)
-            {
-                if(j == N)
-                    j = 0;
-                if(!a[i].equals(BigInteger.ZERO) && !b[j].equals(BigInteger.ZERO))
-                    c[k] = c[k].add(a[i].multiply(b[j]));
-                j++;
-            }
-        }
-        return new BigIntPolynomial(c);
-    }
-    
     void add(BigIntPolynomial b, BigInteger modulus) {
         add(b);
         mod(modulus);

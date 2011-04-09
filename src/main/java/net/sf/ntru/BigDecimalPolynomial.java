@@ -113,31 +113,6 @@ public class BigDecimalPolynomial {
         }
     }
     
-    /** O(n²) multiplication */
-    BigDecimalPolynomial multSimple(BigDecimalPolynomial poly2) {
-        BigDecimal[] a = coeffs;
-        BigDecimal[] b = poly2.coeffs;
-        if (b.length != a.length)
-            throw new RuntimeException("Number of coefficients must be the same");
-        int N = a.length;
-        BigDecimal[] c = new BigDecimal[N];
-        
-        for(int k=N-1; k>=0; k--)
-        {
-            c[k] = BigDecimal.ZERO;
-            int j = k + 1;
-            for(int i=N-1; i>=0; i--)
-            {
-                if(j == N)
-                    j = 0;
-                if(!a[i].equals(BigDecimal.ZERO) && !b[j].equals(BigDecimal.ZERO))
-                    c[k] = c[k].add(a[i].multiply(b[j]));
-                j++;
-            }
-        }
-        return new BigDecimalPolynomial(c);
-    }
-    
     /** Adds another polynomial which can have a different number of coefficients */
     void add(BigDecimalPolynomial b) {
       if (b.coeffs.length > coeffs.length) {
