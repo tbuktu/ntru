@@ -1,14 +1,71 @@
-Quick instructions for NTRUEncrypt
+The NTRU cryptosystem
 
-- NtruEncrypt.generateKeyPair() generates an encryption key pair
-- EncryptionKeyPair.getPrivate().getEncoded() and EncryptionKeyPair.getPublic().getEncoded() convert the generated keys to byte arrays
-- EncryptionPrivateKey(byte[], EncryptionParameters) and EncryptionPublicKey(byte[], EncryptionParameters) convert a byte array to a key
-- NtruEncrypt.encrypt() and NtruEncrypt.decrypt() for encryption/decryption
+  A Java implementation of the NTRU public-key cryptosystem, consisting of
+  the encryption scheme NTRUEncrypt and the signature scheme NTRUSign.
+  
+  NTRU's main strengths are performance and resistance to quantum attacks.
+  Keys are longer than with ECC but shorter than RSA.
+  
+  http://en.wikipedia.org/wiki/NTRUEncrypt
+  http://en.wikipedia.org/wiki/NTRUSign
+  
+  The implementation follows the EESS standard
+  (http://grouper.ieee.org/groups/1363/lattPK/submissions/EESS1v2.pdf)
+  to a certain degree, but differs in some aspects. For instance, this
+  implementation does not use SHA-1 but the more secure SHA-512 hash.
+  
+
+NtruEncrypt Usage
+
+  Encrypting a message is done by calling NtruSign.sign() which takes the
+  following parameters:
+
+    1. the message itself as a byte array. Strings can be encrypted after
+       converting them to byte[] via getBytes()
+    2. an EncryptionPublicKey, which can be generated via
+       NtruEncrypt.generateKeyPair() or an existing key can be reconstructed
+       from a byte array by calling new EncryptionPublicKey(byte[])
+    3. a EncryptionParameters object representing the desired algorithm parameters.
+       It is recommended to use one of the predefined parameter sets which are
+       available as constants in EncryptionParameters, but new ones can be
+       generated as well.
+  
+  The encrypted message is returned as a byte array.
+
+  Decrypting a message is done by calling NtruEncrypt.decrypt() which takes the
+  message, an EncryptionKeyPair containing the public and private keys, and the
+  encryption parameters. The parameters used for decrypting must be the same as
+  the ones used to encrypt the message; the same goes for the public key.
 
 
-Quick instructions for NTRUSign
+NtruSign Usage
+  
+  Signing a message is done by calling NtruSign.sign() which takes the following
+  parameters:
 
-- NtruSign.generateKeyPair() generates an encryption key pair
-- SignaturePrivateKey.getEncoded() and SignaturePublicKey.getEncoded() convert the generated keys to byte arrays
-- SignaturePrivateKey(byte[], SignatureParameters) and SignaturePublicKey(byte[], SignatureParameters) convert a byte array to a key
-- NtruSign.sign() and NtruSign.verify() for signing/verification
+    1. the message itself as a byte array. Strings can be signed after converting
+       them to byte[] via getBytes()
+    2. a SignatureKeyPair, which can be generated via NtruSign.generateKeyPair()
+       or an existing key pair can be reconstructed from a byte array using the
+       SignaturePrivateKey(byte[]) and SignaturePublicKey(byte[]).
+       Note: Depending on the parameters, it can take a minute or more to
+       generate a new key pair.
+    3. a SignatureParameters object representing the desired algorithm parameters.
+       It is recommended to use one of the predefined parameter sets which are
+       available as constants in SignatureParameters, but new ones can be
+       generated as well.
+  
+  The signature is returned as a byte array.
+
+  Verifying a message is done by calling NtruSign.verify() which takes the message,
+  the signature, the SignaturePublicKey, and the signature parameters. The
+  parameters used for verifying must be the same as the ones used to create the
+  signature; the same goes for the public key.
+
+
+Further reading
+
+  Original NTRUEncrypt paper: http://www.ntru.com/cryptolab/pdf/ANTS97.pdf
+  Original NTRUSign paper: http://www.math.brown.edu/~jpipher/NTRUSign_RSA.pdf
+  NTRU articles (technical and mathematical): http://www.securityinnovation.com/cryptolab/articles.shtml
+  Jeffrey Hoffstein et al: An Introduction to Mathematical Cryptography, Springer-Verlag, ISBN 978-0-387-77993-5
