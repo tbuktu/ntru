@@ -19,9 +19,9 @@
 package net.sf.ntru;
 
 public class SignatureParameters {
-    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.153, 60, 300, false, false);
-    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.089, 400, 1000, false, true);   // gives 128 bits of security
-    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.102, 405, 1900, true, false);   // gives 256 bits of security
+    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 150, 300, false, false);
+    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 1000, false, true);   // gives 128 bits of security
+    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 1900, true, false);   // gives 256 bits of security
     
     public enum BasisType {STANDARD, TRANSPOSE};
     

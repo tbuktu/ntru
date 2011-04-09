@@ -78,9 +78,7 @@ public class NtruSignTest {
         params.sparse = !params.sparse;
         
         // decrease NormBound to force multiple signing attempts
-        params.normBoundSq = Math.pow(48, 2);
-//        params.normBoundSq = Math.pow(183, 2);
-//        params.normBoundSq = Math.pow(320, 2);
+        params.normBoundSq = params.normBoundSq * 4 / 9;
         s = NtruSign.sign(msg, kp, params);
         valid = NtruSign.verify(msg, s, kp.pub, params);
         assertTrue(valid);
