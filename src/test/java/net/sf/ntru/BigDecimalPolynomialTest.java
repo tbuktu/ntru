@@ -19,6 +19,7 @@
 package net.sf.ntru;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
@@ -30,5 +31,18 @@ public class BigDecimalPolynomialTest {
         BigDecimalPolynomial b = new BigDecimalPolynomial(new BigIntPolynomial(new IntegerPolynomial(new int[] {-6, 0, 0, 13, 3, -2, -4, 10, 11, 2, -1})));
         BigDecimalPolynomial c = a.mult(b);
         assertArrayEquals(c.coeffs, new BigDecimalPolynomial(new BigIntPolynomial(new IntegerPolynomial(new int[] {2, -189, 77, 124, -29, 0, -75, 124, -49, 267, 34}))).coeffs);
+        
+        // multiply a polynomial by its inverse modulo 2048 and check that the result is 1
+        IntegerPolynomial d, dInv;
+        do {
+            d = DenseTernaryPolynomial.generateRandom(1001, 333, 334);
+            dInv = d.invertFq(2048);
+        } while (dInv == null);
+        d.mod(2048);
+        BigDecimalPolynomial e = new BigDecimalPolynomial(new BigIntPolynomial(d));
+        BigIntPolynomial f = new BigIntPolynomial(dInv);
+        IntegerPolynomial g = new IntegerPolynomial(e.mult(f).round());
+        g.modPositive(2048);
+        assertTrue(g.equalsOne());
     }
 }

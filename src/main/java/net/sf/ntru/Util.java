@@ -18,6 +18,11 @@
 
 package net.sf.ntru;
 
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 public class Util {
 
     /** Calculates the inverse of n mod modulus */
@@ -34,5 +39,30 @@ public class Util {
         for (int i=0; i<b; i++)
             p = (p*a) % modulus;
         return p;
+    }
+    
+    static TernaryPolynomial generateRandomTernary(int N, int numOnes, int numNegOnes, boolean sparse) {
+        if (sparse)
+            return SparseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes);
+        else
+            return DenseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes);
+    }
+    
+    // Generates an array containing numOnes ints equal to 1,
+    // numNegOnes int equal to -1, and the rest equal to 0.
+    static int[] generateRandomTernary(int N, int numOnes, int numNegOnes) {
+        List<Integer> list = new ArrayList<Integer>();
+        for (int i=0; i<numOnes; i++)
+            list.add(1);
+        for (int i=0; i<numNegOnes; i++)
+            list.add(-1);
+        while (list.size() < N)
+            list.add(0);
+        Collections.shuffle(list, new SecureRandom());
+        
+        int[] arr = new int[N];
+        for (int i=0; i<N; i++)
+            arr[i] = list.get(i);
+        return arr;
     }
 }

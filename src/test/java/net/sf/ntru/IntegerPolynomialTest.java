@@ -75,7 +75,7 @@ public class IntegerPolynomialTest {
         // test 3 random polynomials
         int numInvertible = 0;
         while (numInvertible < 3) {
-            a = IntegerPolynomial.generateRandom(853);
+            a = DenseTernaryPolynomial.generateRandom(853);
             b = a.invertFq(2048);
             if (b != null) {
                 numInvertible++;
@@ -147,7 +147,7 @@ public class IntegerPolynomialTest {
         assertArrayEquals(poly5.coeffs, poly6.coeffs);
 
         for(int i=0; i<100; i++){
-            IntegerPolynomial poly7 = IntegerPolynomial.generateRandom(157);
+            IntegerPolynomial poly7 = DenseTernaryPolynomial.generateRandom(157);
             arr = poly7.toBinary3Arith();
             IntegerPolynomial poly8 = IntegerPolynomial.fromBinary3Arith(arr, 157);
             assertArrayEquals(poly7.coeffs, poly8.coeffs);
@@ -156,8 +156,8 @@ public class IntegerPolynomialTest {
     
     @Test
     public void testResultant() {
-        SignatureParameters params = SignatureParameters.MAR2011_439;
-        IntegerPolynomial a = IntegerPolynomial.generateRandomSmall(params.N, params.d, params.d);
+        SignatureParameters params = SignatureParameters.APR2011_439;
+        IntegerPolynomial a = DenseTernaryPolynomial.generateRandom(params.N, params.d, params.d);
         verifyResultant(a, a.resultant());
         
         a = new IntegerPolynomial(new int[] {0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 0, 1, -1, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1, -1, 0, -1, 1, -1, 0, -1, 0, -1, -1, -1, 0, 0, 0, 1, 1, -1, -1, -1, 0, -1, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 1, 1, -1, 0, 1, -1, 0, 1, 0, 1, 0, -1, -1, 0, 1, 0, -1, 1, 1, 1, 1, 0, 0, -1, -1, 1, 0, 0, -1, -1, 0, -1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 1, 0, 1, 0, 1, -1, 0, 0, 1, 1, 1, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, -1, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, -1, -1, 0, -1, -1, 1, 1, 0, 0, -1, 1, 0, 0, 0, -1, 1, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 0, 0, -1, 1, 1, 0, 0, -1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, -1, 0, 1, 0, -1, -1, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 1, -1, 1, -1, -1, 1, -1, 0, 1, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, -1, 0, 1, -1, 0, 0, 1, 1, 0, 0, 1, 1, 0, -1, 0, -1, 1, -1, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, 1, -1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, 0, -1, -1, 0, 0, -1, 0, 1, 1, -1, 1, -1, 0, 0, 0, 1});
@@ -185,7 +185,7 @@ public class IntegerPolynomialTest {
         verifyResultant(a, a.resultant(p), p);
         
         for (int i=0; i<10; i++) {
-            a = IntegerPolynomial.generateRandom(853);
+            a = DenseTernaryPolynomial.generateRandom(853);
             verifyResultant(a, a.resultant(p), p);
         }
     }

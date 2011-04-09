@@ -40,7 +40,7 @@ public class NtruSignTest {
         rng.nextBytes(msg);
         
         // sign and verify
-        byte[] s = NtruSign.sign(msg, kp.priv, kp.pub, params);
+        byte[] s = NtruSign.sign(msg, kp, params);
         boolean valid = NtruSign.verify(msg, s, kp.pub, params);
         assertTrue(valid);
         
@@ -58,7 +58,7 @@ public class NtruSignTest {
         SignaturePrivateKey priv = new SignaturePrivateKey(kp.priv.getEncoded(), params);
         SignaturePublicKey pub = new SignaturePublicKey(kp.pub.getEncoded(), params);
         kp = new SignatureKeyPair(priv, pub);
-        s = NtruSign.sign(msg, kp.priv, kp.pub, params);
+        s = NtruSign.sign(msg, kp, params);
         valid = NtruSign.verify(msg, s, kp.pub, params);
         assertTrue(valid);
         
@@ -67,11 +67,21 @@ public class NtruSignTest {
         valid = NtruSign.verify(msg, s, kp.pub, params);
         assertFalse(valid);
         
+        // sparse/dense
+        params.sparse = !params.sparse;
+        s = NtruSign.sign(msg, kp, params);
+        valid = NtruSign.verify(msg, s, kp.pub, params);
+        assertTrue(valid);
+        s[rng.nextInt(s.length)] += 1;
+        valid = NtruSign.verify(msg, s, kp.pub, params);
+        assertFalse(valid);
+        params.sparse = !params.sparse;
+        
         // decrease NormBound to force multiple signing attempts
-        params.normBoundSq = Math.pow(45, 2);
+        params.normBoundSq = Math.pow(48, 2);
 //        params.normBoundSq = Math.pow(183, 2);
 //        params.normBoundSq = Math.pow(320, 2);
-        s = NtruSign.sign(msg, kp.priv, kp.pub, params);
+        s = NtruSign.sign(msg, kp, params);
         valid = NtruSign.verify(msg, s, kp.pub, params);
         assertTrue(valid);
     }

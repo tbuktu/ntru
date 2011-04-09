@@ -64,12 +64,12 @@ public class SignaturePrivateKey {
     }
     
     static class Basis {
-        IntegerPolynomial f;
+        TernaryPolynomial f;
         IntegerPolynomial fPrime;
         IntegerPolynomial h;
         SignatureParameters params;
         
-        Basis(IntegerPolynomial f, IntegerPolynomial fPrime, IntegerPolynomial h, SignatureParameters params) {
+        Basis(TernaryPolynomial f, IntegerPolynomial fPrime, IntegerPolynomial h, SignatureParameters params) {
             this.f = f;
             this.fPrime = fPrime;
             this.h = h;
@@ -79,9 +79,11 @@ public class SignaturePrivateKey {
         Basis(ByteBuffer buf, SignatureParameters params, boolean include_h) {
             int N = params.N;
             int q = params.q;
+            boolean sparse = params.sparse;
             this.params = params;
             
-            f = IntegerPolynomial.fromBinary3Arith(buf, N);
+            IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(buf, N);
+            f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
             if (params.basisType == BasisType.STANDARD) {
                 fPrime = IntegerPolynomial.fromBinary(buf, N, q);
                 for (int i=0; i<fPrime.coeffs.length; i++)
@@ -96,7 +98,7 @@ public class SignaturePrivateKey {
         void encode(OutputStream os, boolean include_h) throws IOException {
             int q = params.q;
             
-            os.write(f.toBinary3Arith());
+            os.write(f.toIntegerPolynomial().toBinary3Arith());
             if (params.basisType == BasisType.STANDARD) {
                 for (int i=0; i<fPrime.coeffs.length; i++)
                     fPrime.coeffs[i] += q/2;

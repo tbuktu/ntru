@@ -23,10 +23,8 @@ import static java.math.BigInteger.ZERO;
 
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -296,84 +294,71 @@ class IntegerPolynomial {
         return data;
     }
     
-    // Generates a random polynomial with numOnes coefficients equal to 1,
-    // numNegOnes coefficients equal to -1, and the rest equal to 0.
-    static IntegerPolynomial generateRandomSmall(int N, int numOnes, int numNegOnes) {
-        List<Integer> coeffs = new ArrayList<Integer>();
-        for (int i=0; i<numOnes; i++)
-            coeffs.add(1);
-        for (int i=0; i<numNegOnes; i++)
-            coeffs.add(-1);
-        while (coeffs.size() < N)
-            coeffs.add(0);
-        Collections.shuffle(coeffs, new SecureRandom());
-        
-        IntegerPolynomial poly = new IntegerPolynomial(N);
-        for (int i=0; i<coeffs.size(); i++)
-            poly.coeffs[i] = coeffs.get(i);
-        return poly;
-    }
-    
-    static IntegerPolynomial generateRandom(int N) {
-        SecureRandom rng = new SecureRandom();
-        IntegerPolynomial poly = new IntegerPolynomial(N);
-        for (int i=0; i<N; i++)
-            poly.coeffs[i] = rng.nextInt(3) - 1;
-        return poly;
-    }
-    
     /** Multiplies the polynomial with another, taking the values mod modulus and the indices mod N */
-    // XXX Not the most efficient alg
-    IntegerPolynomial mult(IntegerPolynomial poly2, int modulus) {
-        int[] a = coeffs;
-        int[] b = poly2.coeffs;
-        if (b.length != a.length)
-            throw new RuntimeException("Number of coefficients must be the same");
-        int N = a.length;
-        int[] c = new int[N];
-        
-        for(int k=N-1; k>=0; k--)
-        {
-            c[k] = 0;
-            int j = k + 1;
-            for(int i=N-1; i>=0; i--)
-            {
-                if(j == N)
-                    j = 0;
-                if(a[i]!=0 && b[j]!=0) {
-                    c[k] += a[i] * b[j];
-                    c[k] %= modulus;
-                }
-                j++;
-            }
-        }
-        return new IntegerPolynomial(c);
+    public IntegerPolynomial mult(IntegerPolynomial poly2, int modulus) {
+        IntegerPolynomial c = mult(poly2);
+        c.mod(modulus);
+        return c;
     }
     
     /** Multiplies the polynomial with another, taking the indices mod N */
-    // XXX Not the most efficient alg
-    IntegerPolynomial mult(IntegerPolynomial poly2) {
+    public IntegerPolynomial mult(IntegerPolynomial poly2) {
+        int N = coeffs.length;
+        if (poly2.coeffs.length != N)
+            throw new RuntimeException("Number of coefficients must be the same");
+        
+        IntegerPolynomial c = multRecursive(poly2);
+        
+        if (c.coeffs.length > N) {
+            for (int k=N; k<c.coeffs.length; k++)
+                c.coeffs[k-N] += c.coeffs[k];
+            c.coeffs = Arrays.copyOf(c.coeffs, N);
+        }
+        return c;
+    }
+    
+    /** Karazuba multiplication */
+    private IntegerPolynomial multRecursive(IntegerPolynomial poly2) {
         int[] a = coeffs;
         int[] b = poly2.coeffs;
-        if (b.length != a.length)
-            throw new RuntimeException("Number of coefficients must be the same");
-        int N = a.length;
-        int[] c = new int[N];
         
-        for(int k=N-1; k>=0; k--)
-        {
-            c[k] = 0;
-            int j = k + 1;
-            for(int i=N-1; i>=0; i--)
-            {
-                if(j == N)
-                    j = 0;
-                if(a[i]!=0 && b[j]!=0)
-                    c[k] += a[i] * b[j];
-                j++;
-            }
+        int n = poly2.coeffs.length;
+        if (n <= 32) {
+            int cn = 2 * n - 1;
+            IntegerPolynomial c = new IntegerPolynomial(new int[cn]);
+            for (int k=0; k<cn; k++)
+                for (int i=Math.max(0, k-n+1); i<=Math.min(k,n-1); i++)
+                    c.coeffs[k] += b[i] * a[k-i];
+            return c;
         }
-        return new IntegerPolynomial(c);
+        else {
+            int n1 = n / 2;
+            
+            IntegerPolynomial a1 = new IntegerPolynomial(Arrays.copyOf(a, n1));
+            IntegerPolynomial a2 = new IntegerPolynomial(Arrays.copyOfRange(a, n1, n));
+            IntegerPolynomial b1 = new IntegerPolynomial(Arrays.copyOf(b, n1));
+            IntegerPolynomial b2 = new IntegerPolynomial(Arrays.copyOfRange(b, n1, n));
+            
+            IntegerPolynomial A = a1.clone();
+            A.add(a2);
+            IntegerPolynomial B = b1.clone();
+            B.add(b2);
+            
+            IntegerPolynomial c1 = a1.multRecursive(b1);
+            IntegerPolynomial c2 = a2.multRecursive(b2);
+            IntegerPolynomial c3 = A.multRecursive(B);
+            c3.sub(c1);
+            c3.sub(c2);
+            
+            IntegerPolynomial c = new IntegerPolynomial(2*n-1);
+            for (int i=0; i<c1.coeffs.length; i++)
+                c.coeffs[i] = c1.coeffs[i];
+            for (int i=0; i<c3.coeffs.length; i++)
+                c.coeffs[n1+i] += c3.coeffs[i];
+            for (int i=0; i<c2.coeffs.length; i++)
+                c.coeffs[2*n1+i] += c2.coeffs[i];
+            return c;
+        }
     }
     
     // Computes the inverse mod q; q must be a power of 2.
@@ -844,7 +829,7 @@ class IntegerPolynomial {
         return count;
     }
     
-   void clear() {
+   public void clear() {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] = 0;
     }

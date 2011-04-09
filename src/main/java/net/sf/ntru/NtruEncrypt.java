@@ -34,23 +34,25 @@ public class NtruEncrypt {
         int q = params.q;
         int df = params.df;
         int dg = params.dg;
+        boolean sparse = params.sparse;
         
         IntegerPolynomial f = null;
         IntegerPolynomial fp = null;
         IntegerPolynomial fq = null;
         do {
-            f = IntegerPolynomial.generateRandomSmall(N, df, df-1);
+            f = Util.generateRandomTernary(N, df, df-1, sparse).toIntegerPolynomial();
             fp = f.invertF3();
             fq = f.invertFq(q);
         } while (fp==null || fq==null);   // repeat until f is invertible
-        SparseTernaryPolynomial g = SparseTernaryPolynomial.generateRandom(N, dg, dg);
+        TernaryPolynomial g = Util.generateRandomTernary(N, dg, dg, sparse);
         IntegerPolynomial h = g.mult(fq, q);
         h.mult3(q);
         h.ensurePositive(q);
         g.clear();
         fq.clear();
         
-        EncryptionPrivateKey priv = new EncryptionPrivateKey(new SparseTernaryPolynomial(f), params);
+        TernaryPolynomial fTer = sparse ? new SparseTernaryPolynomial(f) : new DenseTernaryPolynomial(f);
+        EncryptionPrivateKey priv = new EncryptionPrivateKey(fTer, params);
         EncryptionPublicKey pub = new EncryptionPublicKey(h, params);
         return new EncryptionKeyPair(priv, pub);
     }
@@ -105,7 +107,7 @@ public class NtruEncrypt {
             sDataBuffer.put(hTrunc);
             byte[] sData = sDataBuffer.array();
             
-            SparseTernaryPolynomial r = generateBlindingPoly(sData, M, params);
+            TernaryPolynomial r = generateBlindingPoly(sData, M, params);
             IntegerPolynomial R = r.mult(pub, q);
             IntegerPolynomial R4 = R.clone();
             R4.modPositive(4);
@@ -127,16 +129,17 @@ public class NtruEncrypt {
         }
     }
     
-    static IntegerPolynomial encrypt(IntegerPolynomial m, SparseTernaryPolynomial r, IntegerPolynomial pubKey, EncryptionParameters params) {
+    static IntegerPolynomial encrypt(IntegerPolynomial m, TernaryPolynomial r, IntegerPolynomial pubKey, EncryptionParameters params) {
         IntegerPolynomial e = r.mult(pubKey, params.q);
         e.add(m, params.q);
         e.ensurePositive(params.q);
         return e;
     }
     
-    private static SparseTernaryPolynomial generateBlindingPoly(byte[] seed, byte[] M, EncryptionParameters params) throws NoSuchAlgorithmException {
+    private static TernaryPolynomial generateBlindingPoly(byte[] seed, byte[] M, EncryptionParameters params) throws NoSuchAlgorithmException {
         int N = params.N;
         int dr = params.dr;
+        boolean sparse = params.sparse;
         
         int[] r = new int[N];
         IndexGenerator ig = new IndexGenerator(seed, params);
@@ -150,7 +153,11 @@ public class NtruEncrypt {
                 }
             }
         }
-        return new SparseTernaryPolynomial(new IntegerPolynomial(r));
+        
+        if (sparse)
+            return new SparseTernaryPolynomial(r);
+        else
+            return new DenseTernaryPolynomial(r);
     }
     
     // XXX verify this correctly implements MGF-TP-1
@@ -172,7 +179,7 @@ public class NtruEncrypt {
     }
 
     public static byte[] decrypt(byte[] data, EncryptionKeyPair kp, EncryptionParameters params) throws NoSuchAlgorithmException {
-        SparseTernaryPolynomial priv_f = kp.priv.f;
+        TernaryPolynomial priv_f = kp.priv.f;
         IntegerPolynomial priv_fp = kp.priv.fp;
         IntegerPolynomial pub = kp.pub.h;
         int N = params.N;
@@ -232,7 +239,7 @@ public class NtruEncrypt {
         sDataBuffer.put(hTrunc);
         byte[] sData = sDataBuffer.array();
         
-        SparseTernaryPolynomial cr = generateBlindingPoly(sData, cm, params);
+        TernaryPolynomial cr = generateBlindingPoly(sData, cm, params);
         IntegerPolynomial cRPrime = cr.mult(pub, q);
         if (cRPrime.equals(cr))
             throw new RuntimeException("Invalid message encoding");
@@ -240,7 +247,7 @@ public class NtruEncrypt {
         return cm;
     }
     
-    static IntegerPolynomial decrypt(IntegerPolynomial e, SparseTernaryPolynomial priv_f, IntegerPolynomial priv_fp, EncryptionParameters params) {
+    static IntegerPolynomial decrypt(IntegerPolynomial e, TernaryPolynomial priv_f, IntegerPolynomial priv_fp, EncryptionParameters params) {
         IntegerPolynomial a = priv_f.mult(e, params.q);
         a.center0(params.q);
         a.mod3();

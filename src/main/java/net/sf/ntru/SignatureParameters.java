@@ -19,9 +19,9 @@
 package net.sf.ntru;
 
 public class SignatureParameters {
-    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.153, 60, 300, false);
-    public static final SignatureParameters MAR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.089, 400, 1000, false);   // gives 128 bits of security
-    public static final SignatureParameters MAR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.102, 405, 1900, true);   // gives 256 bits of security
+    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.153, 60, 300, false, false);
+    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.089, 400, 1000, false, true);   // gives 128 bits of security
+    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.102, 405, 1900, true, false);   // gives 256 bits of security
     
     public enum BasisType {STANDARD, TRANSPOSE};
     
@@ -31,8 +31,9 @@ public class SignatureParameters {
     boolean primeCheck;   // true if N and 2N+1 are prime
     BasisType basisType;
     int bitsF = 6;   // max #bits needed to encode one coefficient of the polynomial F
+    boolean sparse;   // whether to treat ternary polynomials as sparsely populated
     
-    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, int keyGenerationDecimalPlaces, boolean primeCheck) {
+    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, int keyGenerationDecimalPlaces, boolean primeCheck, boolean sparse) {
         this.N = N;
         this.q = q;
         this.d = d;
@@ -42,5 +43,6 @@ public class SignatureParameters {
         this.normBoundSq = normBound * normBound;
         this.keyGenerationDecimalPlaces = keyGenerationDecimalPlaces;
         this.primeCheck = primeCheck;
+        this.sparse = sparse;
     }
 }

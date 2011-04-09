@@ -24,15 +24,19 @@ import org.junit.Test;
 
 public class SparseTernaryPolynomialTest {
     
+    /** tests mult(IntegerPolynomial) and mult(BigIntPolynomial) */
     @Test
     public void testMult() {
-        IntegerPolynomial p1Int = IntegerPolynomial.generateRandomSmall(1000, 500, 500);
-        SparseTernaryPolynomial p1 = new SparseTernaryPolynomial(p1Int);
-        IntegerPolynomial p2 = IntegerPolynomial.generateRandom(1000);
+        SparseTernaryPolynomial p1 = SparseTernaryPolynomial.generateRandom(1000, 500, 500);
+        IntegerPolynomial p2 = DenseTernaryPolynomial.generateRandom(1000);
         
-        IntegerPolynomial prod1 = p1Int.mult(p2);
-        prod1 = p1Int.mult(p2);
+        IntegerPolynomial prod1 = p1.mult(p2);
+        prod1 = p1.mult(p2);
         IntegerPolynomial prod2 = p1.mult(p2);
         assertArrayEquals(prod1.coeffs, prod2.coeffs);
+        
+        BigIntPolynomial p3 = new BigIntPolynomial(p2);
+        BigIntPolynomial prod3 = p1.mult(p3);
+        assertArrayEquals(new BigIntPolynomial(prod1).coeffs, prod3.coeffs);
     }
 }

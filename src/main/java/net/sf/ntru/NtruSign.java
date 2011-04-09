@@ -74,7 +74,7 @@ public class NtruSign {
         return kp;
     }
 
-    public static byte[] sign(byte[] m, SignaturePrivateKey priv, SignaturePublicKey pub, SignatureParameters params) {
+    public static byte[] sign(byte[] m, SignatureKeyPair kp, SignatureParameters params) {
         int r = 0;
         IntegerPolynomial s;
         IntegerPolynomial i;
@@ -85,8 +85,8 @@ public class NtruSign {
             } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }
-            s = sign(i, priv, pub, params);
-        } while (!verify(i, s, pub.h, params));
+            s = sign(i, kp, params);
+        } while (!verify(i, s, kp.pub.h, params));
 
         byte[] rawSig = s.toBinary(params.q);
         ByteBuffer sbuf = ByteBuffer.allocate(rawSig.length + 4);
@@ -95,7 +95,7 @@ public class NtruSign {
         return sbuf.array();
     }
     
-    static IntegerPolynomial sign(IntegerPolynomial i, SignaturePrivateKey priv, SignaturePublicKey pub, SignatureParameters params) {
+    private static IntegerPolynomial sign(IntegerPolynomial i, SignatureKeyPair kp, SignatureParameters params) {
         int N = params.N;
         int q = params.q;
         int perturbationBases = params.B;
@@ -103,41 +103,41 @@ public class NtruSign {
         IntegerPolynomial s = new IntegerPolynomial(N);
         int iLoop = perturbationBases;
         while (iLoop >= 1) {
-            IntegerPolynomial f = priv.getBasis(iLoop).f;
-            IntegerPolynomial fPrime = priv.getBasis(iLoop).fPrime;
+            TernaryPolynomial f = kp.priv.getBasis(iLoop).f;
+            IntegerPolynomial fPrime = kp.priv.getBasis(iLoop).fPrime;
             
-            IntegerPolynomial y = i.mult(f);
+            IntegerPolynomial y = f.mult(i);
             y.div(q);
             y = y.mult(fPrime);
             
             IntegerPolynomial x = i.mult(fPrime);
             x.div(q);
-            x = x.mult(f);
+            x = f.mult(x);
 
             IntegerPolynomial si = y;
             si.sub(x);
             s.add(si);
             
-            IntegerPolynomial hi = priv.getBasis(iLoop).h.clone();
+            IntegerPolynomial hi = kp.priv.getBasis(iLoop).h.clone();
             if (iLoop > 1)
-                hi.sub(priv.getBasis(iLoop-1).h);
+                hi.sub(kp.priv.getBasis(iLoop-1).h);
             else
-                hi.sub(pub.h);
+                hi.sub(kp.pub.h);
             i = si.mult(hi, q);
             
             iLoop--;
         }
         
-        IntegerPolynomial f = priv.getBasis(0).f;
-        IntegerPolynomial fPrime = priv.getBasis(0).fPrime;
+        TernaryPolynomial f = kp.priv.getBasis(0).f;
+        IntegerPolynomial fPrime = kp.priv.getBasis(0).fPrime;
         
-        IntegerPolynomial y = i.mult(f);
+        IntegerPolynomial y = f.mult(i);
         y.div(q);
         y = y.mult(fPrime);
         
         IntegerPolynomial x = i.mult(fPrime);
         x.div(q);
-        x = x.mult(f);
+        x = f.mult(x);
 
         y.sub(x);
         s.add(y);
@@ -225,7 +225,7 @@ public class NtruSign {
         BasisType basisType = params.basisType;
         int decimalPlaces = params.keyGenerationDecimalPlaces;
         
-        IntegerPolynomial f;
+        DenseTernaryPolynomial f;
         IntegerPolynomial g;
         IntegerPolynomial fq;
         Resultant rf;
@@ -236,14 +236,14 @@ public class NtruSign {
         boolean primeCheck = params.primeCheck;
         
         do {
-            f = IntegerPolynomial.generateRandomSmall(N, d+1, d);
+            f = DenseTernaryPolynomial.generateRandom(N, d+1, d);
             fq = f.invertFq(q);
         } while (fq == null);
         rf = f.resultant();
         
         do {
             do {
-                g = IntegerPolynomial.generateRandomSmall(N, d+1, d);
+                g = DenseTernaryPolynomial.generateRandom(N, d+1, d);
             } while (primeCheck && f.resultant(_2n1).res.equals(ZERO) && g.resultant(_2n1).res.equals(ZERO));
             rg = g.resultant();
             r = BigIntEuclidean.calculate(rf.res, rg.res);
@@ -263,9 +263,12 @@ public class NtruSign {
         BigIntPolynomial C = Cdec.round();
         
         BigIntPolynomial F = B.clone();
-        F.sub(C.mult(f));
+        // always use sparse multiplication here
+        TernaryPolynomial fTer = new SparseTernaryPolynomial(f);
+        F.sub(fTer.mult(C));
         BigIntPolynomial G = A.clone();
-        G.sub(C.mult(g));
+        TernaryPolynomial gTer = new SparseTernaryPolynomial(g);
+        G.sub(gTer.mult(C));
 
         if (!equalsQ(f, g, F, G, q, N))
             throw new RuntimeException("this shouldn't happen");
@@ -282,7 +285,7 @@ public class NtruSign {
         }
         h.modPositive(q);
         
-        return new Basis(f, fPrime, h, params);
+        return new Basis(fTer, fPrime, h, params);
     }
     
     // verifies that f*G-g*F=q

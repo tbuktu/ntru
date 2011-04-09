@@ -20,10 +20,10 @@ package net.sf.ntru;
 
 public class EncryptionPrivateKey {
     private EncryptionParameters params;
-    SparseTernaryPolynomial f;
+    TernaryPolynomial f;
     IntegerPolynomial fp;
 
-    EncryptionPrivateKey(SparseTernaryPolynomial f, EncryptionParameters params) {
+    EncryptionPrivateKey(TernaryPolynomial f, EncryptionParameters params) {
         this.f = f;
         this.params = params;
         fp = f.toIntegerPolynomial().invertF3();

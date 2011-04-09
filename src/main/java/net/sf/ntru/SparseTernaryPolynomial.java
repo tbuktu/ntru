@@ -18,22 +18,27 @@
 
 package net.sf.ntru;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 
 /** a "sparsely populated" polynomial whose non-zero coefficients are all equal to -1 or 1 */
-public class SparseTernaryPolynomial {
+public class SparseTernaryPolynomial implements TernaryPolynomial {
     private int N;
     private int[] ones;
     private int[] negOnes;
     
     SparseTernaryPolynomial(IntegerPolynomial intPoly) {
-        N = intPoly.coeffs.length;
+        this(intPoly.coeffs);
+    }
+    
+    SparseTernaryPolynomial(int[] coeffs) {
+        N = coeffs.length;
         ones = new int[N];
         negOnes = new int[N];
         int onesIdx = 0;
         int negOnesIdx = 0;
         for (int i=0; i<N; i++) {
-            int c = intPoly.coeffs[i];
+            int c = coeffs[i];
             switch(c) {
             case 1:
                 ones[onesIdx++] = i; break;
@@ -50,12 +55,13 @@ public class SparseTernaryPolynomial {
     }
     
     static SparseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes) {
-        IntegerPolynomial intPoly = IntegerPolynomial.generateRandomSmall(N, numOnes, numNegOnes);
-        return new SparseTernaryPolynomial(intPoly);
+        int[] coeffs = Util.generateRandomTernary(N, numOnes, numNegOnes);
+        return new SparseTernaryPolynomial(coeffs);
     }
     
     /** Multiplies the polynomial by an IntegerPolynomial, taking the indices mod N */
-    IntegerPolynomial mult(IntegerPolynomial poly2) {
+    @Override
+    public IntegerPolynomial mult(IntegerPolynomial poly2) {
         int[] b = poly2.coeffs;
         if (b.length != N)
             throw new RuntimeException("Number of coefficients must be the same");
@@ -85,17 +91,27 @@ public class SparseTernaryPolynomial {
     }
     
     /** Multiplies the polynomial by an IntegerPolynomial, taking the values mod modulus and the indices mod N */
-    IntegerPolynomial mult(IntegerPolynomial poly2, int modulus) {
-        int[] b = poly2.coeffs;
+    @Override
+    public IntegerPolynomial mult(IntegerPolynomial poly2, int modulus) {
+        IntegerPolynomial c = mult(poly2);
+        c.mod(modulus);
+        return c;
+    }
+
+    @Override
+    public BigIntPolynomial mult(BigIntPolynomial poly2) {
+        BigInteger[] b = poly2.coeffs;
         if (b.length != N)
             throw new RuntimeException("Number of coefficients must be the same");
         
-        int[] c = new int[N];
+        BigInteger[] c = new BigInteger[N];
+        for (int i=0; i<N; i++)
+            c[i] = BigInteger.ZERO;
+        
         for (int i: ones) {
             int j = N - 1 - i;
             for(int k=N-1; k>=0; k--) {
-                c[k] += b[j];
-                c[k] %= modulus;
+                c[k] = c[k].add(b[j]);
                 j--;
                 if (j < 0)
                     j = N - 1;
@@ -105,18 +121,18 @@ public class SparseTernaryPolynomial {
         for (int i: negOnes) {
             int j = N - 1 - i;
             for(int k=N-1; k>=0; k--) {
-                c[k] -= b[j];
-                c[k] %= modulus;
+                c[k] = c[k].subtract(b[j]);
                 j--;
                 if (j < 0)
                     j = N - 1;
             }
         }
         
-        return new IntegerPolynomial(c);
+        return new BigIntPolynomial(c);
     }
     
-    IntegerPolynomial toIntegerPolynomial() {
+    @Override
+    public IntegerPolynomial toIntegerPolynomial() {
         int[] coeffs = new int[N];
         for (int i: ones)
             coeffs[i] = 1;
@@ -125,7 +141,8 @@ public class SparseTernaryPolynomial {
         return new IntegerPolynomial(coeffs);
     }
     
-    void clear() {
+    @Override
+    public void clear() {
         for (int i=0; i<ones.length; i++)
             ones[i] = 0;
         for (int i=0; i<negOnes.length; i++)
