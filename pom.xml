@@ -4,10 +4,17 @@
   <groupId>net.sf.ntru</groupId>
   <artifactId>ntru</artifactId>
   <packaging>jar</packaging>
-  <version>0.4</version>
+  <version>0.4-SNAPSHOT</version>
   <name>NTRU</name>
   <description>Java implementation of NTRUEncrypt and NTRUSign</description>
   <url>http://sourceforge.net/projects/ntru/</url>
+
+  <parent>
+    <groupId>org.sonatype.oss</groupId>
+    <artifactId>oss-parent</artifactId>
+    <version>7</version>
+  </parent>
+
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
@@ -16,11 +23,20 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+
   <licenses>
     <license>
       <name>Non-Profit OSL 3.0</name>
     </license>
   </licenses>
+
+  <developers>
+    <developer>
+      <id>tbuktu</id>
+      <name>Tim Buktu</name>
+    </developer>
+  </developers>
+
   <build>
     <plugins>
       <plugin>
@@ -31,6 +47,7 @@
           <target>1.6</target>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-resources-plugin</artifactId>
@@ -38,10 +55,12 @@
           <encoding>UTF-8</encoding>
         </configuration>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-gpg-plugin</artifactId>
@@ -55,6 +74,52 @@
           </execution>
         </executions>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-source-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
+
+  <scm>
+    <connection>scm:git:git://github.com/tbuktu/ntru.git</connection>
+    <developerConnection>scm:git:git://github.com/tbuktu/ntru.git</developerConnection>
+    <url>http://github.com/tbuktu/ntru/</url>
+  </scm>
+
+  <distributionManagement>
+    <snapshotRepository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+    </snapshotRepository>
+
+    <repository>
+      <id>sonatype-nexus-staging</id>
+      <name>Nexus Release Repository</name>
+      <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+    </repository>
+  </distributionManagement>
 </project>
