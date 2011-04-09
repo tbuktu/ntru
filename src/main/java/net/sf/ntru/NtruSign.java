@@ -270,22 +270,78 @@ public class NtruSign {
         TernaryPolynomial gTer = new SparseTernaryPolynomial(g);
         G.sub(gTer.mult(C));
 
+        IntegerPolynomial FInt=new IntegerPolynomial(F);
+        IntegerPolynomial GInt=new IntegerPolynomial(G);
+        minimizeFG(f, g, FInt, GInt, N);
+        
         if (!equalsQ(f, g, F, G, q, N))
             throw new RuntimeException("this shouldn't happen");
         
         IntegerPolynomial fPrime;
         IntegerPolynomial h;
         if (basisType == BasisType.STANDARD) {
-            fPrime = new IntegerPolynomial(F);
+            fPrime = FInt;
             h = g.mult(fq, q);
         }
         else {
             fPrime = g;
-            h = new IntegerPolynomial(F).mult(fq, q);
+            h = FInt.mult(fq, q);
         }
         h.modPositive(q);
         
         return new Basis(fTer, fPrime, h, params);
+    }
+    
+    /**
+     * Implementation of the optional steps 20 through 26 in EESS1v2.pdf, section 3.5.1.1.
+     * This doesn't seem to have much of an effect, and sometimes actually increases the
+     * norm of F, but on average it slightly reduces the norm.
+     * @param params
+     * @return
+     */
+    private static void minimizeFG(IntegerPolynomial f, IntegerPolynomial g, IntegerPolynomial F, IntegerPolynomial G, int N) {
+        int E = 0;
+        for (int j=0; j<N; j++)
+            E += 2 * N * (f.coeffs[j]*f.coeffs[j] + g.coeffs[j]*g.coeffs[j]);
+        
+        // [f(1)+g(1)]^2 = 4
+        E -= 4;
+        
+        IntegerPolynomial u = f.clone();
+        IntegerPolynomial v = g.clone();
+        int j = 0;
+        int k = 0;
+        int maxAdjustment = N;
+        while (k<maxAdjustment && j<N) {
+            int D = 0;
+            int i = 0;
+            while (i < N) {
+                int D1 = F.coeffs[i] * f.coeffs[i];
+                int D2 = G.coeffs[i] * g.coeffs[i];
+                int D3 = 4 * N * (D1+D2);
+                D += D3;
+                i++;
+            }
+            // f(1)+g(1) = 2
+            int D1 = 4 * (F.sumCoeffs() + G.sumCoeffs());
+            D -= D1;
+            
+            if (D > E) {
+                F.sub(u);
+                G.sub(v);
+                k++;
+                j = 0;
+            }
+            else if (D < -E) {
+                F.add(u);
+                G.add(v);
+                k++;
+                j = 0;
+            }
+            j++;
+            u.rotate1();
+            v.rotate1();
+        }
     }
     
     // verifies that f*G-g*F=q

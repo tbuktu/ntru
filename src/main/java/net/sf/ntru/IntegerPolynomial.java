@@ -829,6 +829,14 @@ class IntegerPolynomial {
         return count;
     }
     
+    // multiplication by X in Z[X]/Z[X^n-1]
+    void rotate1() {
+        int clast = coeffs[coeffs.length-1];
+        for (int i=coeffs.length-1; i>0; i--)
+            coeffs[i] = coeffs[i-1];
+        coeffs[0] = clast;
+    }
+    
    public void clear() {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] = 0;
