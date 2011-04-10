@@ -17,28 +17,44 @@ The NTRU cryptosystem
 
 NtruEncrypt Usage
 
-  Encrypting a message is done by calling NtruSign.sign() which takes the
-  following parameters:
+  The first step is always to create an NtruEncrypt instance by calling the
+  constructor with an EncryptionParameters object representing the desired
+  algorithm parameters.
+  It is recommended to use one of the predefined parameter sets which are
+  available as constants in EncryptionParameters, but new ones can be created
+  as well.
+  
+  After an NtruEncrypt instance has been created, it can be used to generate
+  new key pairs, and encrypt / decrypt messages.
+  
+  Encrypting a message is done by calling encrypt() which takes the following
+  parameters:
 
     1. the message itself as a byte array. Strings can be encrypted after
        converting them to byte[] via getBytes()
     2. an EncryptionPublicKey, which can be generated via
        NtruEncrypt.generateKeyPair() or an existing key can be reconstructed
        from a byte array by calling new EncryptionPublicKey(byte[])
-    3. a EncryptionParameters object representing the desired algorithm parameters.
-       It is recommended to use one of the predefined parameter sets which are
-       available as constants in EncryptionParameters, but new ones can be
-       generated as well.
   
   The encrypted message is returned as a byte array.
 
-  Decrypting a message is done by calling NtruEncrypt.decrypt() which takes the
-  message, an EncryptionKeyPair containing the public and private keys, and the
+  Decrypting a message is done by calling decrypt() which takes the message,
+  an EncryptionKeyPair containing the public and private keys, and the
   encryption parameters. The parameters used for decrypting must be the same as
   the ones used to encrypt the message; the same goes for the public key.
 
 
 NtruSign Usage
+  
+  The first step is always to create an NtruSign instance by calling the
+  constructor with an SignatureParameters object representing the desired
+  algorithm parameters.
+  It is recommended to use one of the predefined parameter sets which are
+  available as constants in SignatureParameters, but new ones can be created
+  as well.
+  
+  After the NtruSign constructor is called, the NtruSign instance can be
+  used to generate new key pairs, sign messages, and verify signatures.
   
   Signing a message is done by calling NtruSign.sign() which takes the following
   parameters:
@@ -50,17 +66,23 @@ NtruSign Usage
        SignaturePrivateKey(byte[]) and SignaturePublicKey(byte[]).
        Note: Depending on the parameters, it can take a minute or more to
        generate a new key pair.
-    3. a SignatureParameters object representing the desired algorithm parameters.
-       It is recommended to use one of the predefined parameter sets which are
-       available as constants in SignatureParameters, but new ones can be
-       generated as well.
   
   The signature is returned as a byte array.
 
   Verifying a message is done by calling NtruSign.verify() which takes the message,
-  the signature, the SignaturePublicKey, and the signature parameters. The
-  parameters used for verifying must be the same as the ones used to create the
-  signature; the same goes for the public key.
+  the signature, and the SignaturePublicKey. The parameters used for verifying must
+  be the same as the ones used to create the signature; the same goes for the public
+  key.
+
+
+Key Import / Export
+
+  To write an encryption or signature key to a file, first convert the key to a byte
+  array via getEncoded(), then write the array to an OutputStream. Keys are encoded
+  raw, so the array contains no information about the parameters used. It is up to
+  client code to write the parameter information along with the key.
+  Reconstructing a key from a byte array is done via the constructor that takes a
+  byte array and a set of parameters.
 
 
 Further reading
