@@ -4,7 +4,7 @@
   <groupId>net.sf.ntru</groupId>
   <artifactId>ntru</artifactId>
   <packaging>jar</packaging>
-  <version>0.4-SNAPSHOT</version>
+  <version>0.5-SNAPSHOT</version>
   <name>NTRU</name>
   <description>Java implementation of NTRUEncrypt and NTRUSign</description>
   <url>http://sourceforge.net/projects/ntru/</url>
@@ -73,6 +73,12 @@
             </goals>
           </execution>
         </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-release-plugin</artifactId>
+        <version>2.1</version>
       </plugin>
 
       <plugin>
