@@ -33,71 +33,74 @@ public class NtruSignTest {
     @Test
     public void testSignVerify() {
         SignatureParameters params = SignatureParameters.TEST157;
-        SignatureKeyPair kp = NtruSign.generateKeyPair(params);
+        NtruSign ntru = new NtruSign(params);
+        
+        SignatureKeyPair kp = ntru.generateKeyPair();
         
         Random rng = new Random();
         byte[] msg = new byte[10+rng.nextInt(1000)];
         rng.nextBytes(msg);
         
         // sign and verify
-        byte[] s = NtruSign.sign(msg, kp, params);
-        boolean valid = NtruSign.verify(msg, s, kp.pub, params);
+        byte[] s = ntru.sign(msg, kp);
+        boolean valid = ntru.verify(msg, s, kp.pub);
         assertTrue(valid);
         
         // altering the signature should make it invalid
         s[rng.nextInt(params.N)] += 1;
-        valid = NtruSign.verify(msg, s, kp.pub, params);
+        valid = ntru.verify(msg, s, kp.pub);
         assertFalse(valid);
 
         // test that a random signature fails
         rng.nextBytes(s);
-        valid = NtruSign.verify(msg, s, kp.pub, params);
+        valid = ntru.verify(msg, s, kp.pub);
         assertFalse(valid);
         
         // encode, decode keypair, test
         SignaturePrivateKey priv = new SignaturePrivateKey(kp.priv.getEncoded(), params);
         SignaturePublicKey pub = new SignaturePublicKey(kp.pub.getEncoded(), params);
         kp = new SignatureKeyPair(priv, pub);
-        s = NtruSign.sign(msg, kp, params);
-        valid = NtruSign.verify(msg, s, kp.pub, params);
+        s = ntru.sign(msg, kp);
+        valid = ntru.verify(msg, s, kp.pub);
         assertTrue(valid);
         
         // altering the signature should make it invalid
         s[rng.nextInt(s.length)] += 1;
-        valid = NtruSign.verify(msg, s, kp.pub, params);
+        valid = ntru.verify(msg, s, kp.pub);
         assertFalse(valid);
         
         // sparse/dense
         params.sparse = !params.sparse;
-        s = NtruSign.sign(msg, kp, params);
-        valid = NtruSign.verify(msg, s, kp.pub, params);
+        s = ntru.sign(msg, kp);
+        valid = ntru.verify(msg, s, kp.pub);
         assertTrue(valid);
         s[rng.nextInt(s.length)] += 1;
-        valid = NtruSign.verify(msg, s, kp.pub, params);
+        valid = ntru.verify(msg, s, kp.pub);
         assertFalse(valid);
         params.sparse = !params.sparse;
         
         // decrease NormBound to force multiple signing attempts
         params.normBoundSq = params.normBoundSq * 4 / 9;
-        s = NtruSign.sign(msg, kp, params);
-        valid = NtruSign.verify(msg, s, kp.pub, params);
+        s = ntru.sign(msg, kp);
+        valid = ntru.verify(msg, s, kp.pub);
         assertTrue(valid);
     }
     
     @Test
     public void testCreateMsgRep() throws NoSuchAlgorithmException {
+        NtruSign ntru = new NtruSign(SignatureParameters.TEST157);
         byte[] msg = "test message".getBytes();
         
         // verify that the message representative is reproducible
-        IntegerPolynomial i1 = NtruSign.createMsgRep(msg, 1, SignatureParameters.TEST157);
-        IntegerPolynomial i2 = NtruSign.createMsgRep(msg, 1, SignatureParameters.TEST157);
+        IntegerPolynomial i1 = ntru.createMsgRep(msg, 1);
+        IntegerPolynomial i2 = ntru.createMsgRep(msg, 1);
         assertArrayEquals(i1.coeffs, i2.coeffs);
-        i1 = NtruSign.createMsgRep(msg, 5, SignatureParameters.TEST157);
-        i2 = NtruSign.createMsgRep(msg, 5, SignatureParameters.TEST157);
+        i1 = ntru.createMsgRep(msg, 5);
+        i2 = ntru.createMsgRep(msg, 5);
         assertArrayEquals(i1.coeffs, i2.coeffs);
         
-        i1 = NtruSign.createMsgRep(msg, 2, SignatureParameters.TEST157);
-        i2 = NtruSign.createMsgRep(msg, 3, SignatureParameters.TEST157);
+        i1 = ntru.createMsgRep(msg, 2);
+        i2 = ntru.createMsgRep(msg, 3);
         assertFalse(Arrays.equals(i1.coeffs, i2.coeffs));
     }
 }

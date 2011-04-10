@@ -26,7 +26,8 @@ public class SignatureKeyTest {
     @Test
     public void testEncode() {
         SignatureParameters params = SignatureParameters.TEST157;
-        SignatureKeyPair kp = NtruSign.generateKeyPair(params);
+        NtruSign ntru = new NtruSign(params);
+        SignatureKeyPair kp = ntru.generateKeyPair();
         byte[] priv = kp.priv.getEncoded();
         byte[] pub = kp.pub.getEncoded();
         SignatureKeyPair kp2 = new SignatureKeyPair(new SignaturePrivateKey(priv, params), new SignaturePublicKey(pub, params));

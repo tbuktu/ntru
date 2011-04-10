@@ -36,15 +36,20 @@ import net.sf.ntru.SignatureParameters.BasisType;
 import net.sf.ntru.SignaturePrivateKey.Basis;
 
 public class NtruSign {
+    private SignatureParameters params;
+    
+    public NtruSign(SignatureParameters params) {
+        this.params = params;
+    }
     
     /** Uses B+1 threads */
-    public static SignatureKeyPair generateKeyPair(SignatureParameters params) {
+    public SignatureKeyPair generateKeyPair() {
         SignaturePrivateKey priv = new SignaturePrivateKey();
         SignaturePublicKey pub = null;
         ExecutorService executor = Executors.newCachedThreadPool();
         List<Future<Basis>> bases = new ArrayList<Future<Basis>>();
         for (int k=params.B; k>=0; k--)
-            bases.add(executor.submit(new BasisGenerationTask(params)));
+            bases.add(executor.submit(new BasisGenerationTask()));
         executor.shutdown();
         
         for (int k=params.B; k>=0; k--) {
@@ -61,11 +66,11 @@ public class NtruSign {
         return kp;
     }
 
-    public static SignatureKeyPair generateKeyPairSingleThread(SignatureParameters params) {
+    public SignatureKeyPair generateKeyPairSingleThread() {
         SignaturePrivateKey priv = new SignaturePrivateKey();
         SignaturePublicKey pub = null;
         for (int k=params.B; k>=0; k--) {
-            Basis basis = createBasis(params);
+            Basis basis = createBasis();
             priv.add(basis);
             if (k == 0)
                 pub = new SignaturePublicKey(basis.h, params);
@@ -74,19 +79,19 @@ public class NtruSign {
         return kp;
     }
 
-    public static byte[] sign(byte[] m, SignatureKeyPair kp, SignatureParameters params) {
+    public byte[] sign(byte[] m, SignatureKeyPair kp) {
         int r = 0;
         IntegerPolynomial s;
         IntegerPolynomial i;
         do {
             r++;
             try {
-                i = createMsgRep(m, r, params);
+                i = createMsgRep(m, r);
             } catch (NoSuchAlgorithmException e) {
                 throw new RuntimeException(e);
             }
-            s = sign(i, kp, params);
-        } while (!verify(i, s, kp.pub.h, params));
+            s = sign(i, kp);
+        } while (!verify(i, s, kp.pub.h));
 
         byte[] rawSig = s.toBinary(params.q);
         ByteBuffer sbuf = ByteBuffer.allocate(rawSig.length + 4);
@@ -95,7 +100,7 @@ public class NtruSign {
         return sbuf.array();
     }
     
-    private static IntegerPolynomial sign(IntegerPolynomial i, SignatureKeyPair kp, SignatureParameters params) {
+    private IntegerPolynomial sign(IntegerPolynomial i, SignatureKeyPair kp) {
         int N = params.N;
         int q = params.q;
         int perturbationBases = params.B;
@@ -145,20 +150,20 @@ public class NtruSign {
         return s;
     }
     
-    public static boolean verify(byte[] m, byte[] sig, SignaturePublicKey pub, SignatureParameters params) {
+    public boolean verify(byte[] m, byte[] sig, SignaturePublicKey pub) {
         ByteBuffer sbuf = ByteBuffer.wrap(sig);
         byte[] rawSig = new byte[sig.length - 4];
         sbuf.get(rawSig);
         IntegerPolynomial s = IntegerPolynomial.fromBinary(rawSig, params.N, params.q);
         int r = sbuf.getInt();
         try {
-            return verify(createMsgRep(m, r, params), s, pub.h, params);
+            return verify(createMsgRep(m, r), s, pub.h);
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
     }
     
-    static boolean verify(IntegerPolynomial i, IntegerPolynomial s, IntegerPolynomial h, SignatureParameters params) {
+    boolean verify(IntegerPolynomial i, IntegerPolynomial s, IntegerPolynomial h) {
         int N = params.N;
         int q = params.q;
         double normBoundSq = params.normBoundSq;
@@ -189,7 +194,7 @@ public class NtruSign {
         return centeredNormSq <= normBoundSq;
     }
     
-    static IntegerPolynomial createMsgRep(byte[] m, int r, SignatureParameters params) throws NoSuchAlgorithmException {
+    IntegerPolynomial createMsgRep(byte[] m, int r) throws NoSuchAlgorithmException {
         int N = params.N;
         int q = params.q;
         
@@ -218,7 +223,7 @@ public class NtruSign {
         return i;
     }
     
-    private static Basis createBasis(SignatureParameters params) {
+    private Basis createBasis() {
         int N = params.N;
         int q = params.q;
         int d = params.d;
@@ -299,7 +304,7 @@ public class NtruSign {
      * @param params
      * @return
      */
-    private static void minimizeFG(IntegerPolynomial f, IntegerPolynomial g, IntegerPolynomial F, IntegerPolynomial G, int N) {
+    private void minimizeFG(IntegerPolynomial f, IntegerPolynomial g, IntegerPolynomial F, IntegerPolynomial G, int N) {
         int E = 0;
         for (int j=0; j<N; j++)
             E += 2 * N * (f.coeffs[j]*f.coeffs[j] + g.coeffs[j]*g.coeffs[j]);
@@ -345,7 +350,7 @@ public class NtruSign {
     }
     
     // verifies that f*G-g*F=q
-    private static boolean equalsQ(IntegerPolynomial f, IntegerPolynomial g, BigIntPolynomial F, BigIntPolynomial G, int q, int N) {
+    private boolean equalsQ(IntegerPolynomial f, IntegerPolynomial g, BigIntPolynomial F, BigIntPolynomial G, int q, int N) {
         G = new BigIntPolynomial(java.util.Arrays.copyOf(G.coeffs, N));
         BigIntPolynomial x = new BigIntPolynomial(f).mult(G);
         x.sub(new BigIntPolynomial(g).mult(F));
@@ -356,16 +361,11 @@ public class NtruSign {
         return equalsQ;
     }
     
-    private static class BasisGenerationTask implements Callable<Basis> {
-        private SignatureParameters params;
-        
-        private BasisGenerationTask(SignatureParameters params) {
-            this.params = params;
-        }
+    private class BasisGenerationTask implements Callable<Basis> {
 
         @Override
         public Basis call() throws Exception {
-            return createBasis(params);
+            return createBasis();
         }
     }
 }
