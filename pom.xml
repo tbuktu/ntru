@@ -3,7 +3,7 @@
   <groupId>net.sf.ntru</groupId>
   <artifactId>ntru</artifactId>
   <packaging>jar</packaging>
-  <version>0.5</version>
+  <version>0.5-SNAPSHOT</version>
   <name>NTRU</name>
   <description>Java implementation of NTRUEncrypt and NTRUSign</description>
   <url>http://sourceforge.net/projects/ntru/</url>
@@ -111,7 +111,7 @@
   <scm>
     <connection>scm:git:git://github.com/tbuktu/ntru.git</connection>
     <developerConnection>scm:git:git://github.com/tbuktu/ntru.git</developerConnection>
-    <url>http://github.com/tbuktu/ntru/</url>
+    <url>http://github.com/tbuktu/ntru</url>
   </scm>
 
   <distributionManagement>
