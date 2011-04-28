@@ -21,7 +21,9 @@ package net.sf.ntru;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 
+// implementation of IGF-2
 class IndexGenerator {
     private byte[] seed;
     private int N;
@@ -29,9 +31,8 @@ class IndexGenerator {
     private int minCallsR;
     private int totLen;
     private int remLen;
-    private ByteBuffer buf;
+    private byte[] buf;
     private int counter;
-    private int nLen;
     private boolean initialized;
     private MessageDigest hashAlg;
     private int hLen;
@@ -45,7 +46,6 @@ class IndexGenerator {
         totLen = 0;
         remLen = 0;
         counter = 0;
-        nLen = (int)Math.ceil(Math.log(N)/8);
         hashAlg = MessageDigest.getInstance("SHA-512");
         hLen = 64;   // hash length
         initialized = false;
@@ -53,13 +53,13 @@ class IndexGenerator {
     
     int nextIndex() {
         if (!initialized) {
-            buf = ByteBuffer.allocate(minCallsR * hLen);
+            buf = new byte[] {};
             while (counter < minCallsR) {
                 ByteBuffer hashInput = ByteBuffer.allocate(seed.length + 4);
                 hashInput.put(seed);
                 hashInput.putInt(counter);
                 byte[] hash = hashAlg.digest(hashInput.array());
-                buf.put(hash);
+                buf = append(buf, hash);
                 counter++;
             }
             totLen = minCallsR * hLen;
@@ -68,35 +68,38 @@ class IndexGenerator {
         }
         
         while (true) {
-            totLen += nLen;
-            if (remLen < nLen) {
-                byte[] bufArr = buf.array();
-                ByteBuffer M = ByteBuffer.allocate(remLen + hLen);
-                M.put(bufArr, bufArr.length-remLen-1, remLen);
-                int tmpLen = nLen - remLen;
+            totLen += c;
+            byte[] M = Arrays.copyOfRange(buf, buf.length-remLen, buf.length);
+            if (remLen < c) {
+                int tmpLen = c - remLen;
                 int cThreshold = counter + (tmpLen+hLen-1)/hLen;
-                ByteBuffer hashInput = ByteBuffer.allocate(seed.length + 4);
-                hashInput.put(seed);
-                hashInput.putInt(counter);
-                byte[] hash = hashAlg.digest(hashInput.array());
-                M.put(hash);
+                byte[] hash = new byte[] {};
                 while (counter < cThreshold) {
+                    ByteBuffer hashInput = ByteBuffer.allocate(seed.length + 4);
+                    hashInput.put(seed);
+                    hashInput.putInt(counter);
+                    hash = hashAlg.digest(hashInput.array());
+                    M = append(M, hash);
                     counter++;
                     if (tmpLen > hLen)
                         tmpLen -= hLen;
                 }
                 remLen = hLen - tmpLen;
-                buf = ByteBuffer.allocate(minCallsR * hLen);
-                buf.put(hash);
+                buf = hash;
             }
             else
-                remLen -= nLen;
+                remLen -= c;
             
-            buf.rewind();
-            int i = buf.getInt();   // assume c<32
-            i = (i << c) >> c;   // only keep the low c bits
-            if (i <= (2<<c)-((2<<c)%N))
+            int i = ByteBuffer.wrap(M).getInt();   // assume c<32
+            i = i & ((1<<(c+1))-1);   // only keep the low c bits
+            if (i < (1<<c)-((1<<c)%N))
                 return i;
         }
+    }
+    
+    private byte[] append(byte[] a, byte[] b) {
+        byte[] c = Arrays.copyOf(a, a.length+b.length);
+        System.arraycopy(b, 0, c, a.length, b.length);
+        return c;
     }
 }
