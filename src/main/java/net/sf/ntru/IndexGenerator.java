@@ -91,7 +91,8 @@ class IndexGenerator {
                 remLen -= c;
             
             int i = ByteBuffer.wrap(M).getInt();   // assume c<32
-            i = i & ((1<<(c+1))-1);   // only keep the low c bits
+            i &= 0x7FFFFFFFL;
+            i = i & ((1<<c)-1);   // only keep the low c bits
             if (i < (1<<c)-((1<<c)%N))
                 return i;
         }
