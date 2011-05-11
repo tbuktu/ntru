@@ -18,6 +18,12 @@
 
 package net.sf.ntru;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class SignatureParameters {
     public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 150, 300, false, false);
     public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 1000, false, true);   // gives 128 bits of security
@@ -26,7 +32,7 @@ public class SignatureParameters {
     public enum BasisType {STANDARD, TRANSPOSE};
     
     int N, q, d, B;
-    double betaSq, normBoundSq;
+    double beta, betaSq, normBound, normBoundSq;
     int keyGenerationDecimalPlaces;
     boolean primeCheck;   // true if N and 2N+1 are prime
     BasisType basisType;
@@ -38,11 +44,106 @@ public class SignatureParameters {
         this.q = q;
         this.d = d;
         this.B = B;
+        this.beta = beta;
+        this.normBound = normBound;
         this.basisType = basisType;
-        this.betaSq = beta * beta;
-        this.normBoundSq = normBound * normBound;
         this.keyGenerationDecimalPlaces = keyGenerationDecimalPlaces;
         this.primeCheck = primeCheck;
         this.sparse = sparse;
+        init();
+    }
+
+    private void init() {
+        this.betaSq = beta * beta;
+        this.normBoundSq = normBound * normBound;
+    }
+
+    public SignatureParameters(InputStream is) throws IOException {
+        DataInputStream dis = new DataInputStream(is);
+        N = dis.readInt();
+        q = dis.readInt();
+        d = dis.readInt();
+        B = dis.readInt();
+        basisType = BasisType.values()[dis.readInt()];
+        beta = dis.readDouble();
+        normBound = dis.readDouble();
+        keyGenerationDecimalPlaces = dis.readInt();
+        primeCheck = dis.readBoolean();
+        sparse = dis.readBoolean();
+        bitsF = dis.readInt();
+        init();
+    }
+    
+    public void writeTo(OutputStream os) throws IOException {
+        DataOutputStream dos = new DataOutputStream(os);
+        dos.writeInt(N);
+        dos.writeInt(q);
+        dos.writeInt(d);
+        dos.writeInt(B);
+        dos.writeInt(basisType.ordinal());
+        dos.writeDouble(beta);
+        dos.writeDouble(normBound);
+        dos.writeInt(keyGenerationDecimalPlaces);
+        dos.writeBoolean(primeCheck);
+        dos.writeBoolean(sparse);
+        dos.writeInt(bitsF);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + B;
+        result = prime * result + N;
+        result = prime * result + ((basisType == null) ? 0 : basisType.hashCode());
+        long temp;
+        temp = Double.doubleToLongBits(beta);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + bitsF;
+        result = prime * result + d;
+        result = prime * result + keyGenerationDecimalPlaces;
+        temp = Double.doubleToLongBits(normBound);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        result = prime * result + (primeCheck ? 1231 : 1237);
+        result = prime * result + q;
+        result = prime * result + (sparse ? 1231 : 1237);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SignatureParameters other = (SignatureParameters) obj;
+        if (B != other.B)
+            return false;
+        if (N != other.N)
+            return false;
+        if (basisType == null) {
+            if (other.basisType != null)
+                return false;
+        } else if (!basisType.equals(other.basisType))
+            return false;
+        if (Double.doubleToLongBits(beta) != Double.doubleToLongBits(other.beta))
+            return false;
+        if (bitsF != other.bitsF)
+            return false;
+        if (d != other.d)
+            return false;
+        if (keyGenerationDecimalPlaces != other.keyGenerationDecimalPlaces)
+            return false;
+        if (Double.doubleToLongBits(normBound) != Double.doubleToLongBits(other.normBound))
+            return false;
+        if (primeCheck != other.primeCheck)
+            return false;
+        if (q != other.q)
+            return false;
+        if (sparse != other.sparse)
+            return false;
+        return true;
     }
 }
