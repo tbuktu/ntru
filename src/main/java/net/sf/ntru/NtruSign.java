@@ -248,8 +248,10 @@ public class NtruSign {
         
         do {
             do {
-                g = DenseTernaryPolynomial.generateRandom(N, d+1, d);
-            } while (primeCheck && f.resultant(_2n1).res.equals(ZERO) && g.resultant(_2n1).res.equals(ZERO));
+                do {
+                    g = DenseTernaryPolynomial.generateRandom(N, d+1, d);
+                } while (primeCheck && f.resultant(_2n1).res.equals(ZERO) && g.resultant(_2n1).res.equals(ZERO));
+            } while (g.invertFq(q) == null);
             rg = g.resultant();
             r = BigIntEuclidean.calculate(rf.res, rg.res);
         } while (!r.gcd.equals(ONE));
