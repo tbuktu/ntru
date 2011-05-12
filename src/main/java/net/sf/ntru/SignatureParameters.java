@@ -99,10 +99,14 @@ public class SignatureParameters {
         long temp;
         temp = Double.doubleToLongBits(beta);
         result = prime * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(betaSq);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + bitsF;
         result = prime * result + d;
         result = prime * result + keyGenerationDecimalPlaces;
         temp = Double.doubleToLongBits(normBound);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(normBoundSq);
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + (primeCheck ? 1231 : 1237);
         result = prime * result + q;
@@ -130,6 +134,8 @@ public class SignatureParameters {
             return false;
         if (Double.doubleToLongBits(beta) != Double.doubleToLongBits(other.beta))
             return false;
+        if (Double.doubleToLongBits(betaSq) != Double.doubleToLongBits(other.betaSq))
+            return false;
         if (bitsF != other.bitsF)
             return false;
         if (d != other.d)
@@ -137,6 +143,8 @@ public class SignatureParameters {
         if (keyGenerationDecimalPlaces != other.keyGenerationDecimalPlaces)
             return false;
         if (Double.doubleToLongBits(normBound) != Double.doubleToLongBits(other.normBound))
+            return false;
+        if (Double.doubleToLongBits(normBoundSq) != Double.doubleToLongBits(other.normBoundSq))
             return false;
         if (primeCheck != other.primeCheck)
             return false;
