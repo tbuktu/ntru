@@ -1,4 +1,4 @@
-The NTRU cryptosystem
+The NTRU Cryptosystem
 
   A Java implementation of the NTRU public-key cryptosystem, consisting of
   the encryption scheme NTRUEncrypt and the signature scheme NTRUSign.
@@ -77,17 +77,33 @@ NtruSign Usage
 
 Key Import / Export
 
-  To write an encryption or signature key to a file, first convert the key to a byte
-  array via getEncoded(), then write the array to an OutputStream. Keys are encoded
-  raw, so the array contains no information about the parameters used. It is up to
-  client code to write the parameter information along with the key.
-  Reconstructing a key from a byte array is done via the constructor that takes a
-  byte array and a set of parameters.
+  Encryption keys and signature keys can be written to a file via the writeTo methods
+  by supplying a FileOutputStream. The key can then be read from the file by passing
+  a FileInputStream to the appropriate constructor.
+  
+  Keys are encoded raw, so the array contains no information about the parameters
+  used. It is advisable to first write the parameters, then the key. Parameters can
+  be written to an OutputStream just like keys, and just like keys they have a
+  constructor that takes an InputStream.
+
+  Keys can also be converted to and from byte arrays.
+
+
+Maven Artifact
+
+  NTRU is available from the Maven central repository.
+
+  <dependency>
+    <groupId>net.sf.ntru</groupId>
+    <artifactId>ntru</artifactId>
+    <version>0.5</version>
+  </dependency>
 
 
 Further reading
 
   Original NTRUEncrypt paper: http://www.ntru.com/cryptolab/pdf/ANTS97.pdf
   Original NTRUSign paper: http://www.math.brown.edu/~jpipher/NTRUSign_RSA.pdf
+  Follow-up NTRUSign paper: http://grouper.ieee.org/groups/1363/WorkingGroup/presentations/NTRUSignParams-2005-08.pdf
   NTRU articles (technical and mathematical): http://www.securityinnovation.com/cryptolab/articles.shtml
   Jeffrey Hoffstein et al: An Introduction to Mathematical Cryptography, Springer-Verlag, ISBN 978-0-387-77993-5
