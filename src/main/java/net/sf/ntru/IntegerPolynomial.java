@@ -21,6 +21,8 @@ package net.sf.ntru;
 import static java.math.BigInteger.ONE;
 import static java.math.BigInteger.ZERO;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -161,6 +163,15 @@ class IntegerPolynomial {
         return fromBinary(arr, N, q);
     }
     
+    // Returns a polynomial with N coefficients between 0 and q-1. q must be a power of 2.
+    static IntegerPolynomial fromBinary(InputStream is, int N, int q) throws IOException {
+        int qBits = 31 - Integer.numberOfLeadingZeros(q);
+        int size = (N*qBits+7) / 8;
+        byte[] arr = new byte[size];
+        is.read(arr);
+        return fromBinary(arr, N, q);
+    }
+    
     private static int getBit(byte[] arr, int bitIndex) {
         int byteIndex = bitIndex / 8;
         int arrElem = arr[byteIndex] & 0xFF;
@@ -237,6 +248,13 @@ class IntegerPolynomial {
         int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
         byte[] arr = new byte[size];
         buf.get(arr);
+        return fromBinary3Arith(arr, N);
+    }
+    
+    static IntegerPolynomial fromBinary3Arith(InputStream is, int N) throws IOException {
+        int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
+        byte[] arr = new byte[size];
+        is.read(arr);
         return fromBinary3Arith(arr, N);
     }
     

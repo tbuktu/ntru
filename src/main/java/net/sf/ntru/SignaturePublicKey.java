@@ -18,6 +18,10 @@
 
 package net.sf.ntru;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class SignaturePublicKey {
     private SignatureParameters params;
     IntegerPolynomial h;
@@ -32,7 +36,16 @@ public class SignaturePublicKey {
         this.params = params;
     }
     
+    public SignaturePublicKey(InputStream is, SignatureParameters params) throws IOException {
+        h = IntegerPolynomial.fromBinary(is, params.N, params.q);
+        this.params = params;
+    }
+    
     public byte[] getEncoded() {
         return h.toBinary(params.q);
+    }
+    
+    public void writeTo(OutputStream os) throws IOException {
+        os.write(getEncoded());
     }
 }

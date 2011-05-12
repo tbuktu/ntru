@@ -18,6 +18,10 @@
 
 package net.sf.ntru;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class EncryptionPublicKey {
     private EncryptionParameters params;
     IntegerPolynomial h;
@@ -32,7 +36,16 @@ public class EncryptionPublicKey {
         h = IntegerPolynomial.fromBinary(b, params.N, params.q);
     }
     
+    public EncryptionPublicKey(InputStream is, EncryptionParameters params) throws IOException {
+        this.params = params;
+        h = IntegerPolynomial.fromBinary(is, params.N, params.q);
+    }
+    
     public byte[] getEncoded() {
         return h.toBinary(params.q);
+    }
+    
+    public void writeTo(OutputStream os) throws IOException {
+        os.write(getEncoded());
     }
 }

@@ -25,16 +25,16 @@ import java.io.IOException;
 import org.junit.Test;
 import static org.junit.Assert.assertArrayEquals;
 
-public class SignatureKeyTest {
+public class EncryptionKeyTest {
     
     @Test
     public void testEncode() throws IOException {
-        SignatureParameters params = SignatureParameters.TEST157;
-        NtruSign ntru = new NtruSign(params);
-        SignatureKeyPair kp = ntru.generateKeyPair();
+        EncryptionParameters params = EncryptionParameters.EES1499EP1;
+        NtruEncrypt ntru = new NtruEncrypt(params);
+        EncryptionKeyPair kp = ntru.generateKeyPair();
         byte[] priv = kp.priv.getEncoded();
         byte[] pub = kp.pub.getEncoded();
-        SignatureKeyPair kp2 = new SignatureKeyPair(new SignaturePrivateKey(priv, params), new SignaturePublicKey(pub, params));
+        EncryptionKeyPair kp2 = new EncryptionKeyPair(new EncryptionPrivateKey(priv, params), new EncryptionPublicKey(pub, params));
         byte[] priv2 = kp2.priv.getEncoded();
         assertArrayEquals(priv, priv2);
         byte[] pub2 = kp2.pub.getEncoded();
@@ -46,7 +46,7 @@ public class SignatureKeyTest {
         kp.pub.writeTo(bos2);
         ByteArrayInputStream bis1 = new ByteArrayInputStream(bos1.toByteArray());
         ByteArrayInputStream bis2 = new ByteArrayInputStream(bos2.toByteArray());
-        SignatureKeyPair kp3 = new SignatureKeyPair(new SignaturePrivateKey(bis1, params), new SignaturePublicKey(bis2, params));
+        EncryptionKeyPair kp3 = new EncryptionKeyPair(new EncryptionPrivateKey(bis1, params), new EncryptionPublicKey(bis2, params));
         byte[] priv3 = kp3.priv.getEncoded();
         assertArrayEquals(priv, priv3);
         byte[] pub3 = kp3.pub.getEncoded();

@@ -20,6 +20,7 @@ package net.sf.ntru;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -36,6 +37,13 @@ public class SignaturePrivateKey {
         for (int i=0; i<=params.B; i++)
             // include a public key h[i] in all bases except for the first one
             add(new Basis(buf, params, i!=0));
+    }
+    
+    public SignaturePrivateKey(InputStream is, SignatureParameters params) throws IOException {
+        bases = new ArrayList<Basis>();
+        for (int i=0; i<=params.B; i++)
+            // include a public key h[i] in all bases except for the first one
+            add(new Basis(is, params, i!=0));
     }
     
     SignaturePrivateKey() {
@@ -61,6 +69,10 @@ public class SignaturePrivateKey {
                 throw new RuntimeException(e);
             }
         return os.toByteArray();
+    }
+    
+    public void writeTo(OutputStream os) throws IOException {
+        os.write(getEncoded());
     }
     
     static class Basis {
@@ -93,6 +105,25 @@ public class SignaturePrivateKey {
                 fPrime = IntegerPolynomial.fromBinary3Arith(buf, N);
             if (include_h)
                 h = IntegerPolynomial.fromBinary(buf, N, q);
+        }
+        
+        Basis(InputStream is, SignatureParameters params, boolean include_h) throws IOException {
+            int N = params.N;
+            int q = params.q;
+            boolean sparse = params.sparse;
+            this.params = params;
+            
+            IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(is, N);
+            f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
+            if (params.basisType == BasisType.STANDARD) {
+                fPrime = IntegerPolynomial.fromBinary(is, N, q);
+                for (int i=0; i<fPrime.coeffs.length; i++)
+                    fPrime.coeffs[i] -= q/2;
+            }
+            else
+                fPrime = IntegerPolynomial.fromBinary3Arith(is, N);
+            if (include_h)
+                h = IntegerPolynomial.fromBinary(is, N, q);
         }
         
         void encode(OutputStream os, boolean include_h) throws IOException {

@@ -18,6 +18,10 @@
 
 package net.sf.ntru;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+
 public class EncryptionPrivateKey {
     private EncryptionParameters params;
     TernaryPolynomial f;
@@ -32,6 +36,16 @@ public class EncryptionPrivateKey {
     public EncryptionPrivateKey(byte[] b, EncryptionParameters params) {
         this.params = params;
         IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(b, params.N);
+        init(fInt);
+    }
+    
+    public EncryptionPrivateKey(InputStream is, EncryptionParameters params) throws IOException {
+        this.params = params;
+        IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(is, params.N);
+        init(fInt);
+    }
+    
+    private void init(IntegerPolynomial fInt) {
         fInt.modCenter(params.q);
         fp = fInt.invertF3();
         f = new SparseTernaryPolynomial(fInt);
@@ -39,5 +53,9 @@ public class EncryptionPrivateKey {
     
     public byte[] getEncoded() {
         return f.toIntegerPolynomial().toBinary3Arith();
+    }
+    
+    public void writeTo(OutputStream os) throws IOException {
+        os.write(getEncoded());
     }
 }
