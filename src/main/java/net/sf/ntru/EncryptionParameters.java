@@ -18,6 +18,13 @@
 
 package net.sf.ntru;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+
 public class EncryptionParameters {
     public static final EncryptionParameters EES1087EP2 = new EncryptionParameters(1087, 2048, 120, 120, 256, 13, 25, 14, new byte[] {0, 6, 3}, true);   // security>256, optimized for key size
     public static final EncryptionParameters EES1171EP1 = new EncryptionParameters(1171, 2048, 106, 106, 256, 13, 20, 15, new byte[] {0, 6, 4}, true);   // security>256, key size / speed tradeoff
@@ -33,18 +40,123 @@ public class EncryptionParameters {
         this.N = N;
         this.q = q;
         this.df = df;
-        dr = df;
-        dg = N / 3;
-        llen = 1;   // ceil(log2(maxMsgLenBytes))
         this.db = db;
-        maxMsgLenBytes = N*3/2/8 - llen - db/8;
-        bufferLenBits = (N*3/2+7)/8*8;   // one byte more than p1363.1 says
-        bufferLenTrits = N - 1;
         this.dm0 = dm0;
-        pkLen = db / 2;
         this.c = c;
         this.minCallsR = minCallsR;
         this.minCallsMask = minCallsMask;
         this.oid = oid;
+        this.sparse = sparse;
+        init();
+    }
+
+    private void init() {
+        dr = df;
+        dg = N / 3;
+        llen = 1;   // ceil(log2(maxMsgLenBytes))
+        maxMsgLenBytes = N*3/2/8 - llen - db/8;
+        bufferLenBits = (N*3/2+7)/8*8;   // one byte more than p1363.1 says
+        bufferLenTrits = N - 1;
+        pkLen = db / 2;
+    }
+
+    public EncryptionParameters(InputStream is) throws IOException {
+        DataInputStream dis = new DataInputStream(is);
+        N = dis.readInt();
+        q = dis.readInt();
+        df = dis.readInt();
+        db = dis.readInt();
+        dm0 = dis.readInt();
+        c = dis.readInt();
+        minCallsR = dis.readInt();
+        minCallsMask = dis.readInt();
+        oid = new byte[3];
+        dis.read(oid);
+        sparse = dis.readBoolean();
+        init();
+    }
+
+    public void writeTo(OutputStream os) throws IOException {
+        DataOutputStream dos = new DataOutputStream(os);
+        dos.writeInt(N);
+        dos.writeInt(q);
+        dos.writeInt(df);
+        dos.writeInt(db);
+        dos.writeInt(dm0);
+        dos.writeInt(c);
+        dos.writeInt(minCallsR);
+        dos.writeInt(minCallsMask);
+        dos.write(oid);
+        dos.writeBoolean(sparse);
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + N;
+        result = prime * result + bufferLenBits;
+        result = prime * result + bufferLenTrits;
+        result = prime * result + c;
+        result = prime * result + db;
+        result = prime * result + df;
+        result = prime * result + dg;
+        result = prime * result + dm0;
+        result = prime * result + dr;
+        result = prime * result + llen;
+        result = prime * result + maxMsgLenBytes;
+        result = prime * result + minCallsMask;
+        result = prime * result + minCallsR;
+        result = prime * result + Arrays.hashCode(oid);
+        result = prime * result + pkLen;
+        result = prime * result + q;
+        result = prime * result + (sparse ? 1231 : 1237);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        EncryptionParameters other = (EncryptionParameters) obj;
+        if (N != other.N)
+            return false;
+        if (bufferLenBits != other.bufferLenBits)
+            return false;
+        if (bufferLenTrits != other.bufferLenTrits)
+            return false;
+        if (c != other.c)
+            return false;
+        if (db != other.db)
+            return false;
+        if (df != other.df)
+            return false;
+        if (dg != other.dg)
+            return false;
+        if (dm0 != other.dm0)
+            return false;
+        if (dr != other.dr)
+            return false;
+        if (llen != other.llen)
+            return false;
+        if (maxMsgLenBytes != other.maxMsgLenBytes)
+            return false;
+        if (minCallsMask != other.minCallsMask)
+            return false;
+        if (minCallsR != other.minCallsR)
+            return false;
+        if (!Arrays.equals(oid, other.oid))
+            return false;
+        if (pkLen != other.pkLen)
+            return false;
+        if (q != other.q)
+            return false;
+        if (sparse != other.sparse)
+            return false;
+        return true;
     }
 }
