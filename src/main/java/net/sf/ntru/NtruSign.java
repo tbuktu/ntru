@@ -59,7 +59,7 @@ public class NtruSign {
             if (k == 0)
                 pub = new SignaturePublicKey(basis.get().h, params);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                throw new NtruException(e);
             }
         }
         SignatureKeyPair kp = new SignatureKeyPair(priv, pub);
@@ -88,7 +88,7 @@ public class NtruSign {
             try {
                 i = createMsgRep(m, r);
             } catch (NoSuchAlgorithmException e) {
-                throw new RuntimeException(e);
+                throw new NtruException(e);
             }
             s = sign(i, kp);
         } while (!verify(i, s, kp.pub.h));
@@ -159,7 +159,7 @@ public class NtruSign {
         try {
             return verify(createMsgRep(m, r), s, pub.h);
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw new NtruException(e);
         }
     }
     
@@ -282,7 +282,7 @@ public class NtruSign {
         minimizeFG(f, g, FInt, GInt, N);
         
         if (!equalsQ(f, g, F, G, q, N))
-            throw new RuntimeException("this shouldn't happen");
+            throw new NtruException("this shouldn't happen");
         
         IntegerPolynomial fPrime;
         IntegerPolynomial h;

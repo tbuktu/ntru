@@ -40,7 +40,7 @@ class DenseTernaryPolynomial extends IntegerPolynomial implements TernaryPolynom
     private void checkTernarity() {
         for (int c: coeffs)
             if (c<-1 || c>1)
-                throw new RuntimeException("Illegal value: " + c + ", must be one of {-1, 0, 1}");
+                throw new NtruException("Illegal value: " + c + ", must be one of {-1, 0, 1}");
     }
     
     // Generates a random polynomial with numOnes coefficients equal to 1,

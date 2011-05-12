@@ -75,7 +75,7 @@ public class NtruEncryptTest {
             assertArrayEquals(plainText, decrypted);
             fail("An exception should have been thrown!");
         }
-        catch (RuntimeException ex) {
+        catch (NtruException ex) {
         }
         
         // encrypt and decrypt text using an encoded key pair (sparse polynomials)

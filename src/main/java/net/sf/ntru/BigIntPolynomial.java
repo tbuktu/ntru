@@ -81,7 +81,7 @@ class BigIntPolynomial {
     BigIntPolynomial mult(BigIntPolynomial poly2) {
         int N = coeffs.length;
         if (poly2.coeffs.length != N)
-            throw new RuntimeException("Number of coefficients must be the same");
+            throw new NtruException("Number of coefficients must be the same");
         
         BigIntPolynomial c = multRecursive(poly2);
         

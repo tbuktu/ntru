@@ -84,9 +84,9 @@ public class NtruEncrypt {
         
         int l = m.length;
         if (maxLenBytes > 255)
-            throw new RuntimeException("llen values bigger than 1 are not supported");
+            throw new NtruException("llen values bigger than 1 are not supported");
         if (l > maxLenBytes)
-            throw new RuntimeException("Message too long: " + l + ">" + maxLenBytes);
+            throw new NtruException("Message too long: " + l + ">" + maxLenBytes);
         
         while (true) {
             // M = b|octL|m|p0
@@ -197,7 +197,7 @@ public class NtruEncrypt {
         byte[] oid = params.oid;
         
         if (maxMsgLenBytes > 255)
-            throw new RuntimeException("maxMsgLenBytes values bigger than 255 are not supported");
+            throw new NtruException("maxMsgLenBytes values bigger than 255 are not supported");
         
         int bLen = db / 8;
         
@@ -205,11 +205,11 @@ public class NtruEncrypt {
         IntegerPolynomial ci = decrypt(e, priv_f, priv_fp);
         
         if (ci.count(-1) < dm0)
-            throw new RuntimeException("More than dm0 coefficients equal -1");
+            throw new NtruException("More than dm0 coefficients equal -1");
         if (ci.count(0) < dm0)
-            throw new RuntimeException("More than dm0 coefficients equal 0");
+            throw new NtruException("More than dm0 coefficients equal 0");
         if (ci.count(1) < dm0)
-            throw new RuntimeException("More than dm0 coefficients equal 1");
+            throw new NtruException("More than dm0 coefficients equal 1");
         
         IntegerPolynomial cR4 = e.clone();
         cR4.sub(ci, q);
@@ -226,13 +226,13 @@ public class NtruEncrypt {
         buf.get(cb);
         int cl = buf.get() & 0xFF;   // llen=1, so read one byte
         if (cl > maxMsgLenBytes)
-            throw new RuntimeException("Message too long: " + cl + ">" + maxMsgLenBytes);
+            throw new NtruException("Message too long: " + cl + ">" + maxMsgLenBytes);
         byte[] cm = new byte[cl];
         buf.get(cm);
         byte[] p0 = new byte[buf.remaining()];
         buf.get(p0);
         if (!Arrays.equals(p0, new byte[p0.length]))
-            throw new RuntimeException("The message is not followed by zeroes");
+            throw new NtruException("The message is not followed by zeroes");
         
         // sData = OID|m|b|hTrunc
         byte[] bh = pub.toBinary(q);
@@ -247,7 +247,7 @@ public class NtruEncrypt {
         TernaryPolynomial cr = generateBlindingPoly(sData, cm);
         IntegerPolynomial cRPrime = cr.mult(pub, q);
         if (cRPrime.equals(cr))
-            throw new RuntimeException("Invalid message encoding");
+            throw new NtruException("Invalid message encoding");
        
         return cm;
     }

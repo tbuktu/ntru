@@ -47,7 +47,7 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
             case 0:
                 break;
             default:
-                throw new RuntimeException("Illegal value: " + c + ", must be one of {-1, 0, 1}");
+                throw new NtruException("Illegal value: " + c + ", must be one of {-1, 0, 1}");
             }
         }
         ones = Arrays.copyOf(ones, onesIdx);
@@ -64,7 +64,7 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
     public IntegerPolynomial mult(IntegerPolynomial poly2) {
         int[] b = poly2.coeffs;
         if (b.length != N)
-            throw new RuntimeException("Number of coefficients must be the same");
+            throw new NtruException("Number of coefficients must be the same");
         
         int[] c = new int[N];
         for (int i: ones) {
@@ -102,7 +102,7 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
     public BigIntPolynomial mult(BigIntPolynomial poly2) {
         BigInteger[] b = poly2.coeffs;
         if (b.length != N)
-            throw new RuntimeException("Number of coefficients must be the same");
+            throw new NtruException("Number of coefficients must be the same");
         
         BigInteger[] c = new BigInteger[N];
         for (int i=0; i<N; i++)

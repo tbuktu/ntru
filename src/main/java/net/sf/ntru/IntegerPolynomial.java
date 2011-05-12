@@ -191,7 +191,7 @@ class IntegerPolynomial {
             int coeff1 = coeffs[i++] + 1;
             int coeff2 = coeffs[i++] + 1;
             if (coeff1==0 && coeff2==0)
-                throw new RuntimeException("Illegal encoding!");
+                throw new NtruException("Illegal encoding!");
             int bitTableIndex = coeff1*3 + coeff2;
             int[] bits = new int[] {BIT1_TABLE[bitTableIndex], BIT2_TABLE[bitTableIndex], BIT3_TABLE[bitTableIndex]};
             for (int j=0; j<3; j++) {
@@ -292,7 +292,7 @@ class IntegerPolynomial {
     public IntegerPolynomial mult(IntegerPolynomial poly2) {
         int N = coeffs.length;
         if (poly2.coeffs.length != N)
-            throw new RuntimeException("Number of coefficients must be the same");
+            throw new NtruException("Number of coefficients must be the same");
         
         IntegerPolynomial c = multRecursive(poly2);
         

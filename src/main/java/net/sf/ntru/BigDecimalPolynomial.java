@@ -59,7 +59,7 @@ public class BigDecimalPolynomial {
     BigDecimalPolynomial mult(BigDecimalPolynomial poly2) {
         int N = coeffs.length;
         if (poly2.coeffs.length != N)
-            throw new RuntimeException("Number of coefficients must be the same");
+            throw new NtruException("Number of coefficients must be the same");
         
         BigDecimalPolynomial c = multRecursive(poly2);
         

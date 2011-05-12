@@ -66,7 +66,7 @@ public class SignaturePrivateKey {
                 // all bases except for the first one contain a public key
                 bases.get(i).encode(os, i!=0);
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                throw new NtruException(e);
             }
         return os.toByteArray();
     }
