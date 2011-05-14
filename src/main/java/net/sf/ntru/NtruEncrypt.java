@@ -88,10 +88,11 @@ public class NtruEncrypt {
         if (l > maxLenBytes)
             throw new NtruException("Message too long: " + l + ">" + maxLenBytes);
         
+        SecureRandom rng = new SecureRandom();
         while (true) {
             // M = b|octL|m|p0
             byte[] b = new byte[db/8];
-            new SecureRandom().nextBytes(b);
+            rng.nextBytes(b);
             byte[] p0 = new byte[maxLenBytes-l];
             ByteBuffer mBuf = ByteBuffer.allocate(bufferLenBits/8);
             mBuf.put(b);
