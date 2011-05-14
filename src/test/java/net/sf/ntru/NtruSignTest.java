@@ -30,6 +30,7 @@ import org.junit.Test;
 
 public class NtruSignTest {
     
+    /** test for the one-method-call variants: sign(byte, SignatureKeyPair) and verify(byte[], byte[], SignatureKeyPair) */
     @Test
     public void testSignVerify() {
         SignatureParameters params = SignatureParameters.TEST157;
@@ -86,21 +87,57 @@ public class NtruSignTest {
         assertTrue(valid);
     }
     
+    /** test for the initSign/update/sign and initVerify/update/verify variant */
+    @Test
+    public void testInitUpdateSign() {
+        NtruSign ntru = new NtruSign(SignatureParameters.TEST157);
+        
+        SignatureKeyPair kp = ntru.generateKeyPair();
+        
+        Random rng = new Random();
+        byte[] msg = new byte[10+rng.nextInt(1000)];
+        rng.nextBytes(msg);
+        
+        // sign and verify a message in two pieces each
+        ntru.initSign(kp);
+        int splitIdx = rng.nextInt(msg.length);
+        ntru.update(Arrays.copyOf(msg, splitIdx));   // part 1 of msg
+        byte[] s = ntru.sign(Arrays.copyOfRange(msg, splitIdx, msg.length));   // part 2 of msg
+        ntru.initVerify(kp.pub);
+        splitIdx = rng.nextInt(msg.length);
+        ntru.update(Arrays.copyOf(msg, splitIdx));   // part 1 of msg
+        ntru.update(Arrays.copyOfRange(msg, splitIdx, msg.length));   // part 2 of msg
+        boolean valid = ntru.verify(s);
+        assertTrue(valid);
+        // verify the same signature with the one-step method
+        valid = ntru.verify(msg, s, kp.pub);
+        assertTrue(valid);
+        
+        // sign using the one-step method and verify using the multi-step method
+        s = ntru.sign(msg, kp);
+        ntru.initVerify(kp.pub);
+        splitIdx = rng.nextInt(msg.length);
+        ntru.update(Arrays.copyOf(msg, splitIdx));   // part 1 of msg
+        ntru.update(Arrays.copyOfRange(msg, splitIdx, msg.length));   // part 2 of msg
+        valid = ntru.verify(s);
+        assertTrue(valid);
+    }
+    
     @Test
     public void testCreateMsgRep() throws NoSuchAlgorithmException {
         NtruSign ntru = new NtruSign(SignatureParameters.TEST157);
-        byte[] msg = "test message".getBytes();
+        byte[] msgHash = "adfsadfsdfs23234234".getBytes();
         
         // verify that the message representative is reproducible
-        IntegerPolynomial i1 = ntru.createMsgRep(msg, 1);
-        IntegerPolynomial i2 = ntru.createMsgRep(msg, 1);
+        IntegerPolynomial i1 = ntru.createMsgRep(msgHash, 1);
+        IntegerPolynomial i2 = ntru.createMsgRep(msgHash, 1);
         assertArrayEquals(i1.coeffs, i2.coeffs);
-        i1 = ntru.createMsgRep(msg, 5);
-        i2 = ntru.createMsgRep(msg, 5);
+        i1 = ntru.createMsgRep(msgHash, 5);
+        i2 = ntru.createMsgRep(msgHash, 5);
         assertArrayEquals(i1.coeffs, i2.coeffs);
         
-        i1 = ntru.createMsgRep(msg, 2);
-        i2 = ntru.createMsgRep(msg, 3);
+        i1 = ntru.createMsgRep(msgHash, 2);
+        i2 = ntru.createMsgRep(msgHash, 3);
         assertFalse(Arrays.equals(i1.coeffs, i2.coeffs));
     }
 }

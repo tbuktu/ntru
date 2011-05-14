@@ -24,6 +24,7 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,9 @@ import net.sf.ntru.SignaturePrivateKey.Basis;
 
 public class NtruSign {
     private SignatureParameters params;
+    private MessageDigest hashAlg;
+    private SignatureKeyPair signingKeyPair;
+    private SignaturePublicKey verificationKey;
     
     public NtruSign(SignatureParameters params) {
         this.params = params;
@@ -79,14 +83,52 @@ public class NtruSign {
         return kp;
     }
 
+    public void initSign(SignatureKeyPair kp) {
+        this.signingKeyPair = kp;
+        try {
+            hashAlg = MessageDigest.getInstance("SHA-512");
+        } catch (NoSuchAlgorithmException e) {
+            throw new NtruException(e);
+        }
+        hashAlg.reset();
+    }
+
+    public void update(byte[] m) {
+        if (hashAlg == null)
+            throw new NtruException("Call initSign or initVerify first!");
+        
+        hashAlg.update(m);
+    }
+    
+    public byte[] sign(byte[] m) {
+        if (hashAlg==null || signingKeyPair==null)
+            throw new NtruException("Call initSign first!");
+        
+        byte[] msgHash;
+        msgHash = hashAlg.digest(m);
+        return signHash(msgHash, signingKeyPair);
+    }
+    
     public byte[] sign(byte[] m, SignatureKeyPair kp) {
+        try {
+            // EESS directly passes the message into the MRGM (message representative
+            // generation method). Since that is inefficient for long messages, we work
+            // with the hash of the message.
+            byte[] msgHash = MessageDigest.getInstance("SHA-512").digest(m);
+            return signHash(msgHash, kp);
+        } catch (NoSuchAlgorithmException e) {
+            throw new NtruException(e);
+        }
+    }
+    
+    private byte[] signHash(byte[] msgHash, SignatureKeyPair kp) {
         int r = 0;
         IntegerPolynomial s;
         IntegerPolynomial i;
         do {
             r++;
             try {
-                i = createMsgRep(m, r);
+                i = createMsgRep(msgHash, r);
             } catch (NoSuchAlgorithmException e) {
                 throw new NtruException(e);
             }
@@ -150,14 +192,41 @@ public class NtruSign {
         return s;
     }
     
+    public void initVerify(SignaturePublicKey pub) {
+        verificationKey = pub;
+        try {
+            hashAlg = MessageDigest.getInstance("SHA-512");
+        } catch (NoSuchAlgorithmException e) {
+            throw new NtruException(e);
+        }
+        hashAlg.reset();
+    }
+
+    public boolean verify(byte[] sig) {
+        if (hashAlg==null || verificationKey==null)
+            throw new NtruException("Call initVerify first!");
+        
+        byte[] msgHash = hashAlg.digest();
+        return verifyHash(msgHash, sig, verificationKey);
+    }
+    
     public boolean verify(byte[] m, byte[] sig, SignaturePublicKey pub) {
+        try {
+            byte[] msgHash = MessageDigest.getInstance("SHA-512").digest(m);
+            return verifyHash(msgHash, sig, pub);
+        } catch (NoSuchAlgorithmException e) {
+            throw new NtruException(e);
+        }
+    }
+    
+    private boolean verifyHash(byte[] msgHash, byte[] sig, SignaturePublicKey pub) {
         ByteBuffer sbuf = ByteBuffer.wrap(sig);
         byte[] rawSig = new byte[sig.length - 4];
         sbuf.get(rawSig);
         IntegerPolynomial s = IntegerPolynomial.fromBinary(rawSig, params.N, params.q);
         int r = sbuf.getInt();
         try {
-            return verify(createMsgRep(m, r), s, pub.h);
+            return verify(createMsgRep(msgHash, r), s, pub.h);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }
@@ -194,7 +263,7 @@ public class NtruSign {
         return centeredNormSq <= normBoundSq;
     }
     
-    IntegerPolynomial createMsgRep(byte[] m, int r) throws NoSuchAlgorithmException {
+    IntegerPolynomial createMsgRep(byte[] msgHash, int r) throws NoSuchAlgorithmException {
         int N = params.N;
         int q = params.q;
         
@@ -202,8 +271,8 @@ public class NtruSign {
         int B = (c+7) / 8;
         IntegerPolynomial i = new IntegerPolynomial(N);
         
-        ByteBuffer cbuf = ByteBuffer.allocate(m.length + 4);
-        cbuf.put(m);
+        ByteBuffer cbuf = ByteBuffer.allocate(msgHash.length + 4);
+        cbuf.put(msgHash);
         cbuf.putInt(r);
         Prng prng = new Prng(cbuf.array());
         

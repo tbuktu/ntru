@@ -56,8 +56,8 @@ NtruSign Usage
   After the NtruSign constructor is called, the NtruSign instance can be
   used to generate new key pairs, sign messages, and verify signatures.
   
-  Signing a message is done by calling NtruSign.sign() which takes the following
-  parameters:
+  There are two ways of signing a message. It can be done in one step by
+  calling sign(byte[], SignatureKeyPair) which takes the following parameters:
 
     1. the message itself as a byte array. Strings can be signed after converting
        them to byte[] via getBytes()
@@ -69,10 +69,17 @@ NtruSign Usage
   
   The signature is returned as a byte array.
 
-  Verifying a message is done by calling NtruSign.verify() which takes the message,
+  The other way is to call initSign with a SignatureKeyPair, then update(byte[])
+  zero or more times, and finally sign(byte[]). This way, long messages can be
+  broken up rather than signing them in one piece.
+  
+  Just like signing, verifying a message can be done in one step or in several parts.
+  The one-step variant works by calling NtruSign.verify() which takes the message,
   the signature, and the SignaturePublicKey. The parameters used for verifying must
   be the same as the ones used to create the signature; the same goes for the public
   key.
+  The multi-step variant works by calling initSign with a SignaturePublicKey, then
+  calling update(byte[]) zero or more times, and finally calling verify(byte[]).
 
 
 Key Import / Export
