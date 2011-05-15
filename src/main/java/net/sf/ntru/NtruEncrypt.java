@@ -151,7 +151,7 @@ public class NtruEncrypt {
         for (int coeff=-1; coeff<=1; coeff+=2) {
             int t = 0;
             while (t < dr) {
-                int i = ((ig.nextIndex()%N)+N) % N;
+                int i = ig.nextIndex();
                 if (r[i] == 0) {
                     r[i] = coeff;
                     t++;

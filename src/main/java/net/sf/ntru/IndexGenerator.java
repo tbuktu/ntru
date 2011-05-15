@@ -51,6 +51,10 @@ class IndexGenerator {
         initialized = false;
     }
     
+    /**
+     * returns a number i such that 0<=i<N
+     * @return
+     */
     int nextIndex() {
         if (!initialized) {
             buf = new byte[] {};
@@ -94,7 +98,7 @@ class IndexGenerator {
             i &= 0x7FFFFFFFL;
             i = i & ((1<<c)-1);   // only keep the low c bits
             if (i < (1<<c)-((1<<c)%N))
-                return i;
+                return i % N;
         }
     }
     
