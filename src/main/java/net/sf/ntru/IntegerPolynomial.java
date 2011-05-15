@@ -727,6 +727,22 @@ class IntegerPolynomial {
                 coeffs[i] += modulus;
     }
     
+    long centeredNormSq(int q) {
+        int N = coeffs.length;
+        IntegerPolynomial p = clone();
+        p.shiftGap(q);
+        
+        long sum = 0;
+        long sqSum = 0;
+        for (int c: p.coeffs) {
+            sum += c;
+            sqSum += c * c;
+        }
+        
+        long centeredNormSq = sqSum - sum*sum/N;
+        return centeredNormSq;
+    }
+    
     // shifts all coefficients so the largest gap is centered around -q/2
     void shiftGap(int q) {
         modCenter(q);

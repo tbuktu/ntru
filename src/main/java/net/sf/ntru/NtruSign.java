@@ -74,7 +74,7 @@ public class NtruSign {
         SignaturePrivateKey priv = new SignaturePrivateKey();
         SignaturePublicKey pub = null;
         for (int k=params.B; k>=0; k--) {
-            Basis basis = createBasis();
+            Basis basis = createBoundedBasis();
             priv.add(basis);
             if (k == 0)
                 pub = new SignaturePublicKey(basis.h, params);
@@ -127,6 +127,8 @@ public class NtruSign {
         IntegerPolynomial i;
         do {
             r++;
+            if (r > params.signFailTolerance)
+                throw new NtruException("Signing failed: too many retries (max=" + params.signFailTolerance + ")");
             try {
                 i = createMsgRep(msgHash, r);
             } catch (NoSuchAlgorithmException e) {
@@ -233,33 +235,13 @@ public class NtruSign {
     }
     
     boolean verify(IntegerPolynomial i, IntegerPolynomial s, IntegerPolynomial h) {
-        int N = params.N;
         int q = params.q;
         double normBoundSq = params.normBoundSq;
         double betaSq = params.betaSq;
         
         IntegerPolynomial t = h.mult(s, q);
         t.sub(i);
-
-        t.shiftGap(q);
-        s = s.clone();
-        s.shiftGap(q);
-        
-        long ssum = 0;
-        long s2sum = 0;
-        long tsum = 0;
-        long t2sum = 0;
-        for (int j=0; j<N; j++) {
-            int sj = s.coeffs[j];
-            ssum += sj;
-            s2sum += sj * sj;
-            int tj = t.coeffs[j];
-            tsum += tj;
-            t2sum += tj * tj;
-        }
-        long centeredNormSq = s2sum - ssum*ssum/N;
-        centeredNormSq += (long)(betaSq * (t2sum - tsum*tsum/N));
-        
+        long centeredNormSq = (long)(s.centeredNormSq(q) + betaSq * t.centeredNormSq(q));
         return centeredNormSq <= normBoundSq;
     }
     
@@ -292,7 +274,19 @@ public class NtruSign {
         return i;
     }
     
-    private Basis createBasis() {
+    // creates a basis such that |F|<keyNormBound and |G|<keyNormBound
+    private Basis createBoundedBasis() {
+        double keyNormBoundSq = params.keyNormBoundSq;
+        int q = params.q;
+        
+        while (true) {
+            FGBasis basis = createBasis();
+            if (basis.F.centeredNormSq(q)<keyNormBoundSq && basis.G.centeredNormSq(q)<keyNormBoundSq)
+                return basis;
+        }
+    }
+    
+    private FGBasis createBasis() {
         int N = params.N;
         int q = params.q;
         int d = params.d;
@@ -330,6 +324,9 @@ public class NtruSign {
         BigIntPolynomial B = rg.rho.clone();
         B.mult(r.y.multiply(BigInteger.valueOf(-q)));
         
+        if (!equalsQ(f, g, B, A, q, N))
+            throw new NtruException("this shouldn't happen");
+        
         BigDecimalPolynomial fInv = rf.rho.div(new BigDecimal(rf.res), decimalPlaces);
         BigDecimalPolynomial gInv = rg.rho.div(new BigDecimal(rg.res), decimalPlaces);
         
@@ -365,7 +362,7 @@ public class NtruSign {
         }
         h.modPositive(q);
         
-        return new Basis(fTer, fPrime, h, params);
+        return new FGBasis(fTer, fPrime, h, FInt, GInt, params);
     }
     
     /**
@@ -436,7 +433,18 @@ public class NtruSign {
 
         @Override
         public Basis call() throws Exception {
-            return createBasis();
+            return createBoundedBasis();
+        }
+    }
+    
+    // a subclass of Basis that contains the polynomials F and G
+    private class FGBasis extends Basis {
+        IntegerPolynomial F, G;
+        
+        FGBasis(TernaryPolynomial f, IntegerPolynomial fPrime, IntegerPolynomial h, IntegerPolynomial F, IntegerPolynomial G, SignatureParameters params) {
+            super(f, fPrime, h, params);
+            this.F = F;
+            this.G = G;
         }
     }
 }

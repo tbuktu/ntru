@@ -25,28 +25,31 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 public class SignatureParameters {
-    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 150, 300, false, false);
-    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 1000, false, true);   // gives 128 bits of security
-    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 1900, true, false);   // gives 256 bits of security
+    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, 300, false, false);
+    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, 1000, false, true);   // gives 128 bits of security
+    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, 1900, true, false);   // gives 256 bits of security
     
     public enum BasisType {STANDARD, TRANSPOSE};
     
     int N, q, d, B;
     double beta, betaSq, normBound, normBoundSq;
+    int signFailTolerance = 100;
+    double keyNormBound, keyNormBoundSq;
     int keyGenerationDecimalPlaces;
     boolean primeCheck;   // true if N and 2N+1 are prime
     BasisType basisType;
     int bitsF = 6;   // max #bits needed to encode one coefficient of the polynomial F
     boolean sparse;   // whether to treat ternary polynomials as sparsely populated
     
-    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, int keyGenerationDecimalPlaces, boolean primeCheck, boolean sparse) {
+    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, int keyGenerationDecimalPlaces, boolean primeCheck, boolean sparse) {
         this.N = N;
         this.q = q;
         this.d = d;
         this.B = B;
+        this.basisType = basisType;
         this.beta = beta;
         this.normBound = normBound;
-        this.basisType = basisType;
+        this.keyNormBound = keyNormBound;
         this.keyGenerationDecimalPlaces = keyGenerationDecimalPlaces;
         this.primeCheck = primeCheck;
         this.sparse = sparse;
@@ -54,8 +57,9 @@ public class SignatureParameters {
     }
 
     private void init() {
-        this.betaSq = beta * beta;
-        this.normBoundSq = normBound * normBound;
+        betaSq = beta * beta;
+        normBoundSq = normBound * normBound;
+        keyNormBoundSq = keyNormBound * keyNormBound;
     }
 
     public SignatureParameters(InputStream is) throws IOException {
@@ -67,6 +71,8 @@ public class SignatureParameters {
         basisType = BasisType.values()[dis.readInt()];
         beta = dis.readDouble();
         normBound = dis.readDouble();
+        keyNormBound = dis.readDouble();
+        signFailTolerance = dis.readInt();
         keyGenerationDecimalPlaces = dis.readInt();
         primeCheck = dis.readBoolean();
         sparse = dis.readBoolean();
@@ -83,6 +89,8 @@ public class SignatureParameters {
         dos.writeInt(basisType.ordinal());
         dos.writeDouble(beta);
         dos.writeDouble(normBound);
+        dos.writeDouble(keyNormBound);
+        dos.writeInt(signFailTolerance);
         dos.writeInt(keyGenerationDecimalPlaces);
         dos.writeBoolean(primeCheck);
         dos.writeBoolean(sparse);
@@ -104,12 +112,17 @@ public class SignatureParameters {
         result = prime * result + bitsF;
         result = prime * result + d;
         result = prime * result + keyGenerationDecimalPlaces;
+        temp = Double.doubleToLongBits(keyNormBound);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
+        temp = Double.doubleToLongBits(keyNormBoundSq);
+        result = prime * result + (int) (temp ^ (temp >>> 32));
         temp = Double.doubleToLongBits(normBound);
         result = prime * result + (int) (temp ^ (temp >>> 32));
         temp = Double.doubleToLongBits(normBoundSq);
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + (primeCheck ? 1231 : 1237);
         result = prime * result + q;
+        result = prime * result + signFailTolerance;
         result = prime * result + (sparse ? 1231 : 1237);
         return result;
     }
@@ -142,6 +155,10 @@ public class SignatureParameters {
             return false;
         if (keyGenerationDecimalPlaces != other.keyGenerationDecimalPlaces)
             return false;
+        if (Double.doubleToLongBits(keyNormBound) != Double.doubleToLongBits(other.keyNormBound))
+            return false;
+        if (Double.doubleToLongBits(keyNormBoundSq) != Double.doubleToLongBits(other.keyNormBoundSq))
+            return false;
         if (Double.doubleToLongBits(normBound) != Double.doubleToLongBits(other.normBound))
             return false;
         if (Double.doubleToLongBits(normBoundSq) != Double.doubleToLongBits(other.normBoundSq))
@@ -149,6 +166,8 @@ public class SignatureParameters {
         if (primeCheck != other.primeCheck)
             return false;
         if (q != other.q)
+            return false;
+        if (signFailTolerance != other.signFailTolerance)
             return false;
         if (sparse != other.sparse)
             return false;
