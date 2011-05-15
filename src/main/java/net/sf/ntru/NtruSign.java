@@ -367,10 +367,13 @@ public class NtruSign {
     
     /**
      * Implementation of the optional steps 20 through 26 in EESS1v2.pdf, section 3.5.1.1.
-     * This doesn't seem to have much of an effect, and sometimes actually increases the
+     * This doesn't seem to have much of an effect and sometimes actually increases the
      * norm of F, but on average it slightly reduces the norm.
-     * @param params
-     * @return
+     * @param f
+     * @param g
+     * @param F
+     * @param G
+     * @param N
      */
     private void minimizeFG(IntegerPolynomial f, IntegerPolynomial g, IntegerPolynomial F, IntegerPolynomial G, int N) {
         int E = 0;

@@ -66,7 +66,6 @@ public class NtruEncrypt {
      * 
      * @param m The message to encrypt
      * @param pubKey
-     * @param params
      * @return
      * @throws NoSuchAlgorithmException 
      */
