@@ -31,7 +31,7 @@ class IndexGenerator {
     private int minCallsR;
     private int totLen;
     private int remLen;
-    private byte[] buf;
+    private BitString buf;
     private int counter;
     private boolean initialized;
     private MessageDigest hashAlg;
@@ -57,23 +57,23 @@ class IndexGenerator {
      */
     int nextIndex() {
         if (!initialized) {
-            buf = new byte[] {};
+            buf = new BitString();
             while (counter < minCallsR) {
                 ByteBuffer hashInput = ByteBuffer.allocate(seed.length + 4);
                 hashInput.put(seed);
                 hashInput.putInt(counter);
                 byte[] hash = hashAlg.digest(hashInput.array());
-                buf = append(buf, hash);
+                buf.appendBits(hash);
                 counter++;
             }
-            totLen = minCallsR * hLen;
+            totLen = minCallsR * 8 * hLen;
             remLen = totLen;
             initialized = true;
         }
         
         while (true) {
             totLen += c;
-            byte[] M = Arrays.copyOfRange(buf, buf.length-remLen, buf.length);
+            BitString M = buf.getTrailing(remLen);
             if (remLen < c) {
                 int tmpLen = c - remLen;
                 int cThreshold = counter + (tmpLen+hLen-1)/hLen;
@@ -83,28 +83,83 @@ class IndexGenerator {
                     hashInput.put(seed);
                     hashInput.putInt(counter);
                     hash = hashAlg.digest(hashInput.array());
-                    M = append(M, hash);
+                    M.appendBits(hash);
                     counter++;
-                    if (tmpLen > hLen)
-                        tmpLen -= hLen;
+                    if (tmpLen > 8*hLen)
+                        tmpLen -= 8*hLen;
                 }
-                remLen = hLen - tmpLen;
-                buf = hash;
+                remLen = 8*hLen - tmpLen;
+                buf = new BitString();
+                buf.appendBits(hash);
             }
             else
                 remLen -= c;
             
-            int i = ByteBuffer.wrap(M).getInt();   // assume c<32
-            i &= 0x7FFFFFFFL;
-            i = i & ((1<<c)-1);   // only keep the low c bits
+            int i = M.getLeadingAsInt(c);   // assume c<32
             if (i < (1<<c)-((1<<c)%N))
                 return i % N;
         }
     }
     
-    private byte[] append(byte[] a, byte[] b) {
-        byte[] c = Arrays.copyOf(a, a.length+b.length);
-        System.arraycopy(b, 0, c, a.length, b.length);
-        return c;
+    static class BitString {
+        byte[] bytes = new byte[4];
+        int numBytes;   // includes the last byte even if only some of its bits are used
+        int lastByteBits;   // lastByteBits <= 8
+        
+        void appendBits(byte[] bytes) {
+            for (byte b: bytes)
+                appendBits(b);
+        }
+        
+        void appendBits(byte b) {
+            if (numBytes == bytes.length)
+                bytes = Arrays.copyOf(bytes, 2*bytes.length);
+            
+            if (numBytes == 0) {
+                numBytes = 1;
+                bytes[0] = b;
+                lastByteBits = 8;
+            }
+            else if (lastByteBits == 8)
+                bytes[numBytes++] = b;
+            else {
+                int s = 8 - lastByteBits;
+                bytes[numBytes-1] |= (b&0xFF) << lastByteBits;
+                bytes[numBytes++] = (byte)((b&0xFF) >> s);
+            }
+        }
+        
+        BitString getTrailing(int numBits) {
+            BitString newStr = new BitString();
+            newStr.numBytes = (numBits+7) / 8;
+            newStr.bytes = new byte[newStr.numBytes];
+            for (int i=0; i<newStr.numBytes; i++)
+                newStr.bytes[i] = bytes[i];
+            
+            newStr.lastByteBits = numBits % 8;
+            if (newStr.lastByteBits == 0)
+                newStr.lastByteBits = 8;
+            else {
+                int s = 32 - newStr.lastByteBits;
+                newStr.bytes[newStr.numBytes-1] = (byte)(newStr.bytes[newStr.numBytes-1] << s >>> s);
+            }
+            
+            return newStr;
+        }
+        
+        int getLeadingAsInt(int numBits) {
+            int startBit = (numBytes-1)*8 + lastByteBits - numBits;
+            int startByte = startBit / 8;
+            
+            int startBitInStartByte = startBit % 8;
+            int sum = (bytes[startByte]&0xFF) >>> startBitInStartByte;
+            int shift = 8 - startBitInStartByte;
+            for (int i=startByte+1; i<numBytes; i++) {
+                sum |= (bytes[i]&0xFF) << shift;
+                shift += 8;
+            }
+            
+            return sum;
+        }
     }
 }
