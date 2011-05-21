@@ -35,6 +35,7 @@ public class EncryptionParameters {
     int N, q, df, dr, dg, llen, maxMsgLenBytes, db, bufferLenBits, bufferLenTrits, dm0, pkLen, c, minCallsR, minCallsMask;
     byte[] oid;
     boolean sparse;   // whether to treat ternary polynomials as sparsely populated
+    byte[] reserved;
     
     public EncryptionParameters(int N, int q, int df, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse) {
         this.N = N;
@@ -47,6 +48,7 @@ public class EncryptionParameters {
         this.minCallsMask = minCallsMask;
         this.oid = oid;
         this.sparse = sparse;
+        reserved = new byte[16];
         init();
     }
 
@@ -73,6 +75,7 @@ public class EncryptionParameters {
         oid = new byte[3];
         dis.read(oid);
         sparse = dis.readBoolean();
+        dis.read(reserved = new byte[16]);
         init();
     }
 
@@ -88,6 +91,7 @@ public class EncryptionParameters {
         dos.writeInt(minCallsMask);
         dos.write(oid);
         dos.writeBoolean(sparse);
+        dos.write(reserved);
     }
 
     @Override
@@ -110,6 +114,7 @@ public class EncryptionParameters {
         result = prime * result + Arrays.hashCode(oid);
         result = prime * result + pkLen;
         result = prime * result + q;
+        result = prime * result + Arrays.hashCode(reserved);
         result = prime * result + (sparse ? 1231 : 1237);
         return result;
     }
@@ -154,6 +159,8 @@ public class EncryptionParameters {
         if (pkLen != other.pkLen)
             return false;
         if (q != other.q)
+            return false;
+        if (!Arrays.equals(reserved, other.reserved))
             return false;
         if (sparse != other.sparse)
             return false;
