@@ -26,9 +26,30 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Random;
 
+import net.sf.ntru.NtruSign.FGBasis;
+
 import org.junit.Test;
 
 public class NtruSignTest {
+    
+    @Test
+    public void testCreateBasis() {
+        SignatureParameters params = SignatureParameters.TEST157;
+        NtruSign ntru = new NtruSign(params);
+        FGBasis basis = ntru.createBasis();
+        assertTrue(equalsQ(basis.f, basis.fPrime, basis.F, basis.G, params.q, params.N));
+    }
+    
+    // verifies that f*G-g*F=q
+    private boolean equalsQ(TernaryPolynomial f, IntegerPolynomial g, IntegerPolynomial F, IntegerPolynomial G, int q, int N) {
+        IntegerPolynomial x = f.mult(G);
+        x.sub(g.mult(F));
+        boolean equalsQ=true;
+        for (int i=1; i<x.coeffs.length; i++)
+            equalsQ &= x.coeffs[i] == 0;
+        equalsQ &= x.coeffs[0] == q;
+        return equalsQ;
+    }
     
     /** test for the one-method-call variants: sign(byte, SignatureKeyPair) and verify(byte[], byte[], SignatureKeyPair) */
     @Test

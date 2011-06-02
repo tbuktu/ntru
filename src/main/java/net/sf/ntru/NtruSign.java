@@ -299,7 +299,7 @@ public class NtruSign {
         }
     }
     
-    private FGBasis createBasis() {
+    FGBasis createBasis() {
         int N = params.N;
         int q = params.q;
         int d = params.d;
@@ -337,9 +337,6 @@ public class NtruSign {
         BigIntPolynomial B = rg.rho.clone();
         B.mult(r.y.multiply(BigInteger.valueOf(-q)));
         
-        if (!equalsQ(f, g, B, A, q, N))
-            throw new NtruException("this shouldn't happen");
-        
         BigDecimalPolynomial fInv = rf.rho.div(new BigDecimal(rf.res), decimalPlaces);
         BigDecimalPolynomial gInv = rg.rho.div(new BigDecimal(rg.res), decimalPlaces);
         
@@ -359,9 +356,6 @@ public class NtruSign {
         IntegerPolynomial FInt=new IntegerPolynomial(F);
         IntegerPolynomial GInt=new IntegerPolynomial(G);
         minimizeFG(f, g, FInt, GInt, N);
-        
-        if (!equalsQ(f, g, F, G, q, N))
-            throw new NtruException("this shouldn't happen");
         
         IntegerPolynomial fPrime;
         IntegerPolynomial h;
@@ -433,18 +427,6 @@ public class NtruSign {
         }
     }
     
-    // verifies that f*G-g*F=q
-    private boolean equalsQ(IntegerPolynomial f, IntegerPolynomial g, BigIntPolynomial F, BigIntPolynomial G, int q, int N) {
-        G = new BigIntPolynomial(java.util.Arrays.copyOf(G.coeffs, N));
-        BigIntPolynomial x = new BigIntPolynomial(f).mult(G);
-        x.sub(new BigIntPolynomial(g).mult(F));
-        boolean equalsQ=true;
-        for (int i=1; i<x.coeffs.length-1; i++)
-            equalsQ &= ZERO.equals(x.coeffs[i]);
-        equalsQ &= x.coeffs[0].equals(BigInteger.valueOf(q));
-        return equalsQ;
-    }
-    
     private class BasisGenerationTask implements Callable<Basis> {
 
         @Override
@@ -454,7 +436,7 @@ public class NtruSign {
     }
     
     // a subclass of Basis that contains the polynomials F and G
-    private class FGBasis extends Basis {
+    class FGBasis extends Basis {
         IntegerPolynomial F, G;
         
         FGBasis(TernaryPolynomial f, IntegerPolynomial fPrime, IntegerPolynomial h, IntegerPolynomial F, IntegerPolynomial G, SignatureParameters params) {
