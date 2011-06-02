@@ -33,9 +33,25 @@ public class Util {
         return IntEuclidean.calculate(n, modulus).x;
     }
     
+    /** Calculates the inverse of n mod modulus */
+    static long invert(long n, long modulus) {
+        n %= modulus;
+        if (n < 0)
+            n += modulus;
+        return LongEuclidean.calculate(n, modulus).x;
+    }
+    
     /** Calculates a^b mod modulus */
     static int pow(int a, int b, int modulus) {
         int p = 1;
+        for (int i=0; i<b; i++)
+            p = (p*a) % modulus;
+        return p;
+    }
+    
+    /** Calculates a^b mod modulus */
+    static long pow(long a, int b, long modulus) {
+        long p = 1;
         for (int i=0; i<b; i++)
             p = (p*a) % modulus;
         return p;

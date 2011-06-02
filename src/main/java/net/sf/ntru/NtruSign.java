@@ -41,9 +41,22 @@ public class NtruSign {
     private MessageDigest hashAlg;
     private SignatureKeyPair signingKeyPair;
     private SignaturePublicKey verificationKey;
+    private boolean use64Bits;
     
     public NtruSign(SignatureParameters params) {
         this.params = params;
+        use64Bits = is64BitJVM();
+    }
+    
+    public NtruSign(SignatureParameters params, boolean use64Bits) {
+        this.params = params;
+        this.use64Bits = use64Bits;
+    }
+    
+    private boolean is64BitJVM() {
+        String arch = System.getProperty("os.arch");
+        String sunModel = System.getProperty("sun.arch.data.model");
+        return "amd64".equals(arch) || "x86_64".equals(arch) || "ppc64".equals(arch) || "64".equals(sunModel);
     }
     
     /** Uses B+1 threads */
@@ -307,7 +320,7 @@ public class NtruSign {
             f = DenseTernaryPolynomial.generateRandom(N, d+1, d);
             fq = f.invertFq(q);
         } while (fq == null);
-        rf = f.resultant();
+        rf = use64Bits ? new LongPolynomial(f).resultant() : f.resultant(); 
         
         do {
             do {
@@ -315,7 +328,7 @@ public class NtruSign {
                     g = DenseTernaryPolynomial.generateRandom(N, d+1, d);
                 } while (primeCheck && f.resultant(_2n1).res.equals(ZERO) && g.resultant(_2n1).res.equals(ZERO));
             } while (g.invertFq(q) == null);
-            rg = g.resultant();
+            rg = use64Bits ? new LongPolynomial(g).resultant() : g.resultant();
             r = BigIntEuclidean.calculate(rf.res, rg.res);
         } while (!r.gcd.equals(ONE));
         

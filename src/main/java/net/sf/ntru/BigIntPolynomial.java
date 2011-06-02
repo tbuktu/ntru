@@ -45,6 +45,12 @@ class BigIntPolynomial {
             coeffs[i] = BigInteger.valueOf(p.coeffs[i]);
     }
     
+    BigIntPolynomial(LongPolynomial p) {
+        coeffs = new BigInteger[p.coeffs.length];
+        for (int i=0; i<coeffs.length; i++)
+            coeffs[i] = BigInteger.valueOf(p.coeffs[i]);
+    }
+    
     BigIntPolynomial(BigInteger[] coeffs) {
         this.coeffs = coeffs;
     }
