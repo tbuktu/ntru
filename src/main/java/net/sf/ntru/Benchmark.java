@@ -23,37 +23,88 @@ import java.util.Arrays;
 
 public class Benchmark {
     private byte[] plain = "test message".getBytes();
+    private byte[] encrypted;
+    private EncryptionKeyPair encKeyPair;
+    private SignatureKeyPair sigKeyPair;
     
     private void run() throws NoSuchAlgorithmException {
-        long minEncTime = Long.MAX_VALUE;
-        long minSigTime = Long.MAX_VALUE;
-        long totEncTime = 0;
-        long totSigTime = 0;
+        long minEncKeyGenTime = Long.MAX_VALUE;
+        long minEncryptTime = Long.MAX_VALUE;
+        long minDecryptTime = Long.MAX_VALUE;
+        long minSigKeyGenTime = Long.MAX_VALUE;
+        long minSignTime = Long.MAX_VALUE;
+        long minVerifyTime = Long.MAX_VALUE;
+        long minTotalTime = Long.MAX_VALUE;
+        long totEncKeyGenTime = 0;
+        long totEncryptTime = 0;
+        long totDecryptTime = 0;
+        long totSigKeyGenTime = 0;
+        long totSignTime = 0;
+        long totVerifyTime = 0;
+        long totTotalTime = 0;
         int iterations = 5;
         
+        NtruEncrypt ntruEncrypt = new NtruEncrypt(EncryptionParameters.APR2011_439);
+        NtruSign ntruSign = new NtruSign(SignatureParameters.APR2011_439);
         for (int i=0; i<iterations; i++) {
-            long encTime = encBench();
-            long sigTime = signBench();
-            System.out.println("NTRUEncrypt " + encTime + "ms\tNTRUSign " + sigTime + "ms");
+            long encKeyGenTime = encKeyGenBench(ntruEncrypt);
+            System.out.print("EncKeyG " + encKeyGenTime + "ms");
+            long encryptTime = encryptBench(ntruEncrypt);
+            System.out.print("\tEncrypt " + encryptTime + "ms");
+            long decryptTime = decryptBench(ntruEncrypt);
+            System.out.print("\tDecrypt " + decryptTime + "ms");
+            long sigKeyGenTime = sigKeyGenBench(ntruSign);
+            System.out.print("\tSigKeyG " + sigKeyGenTime + "ms");
+            long signTime = signBench(ntruSign);
+            System.out.print("\tSign " + signTime + "ms");
+            long verifyTime = verifyBench(ntruSign);
+            System.out.print("\tVerify " + verifyTime + "ms");
+            long totalTime = encKeyGenTime + encryptTime + decryptTime + sigKeyGenTime + signTime + verifyTime;
+            System.out.println("\tTotal " + totalTime + "ms");
             
-            minEncTime = Math.min(encTime, minEncTime);
-            minSigTime = Math.min(sigTime, minSigTime);
-            totEncTime += encTime;
-            totSigTime += sigTime;
+            minEncKeyGenTime = Math.min(encKeyGenTime, minEncKeyGenTime);
+            minEncryptTime = Math.min(encryptTime, minEncryptTime);
+            minDecryptTime = Math.min(decryptTime, minDecryptTime);
+            minEncKeyGenTime = Math.min(encKeyGenTime, minEncKeyGenTime);
+            minSigKeyGenTime = Math.min(sigKeyGenTime, minSigKeyGenTime);
+            minSignTime = Math.min(signTime, minSignTime);
+            minVerifyTime = Math.min(verifyTime, minVerifyTime);
+            minTotalTime = Math.min(totalTime, minTotalTime);
+            totEncKeyGenTime += encKeyGenTime;
+            totEncryptTime += encryptTime;
+            totDecryptTime += decryptTime;
+            totSigKeyGenTime += sigKeyGenTime;
+            totSignTime += signTime;
+            totVerifyTime += verifyTime;
+            totTotalTime += totalTime;
         }
         System.out.println();
-        System.out.println("Encrypt min " + minEncTime + "ms\tSign min " + minSigTime + "ms");
-        System.out.println("Encrypt avg " + totEncTime/iterations + "ms\tSign avg " + totSigTime/iterations + "ms");
+        System.out.println("    Min " + minEncKeyGenTime + "ms\t    Min " + minEncryptTime + "ms\t    Min " + minDecryptTime + "ms" +
+                "\t    Min " + minSigKeyGenTime + "ms\t Min " + minSignTime + "ms\t   Min " + minVerifyTime + "ms\t   Min " + minTotalTime);
+        System.out.println("    Avg " + totEncKeyGenTime/iterations + "ms\t    Avg " + totEncryptTime/iterations + "ms\t    Avg " + totDecryptTime/iterations + "ms" +
+                "\t    Avg " + totSigKeyGenTime/iterations + "ms\t Avg " + totSignTime/iterations + "ms\t   Avg " + totVerifyTime/iterations + "ms\t   Avg " + totTotalTime/iterations);
     }
     
-    private long encBench() throws NoSuchAlgorithmException {
-        long t1=System.currentTimeMillis();
-        EncryptionParameters params = EncryptionParameters.APR2011_439;
-        NtruEncrypt ntru = new NtruEncrypt(params);
-        EncryptionKeyPair kp = ntru.generateKeyPair();
-        for (int i=0; i<100; i++) {
-            byte[] encrypted = ntru.encrypt(plain, kp.getPublic());
-            byte[] decrypted = ntru.decrypt(encrypted, kp);
+    private long encKeyGenBench(NtruEncrypt ntru) {
+        long t1 = System.currentTimeMillis();
+        for (int i=0; i<20; i++)
+            encKeyPair = ntru.generateKeyPair();
+        long t2 = System.currentTimeMillis();
+        return t2 - t1;
+    }
+    
+    private long encryptBench(NtruEncrypt ntru) throws NoSuchAlgorithmException {
+        long t1 = System.currentTimeMillis();
+        for (int i=0; i<100; i++)
+            encrypted = ntru.encrypt(plain, encKeyPair.getPublic());
+        long t2 = System.currentTimeMillis();
+        return t2 - t1;
+    }
+    
+    private long decryptBench(NtruEncrypt ntru) throws NoSuchAlgorithmException {
+        long t1 = System.currentTimeMillis();
+        for (int i=0; i<400; i++) {
+            byte[] decrypted = ntru.decrypt(encrypted, encKeyPair);
             if (!Arrays.equals(plain, Arrays.copyOf(decrypted, plain.length)))
                 throw new NtruException("Decryption failure");
         }
@@ -61,14 +112,30 @@ public class Benchmark {
         return t2 - t1;
     }
     
-    private long signBench() {
+    private long sigKeyGenBench(NtruSign ntru) {
+        long t1 = System.currentTimeMillis();
+        sigKeyPair = ntru.generateKeyPair();
+        long t2 = System.currentTimeMillis();
+        return t2 - t1;
+    }
+    
+    private long signBench(NtruSign ntru) {
         long t1=System.currentTimeMillis();
-        SignatureParameters params = SignatureParameters.TEST157;
-        NtruSign ntru = new NtruSign(params);
-        SignatureKeyPair kp = ntru.generateKeyPair();
         for (int i=0; i<100; i++) {
-            byte[] sig = ntru.sign(plain, kp);
-            boolean pass = ntru.verify(plain, sig, kp.getPublic());
+            byte[] sig = ntru.sign(plain, sigKeyPair);
+            boolean pass = ntru.verify(plain, sig, sigKeyPair.getPublic());
+            if (!pass)
+                throw new NtruException("Verification failure");
+        }
+        long t2 = System.currentTimeMillis();
+        return t2 - t1;
+    }
+    
+    private long verifyBench(NtruSign ntru) {
+        long t1=System.currentTimeMillis();
+        for (int i=0; i<100; i++) {
+            byte[] sig = ntru.sign(plain, sigKeyPair);
+            boolean pass = ntru.verify(plain, sig, sigKeyPair.getPublic());
             if (!pass)
                 throw new NtruException("Verification failure");
         }
