@@ -33,12 +33,16 @@ public class Prng {
     /**
      * Constructs a new PRNG and seeds it with a byte array.
      * @param seed a seed
-     * @throws NoSuchAlgorithmException if the JRE doesn't implement SHA-512
+     * @throws NtruException if the JRE doesn't implement SHA-512
      */
-    Prng(byte[] seed) throws NoSuchAlgorithmException {
+    Prng(byte[] seed) {
         counter = 0;
         this.seed = seed;
-        hashAlg = MessageDigest.getInstance("SHA-512");
+        try {
+            hashAlg = MessageDigest.getInstance("SHA-512");
+        } catch (NoSuchAlgorithmException e) {
+            throw new NtruException(e);
+        }
     }
     
     /**

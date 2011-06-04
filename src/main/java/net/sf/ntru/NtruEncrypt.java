@@ -76,10 +76,9 @@ public class NtruEncrypt {
      * @param m The message to encrypt
      * @param pubKey the public key to encrypt the message with
      * @return
-     * @throws NoSuchAlgorithmException if SHA-512 is not available
-     * @throws NtruException if the message is longer than <code>maxLenBytes</code> or <code>maxLenBytes</code> is greater than 255
+     * @throws NtruException if SHA-512 is not available, the message is longer than <code>maxLenBytes</code>, or <code>maxLenBytes</code> is greater than 255
      */
-    public byte[] encrypt(byte[] m, EncryptionPublicKey pubKey) throws NoSuchAlgorithmException {
+    public byte[] encrypt(byte[] m, EncryptionPublicKey pubKey) {
         IntegerPolynomial pub = pubKey.h;
         int N = params.N;
         int q = params.q;
@@ -151,7 +150,7 @@ public class NtruEncrypt {
         return e;
     }
     
-    private TernaryPolynomial generateBlindingPoly(byte[] seed, byte[] M) throws NoSuchAlgorithmException {
+    private TernaryPolynomial generateBlindingPoly(byte[] seed, byte[] M) {
         int N = params.N;
         int dr = params.dr;
         boolean sparse = params.sparse;
@@ -181,13 +180,18 @@ public class NtruEncrypt {
      * @param N
      * @param minCallsMask
      * @return
-     * @throws NoSuchAlgorithmException
+     * @throws NtruException if SHA-512 is not available
      */
-    private IntegerPolynomial MGF1(byte[] input, int N, int minCallsMask) throws NoSuchAlgorithmException {
+    private IntegerPolynomial MGF1(byte[] input, int N, int minCallsMask) {
         int numBytes = (N*3+2)/2;
         int numCalls = (numBytes+63) / 64;   // calls to SHA-512
         ByteBuffer buf = ByteBuffer.allocate(numCalls*64);
-        MessageDigest hashAlg = MessageDigest.getInstance("SHA-512");
+        MessageDigest hashAlg;
+        try {
+            hashAlg = MessageDigest.getInstance("SHA-512");
+        } catch (NoSuchAlgorithmException e) {
+            throw new NtruException(e);
+        }
         for (int counter=0; counter<numCalls; counter++) {
             ByteBuffer hashInput = ByteBuffer.allocate(input.length + 4);
             hashInput.put(input);
@@ -205,10 +209,9 @@ public class NtruEncrypt {
      * @param m The message to decrypt
      * @param kp a key pair that contains the public key the message was encrypted with, and the corresponding private key
      * @return
-     * @throws NoSuchAlgorithmException if SHA-512 is not available
-     * @throws NtruException if the encrypted data is invalid or <code>maxLenBytes</code> is greater than 255
+     * @throws NtruException if SHA-512 is not available, the encrypted data is invalid, or <code>maxLenBytes</code> is greater than 255
      */
-    public byte[] decrypt(byte[] data, EncryptionKeyPair kp) throws NoSuchAlgorithmException {
+    public byte[] decrypt(byte[] data, EncryptionKeyPair kp) {
         TernaryPolynomial priv_f = kp.priv.f;
         IntegerPolynomial priv_fp = kp.priv.fp;
         IntegerPolynomial pub = kp.pub.h;

@@ -22,7 +22,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Random;
 
@@ -146,7 +145,7 @@ public class NtruSignTest {
     }
     
     @Test
-    public void testCreateMsgRep() throws NoSuchAlgorithmException {
+    public void testCreateMsgRep() {
         NtruSign ntru = new NtruSign(SignatureParameters.TEST157);
         byte[] msgHash = "adfsadfsdfs23234234".getBytes();
         

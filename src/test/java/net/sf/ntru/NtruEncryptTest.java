@@ -21,14 +21,12 @@ package net.sf.ntru;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.fail;
 
-import java.security.NoSuchAlgorithmException;
-
 import org.junit.Test;
 
 public class NtruEncryptTest {
     
     @Test
-    public void testEncryptDecrypt() throws NoSuchAlgorithmException {
+    public void testEncryptDecrypt() {
         EncryptionParameters params = EncryptionParameters.APR2011_743;
         NtruEncrypt ntru = new NtruEncrypt(params);
         EncryptionKeyPair kp = ntru.generateKeyPair();

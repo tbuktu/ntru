@@ -43,9 +43,9 @@ class IndexGenerator {
      * Constructs a new index generator.
      * @param seed a seed of arbitrary length to initialize the index generator with
      * @param params NtruEncrypt parameters
-     * @throws NoSuchAlgorithmException
+     * @throws NtruException if SHA-512 is not available
      */
-    IndexGenerator(byte[] seed, EncryptionParameters params) throws NoSuchAlgorithmException {
+    IndexGenerator(byte[] seed, EncryptionParameters params) {
         this.seed = seed;
         N = params.N;
         c = params.c;
@@ -54,7 +54,11 @@ class IndexGenerator {
         totLen = 0;
         remLen = 0;
         counter = 0;
-        hashAlg = MessageDigest.getInstance("SHA-512");
+        try {
+            hashAlg = MessageDigest.getInstance("SHA-512");
+        } catch (NoSuchAlgorithmException e) {
+            throw new NtruException(e);
+        }
         hLen = 64;   // hash length
         initialized = false;
     }

@@ -184,11 +184,7 @@ public class NtruSign {
             r++;
             if (r > params.signFailTolerance)
                 throw new NtruException("Signing failed: too many retries (max=" + params.signFailTolerance + ")");
-            try {
-                i = createMsgRep(msgHash, r);
-            } catch (NoSuchAlgorithmException e) {
-                throw new NtruException(e);
-            }
+            i = createMsgRep(msgHash, r);
             s = sign(i, kp);
         } while (!verify(i, s, kp.pub.h));
 
@@ -301,11 +297,7 @@ public class NtruSign {
         sbuf.get(rawSig);
         IntegerPolynomial s = IntegerPolynomial.fromBinary(rawSig, params.N, params.q);
         int r = sbuf.getInt();
-        try {
-            return verify(createMsgRep(msgHash, r), s, pub.h);
-        } catch (NoSuchAlgorithmException e) {
-            throw new NtruException(e);
-        }
+        return verify(createMsgRep(msgHash, r), s, pub.h);
     }
     
     private boolean verify(IntegerPolynomial i, IntegerPolynomial s, IntegerPolynomial h) {
@@ -319,7 +311,7 @@ public class NtruSign {
         return centeredNormSq <= normBoundSq;
     }
     
-    IntegerPolynomial createMsgRep(byte[] msgHash, int r) throws NoSuchAlgorithmException {
+    IntegerPolynomial createMsgRep(byte[] msgHash, int r) {
         int N = params.N;
         int q = params.q;
         

@@ -18,7 +18,6 @@
 
 package net.sf.ntru;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
 public class Benchmark {
@@ -27,7 +26,7 @@ public class Benchmark {
     private EncryptionKeyPair encKeyPair;
     private SignatureKeyPair sigKeyPair;
     
-    private void run() throws NoSuchAlgorithmException {
+    private void run() {
         long minEncKeyGenTime = Long.MAX_VALUE;
         long minEncryptTime = Long.MAX_VALUE;
         long minDecryptTime = Long.MAX_VALUE;
@@ -93,7 +92,7 @@ public class Benchmark {
         return t2 - t1;
     }
     
-    private long encryptBench(NtruEncrypt ntru) throws NoSuchAlgorithmException {
+    private long encryptBench(NtruEncrypt ntru) {
         long t1 = System.currentTimeMillis();
         for (int i=0; i<100; i++)
             encrypted = ntru.encrypt(plain, encKeyPair.getPublic());
@@ -101,7 +100,7 @@ public class Benchmark {
         return t2 - t1;
     }
     
-    private long decryptBench(NtruEncrypt ntru) throws NoSuchAlgorithmException {
+    private long decryptBench(NtruEncrypt ntru) {
         long t1 = System.currentTimeMillis();
         for (int i=0; i<400; i++) {
             byte[] decrypted = ntru.decrypt(encrypted, encKeyPair);
