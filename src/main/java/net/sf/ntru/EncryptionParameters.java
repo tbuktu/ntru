@@ -25,18 +25,43 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+/**
+ * A set of parameters for NtruEncrypt. Several predefined parameter sets are available and new ones can be created as well.
+ */
 public class EncryptionParameters {
-    public static final EncryptionParameters EES1087EP2 = new EncryptionParameters(1087, 2048, 120, 120, 256, 13, 25, 14, new byte[] {0, 6, 3}, true);   // security>256, optimized for key size
-    public static final EncryptionParameters EES1171EP1 = new EncryptionParameters(1171, 2048, 106, 106, 256, 13, 20, 15, new byte[] {0, 6, 4}, true);   // security>256, key size / speed tradeoff
-    public static final EncryptionParameters EES1499EP1 = new EncryptionParameters(1499, 2048, 79, 79, 256, 13, 17, 19, new byte[] {0, 6, 5}, true);   // security>256, optimized for speed
-    public static final EncryptionParameters APR2011_439 = new EncryptionParameters(439, 2048, 146, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true);   // security=128
-    public static final EncryptionParameters APR2011_743 = new EncryptionParameters(743, 2048, 248, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false);   // security=256
+    /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for key size. */
+    public static final EncryptionParameters EES1087EP2 = new EncryptionParameters(1087, 2048, 120, 120, 256, 13, 25, 14, new byte[] {0, 6, 3}, true);
+    
+    /** A conservative (in terms of security) parameter set that gives 256 bits of security and is a tradeoff between key size and encryption/decryption speed. */
+    public static final EncryptionParameters EES1171EP1 = new EncryptionParameters(1171, 2048, 106, 106, 256, 13, 20, 15, new byte[] {0, 6, 4}, true);
+    
+    /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for encryption/decryption speed. */
+    public static final EncryptionParameters EES1499EP1 = new EncryptionParameters(1499, 2048, 79, 79, 256, 13, 17, 19, new byte[] {0, 6, 5}, true);
+    
+    /** A parameter set that gives 256 bits of security. */
+    public static final EncryptionParameters APR2011_439 = new EncryptionParameters(439, 2048, 146, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true);
+    
+    /** A parameter set that gives 128 bits of security. */
+    public static final EncryptionParameters APR2011_743 = new EncryptionParameters(743, 2048, 248, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false);
     
     int N, q, df, dr, dg, llen, maxMsgLenBytes, db, bufferLenBits, bufferLenTrits, dm0, pkLen, c, minCallsR, minCallsMask;
     byte[] oid;
-    boolean sparse;   // whether to treat ternary polynomials as sparsely populated
+    boolean sparse;
     byte[] reserved;
     
+    /**
+     * Constructs a new set of encryption parameters.
+     * @param N number of polynomial coefficients
+     * @param q modulus
+     * @param df number of ones in the private polynomial <code>f</code>
+     * @param dm0 minimum acceptable number of -1's, 0's, and 1's in the polynomial m' in the last encryption step
+     * @param db number of random bits to prepend to the message
+     * @param c a parameter for the Index Generation Function ({@link IndexGenerator})
+     * @param minCallsR minimum number of hash calls for the IGF to make
+     * @param minCallsMask minimum number of calls to generate the masking polynomial
+     * @param oid three bytes that uniquely identify the parameter set
+     * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
+     */
     public EncryptionParameters(int N, int q, int df, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse) {
         this.N = N;
         this.q = q;
@@ -62,6 +87,11 @@ public class EncryptionParameters {
         pkLen = db / 2;
     }
 
+    /**
+     * Reads a parameter set from an input stream.
+     * @param is an input stream
+     * @throws IOException
+     */
     public EncryptionParameters(InputStream is) throws IOException {
         DataInputStream dis = new DataInputStream(is);
         N = dis.readInt();
@@ -79,6 +109,11 @@ public class EncryptionParameters {
         init();
     }
 
+    /**
+     * Writes the parameter set to an output stream
+     * @param os an output stream
+     * @throws IOException
+     */
     public void writeTo(OutputStream os) throws IOException {
         DataOutputStream dos = new DataOutputStream(os);
         dos.writeInt(N);

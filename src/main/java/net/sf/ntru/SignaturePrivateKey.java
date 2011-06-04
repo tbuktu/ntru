@@ -28,9 +28,17 @@ import java.util.List;
 
 import net.sf.ntru.SignatureParameters.BasisType;
 
+/**
+ * A NtruSign private key comprises one or more {@link Basis} of three polynomials each.
+ */
 public class SignaturePrivateKey {
     private List<Basis> bases;
     
+    /**
+     * Constructs a new private key from a byte array
+     * @param b an encoded private key
+     * @param params the NtruSign parameters to use
+     */
     public SignaturePrivateKey(byte[] b, SignatureParameters params) {
         bases = new ArrayList<Basis>();
         ByteBuffer buf = ByteBuffer.wrap(b);
@@ -39,6 +47,11 @@ public class SignaturePrivateKey {
             add(new Basis(buf, params, i!=0));
     }
     
+    /**
+     * Constructs a new private key from an input stream
+     * @param b an input stream
+     * @param params the NtruSign parameters to use
+     */
     public SignaturePrivateKey(InputStream is, SignatureParameters params) throws IOException {
         bases = new ArrayList<Basis>();
         for (int i=0; i<=params.B; i++)
@@ -46,20 +59,35 @@ public class SignaturePrivateKey {
             add(new Basis(is, params, i!=0));
     }
     
+    /**
+     * Constructs an empty private key
+     */
     SignaturePrivateKey() {
         bases = new ArrayList<Basis>();
     }
     
+    /**
+     * Adds a basis to the key.
+     * @param b a NtruSign basis
+     */
     void add(Basis b) {
         bases.add(b);
     }
     
-    // Returns the i-th basis
+    /**
+     * Returns the <code>i</code>-th basis
+     * @param <code>i</code> the index
+     * @return the basis at index <code>i</code>
+     */
     Basis getBasis(int i) {
         return bases.get(i);
     }
     
-    public byte[] getEncoded() {
+    /**
+     * Converts the key to a byte array
+     * @return the encoded key
+     */
+   public byte[] getEncoded() {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         for (int i=0; i<bases.size(); i++)
             try {
@@ -71,16 +99,29 @@ public class SignaturePrivateKey {
         return os.toByteArray();
     }
     
+   /**
+    * Writes the key to an output stream
+    * @param os an output stream
+    * @throws IOException
+    */
     public void writeTo(OutputStream os) throws IOException {
         os.write(getEncoded());
     }
     
+    /** A NtruSign basis. Contains three polynomials <code>f, f', h</code>. */
     static class Basis {
         TernaryPolynomial f;
         IntegerPolynomial fPrime;
         IntegerPolynomial h;
         SignatureParameters params;
         
+        /**
+         * Constructs a new basis from polynomials <code>f, f', h</code>.
+         * @param f
+         * @param fPrime
+         * @param h
+         * @param params NtruSign parameters
+         */
         Basis(TernaryPolynomial f, IntegerPolynomial fPrime, IntegerPolynomial h, SignatureParameters params) {
             this.f = f;
             this.fPrime = fPrime;
@@ -88,6 +129,12 @@ public class SignaturePrivateKey {
             this.params = params;
         }
         
+        /**
+         * Reads a basis from a byte buffer and constructs a new basis.
+         * @param buf a byte buffer
+         * @param params NtruSign parameters
+         * @param include_h whether to read the polynomial <code>h</code> (<code>true</code>) or only <code>f</code> and <code>f'</code> (<code>false</code>)
+         */
         Basis(ByteBuffer buf, SignatureParameters params, boolean include_h) {
             int N = params.N;
             int q = params.q;
@@ -107,6 +154,12 @@ public class SignaturePrivateKey {
                 h = IntegerPolynomial.fromBinary(buf, N, q);
         }
         
+        /**
+         * Reads a basis from an input stream and constructs a new basis.
+         * @param is an input stream
+         * @param params NtruSign parameters
+         * @param include_h whether to read the polynomial <code>h</code> (<code>true</code>) or only <code>f</code> and <code>f'</code> (<code>false</code>)
+         */
         Basis(InputStream is, SignatureParameters params, boolean include_h) throws IOException {
             int N = params.N;
             int q = params.q;
@@ -126,6 +179,12 @@ public class SignaturePrivateKey {
                 h = IntegerPolynomial.fromBinary(is, N, q);
         }
         
+        /**
+         * Writes the basis to an output stream
+         * @param os an output stream
+         * @param include_h whether to write the polynomial <code>h</code> (<code>true</code>) or only <code>f</code> and <code>f'</code> (<code>false</code>)
+         * @throws IOException
+         */
         void encode(OutputStream os, boolean include_h) throws IOException {
             int q = params.q;
             

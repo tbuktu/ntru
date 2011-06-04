@@ -18,6 +18,9 @@
 
 package net.sf.ntru;
 
+/**
+ * An unchecked exception thrown on various error conditions.
+ */
 public class NtruException extends RuntimeException {
     private static final long serialVersionUID = 1L;
 

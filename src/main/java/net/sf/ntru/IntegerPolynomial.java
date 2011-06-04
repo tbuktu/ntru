@@ -30,44 +30,55 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
+/**
+ * A polynomial with <code>int</code> coefficients.<br/>
+ * Some methods (like <code>add</code>) change the polynomial, others (like <code>mult</code>) do
+ * not but return the result as a new polynomial.
+ */
 class IntegerPolynomial {
     /**
-     * http://stackoverflow.com/questions/1562548/how-to-make-a-message-into-a-polynomial
-     * 
+     * Bit string to coefficient conversion table from P1363.1. Also found at
+     * {@link http://stackoverflow.com/questions/1562548/how-to-make-a-message-into-a-polynomial}
+     * <p/>
      * Convert each three-bit quantity to two ternary coefficients as follows, and concatenate the resulting
      * ternary quantities to obtain [the output].
-     * 
-     * {0, 0, 0} -> {0, 0}
-     * {0, 0, 1} -> {0, 1}
-     * {0, 1, 0} -> {0, -1}
-     * {0, 1, 1} -> {1, 0}
-     * {1, 0, 0} -> {1, 1}
-     * {1, 0, 1} -> {1, -1}
-     * {1, 1, 0} -> {-1, 0}
-     * {1, 1, 1} -> {-1, 1}
+     * <p/>
+     * <code>
+     * {0, 0, 0} -> {0, 0}<br/>
+     * {0, 0, 1} -> {0, 1}<br/>
+     * {0, 1, 0} -> {0, -1}<br/>
+     * {0, 1, 1} -> {1, 0}<br/>
+     * {1, 0, 0} -> {1, 1}<br/>
+     * {1, 0, 1} -> {1, -1}<br/>
+     * {1, 1, 0} -> {-1, 0}<br/>
+     * {1, 1, 1} -> {-1, 1}<br/>
+     * </code>
      */
     static final int[] COEFF1_TABLE = {0, 0, 0, 1, 1, 1, -1, -1};
     static final int[] COEFF2_TABLE = {0, 1, -1, 0, 1, -1, 0, 1};
     /**
-     * http://stackoverflow.com/questions/1562548/how-to-make-a-message-into-a-polynomial
-     * 
+     * Coefficient to bit string conversion table from P1363.1. Also found at
+     * {@link http://stackoverflow.com/questions/1562548/how-to-make-a-message-into-a-polynomial}
+     * <p/>
      * Convert each set of two ternary coefficients to three bits as follows, and concatenate the resulting bit
      * quantities to obtain [the output]:
-     * 
+     * <p/>
+     * <code>
      * {-1, -1} -> set "fail" to 1 and set bit string to {1, 1, 1}
-     * {-1, 0} -> {1, 1, 0}
-     * {-1, 1} -> {1, 1, 1}
-     * {0, -1} -> {0, 1, 0}
-     * {0, 0} -> {0, 0, 0}
-     * {0, 1} -> {0, 0, 1}
-     * {1, -1} -> {1, 0, 1}
-     * {1, 0} -> {0, 1, 1}
-     * {1, 1} -> {1, 0, 0}
+     * {-1, 0} -> {1, 1, 0}<br/>
+     * {-1, 1} -> {1, 1, 1}<br/>
+     * {0, -1} -> {0, 1, 0}<br/>
+     * {0, 0} -> {0, 0, 0}<br/>
+     * {0, 1} -> {0, 0, 1}<br/>
+     * {1, -1} -> {1, 0, 1}<br/>
+     * {1, 0} -> {0, 1, 1}<br/>
+     * {1, 1} -> {1, 0, 0}<br/>
+     * </code>
      */
     static final int[] BIT1_TABLE = {1, 1, 1, 0, 0, 0, 1, 0, 1};
     static final int[] BIT2_TABLE = {1, 1, 1, 1, 0, 0, 0, 1, 0};
     static final int[] BIT3_TABLE = {1, 0, 1, 0, 0, 1, 1, 1, 0};
-    // prime numbers > 10^4
+    /** prime numbers &gt; <code>10^4</code> */
     private static final int[] PRIMES = new int[] {
         10007, 10009, 10037, 10039, 10061, 10067, 10069, 10079, 10091, 10093, 
         10099, 10103, 10111, 10133, 10139, 10141, 10151, 10159, 10163, 10169, 
@@ -107,21 +118,39 @@ class IntegerPolynomial {
     
     int[] coeffs;
     
+    /**
+     * Constructs a new polynomial with <code>N</code> coefficients initialized to 0.
+     * @param N the number of coefficients
+     */
     IntegerPolynomial(int N) {
         coeffs = new int[N];
     }
     
+    /**
+     * Constructs a new polynomial with a given set of coefficients.
+     * @param coeffs the coefficients
+     */
     IntegerPolynomial(int[] coeffs) {
         this.coeffs = coeffs;
     }
     
+    /**
+     * Constructs a <code>IntegerPolynomial</code> from a <code>BigIntPolynomial</code>. The two polynomials are independent of each other.
+     * @param p the original polynomial
+     */
     IntegerPolynomial(BigIntPolynomial p) {
         coeffs = new int[p.coeffs.length];
         for (int i=0; i<p.coeffs.length; i++)
             coeffs[i] = p.coeffs[i].intValue();
     }
     
-    // Returns a polynomial with N coefficients between -1 and 1.
+    /**
+     * Decodes a byte array to a polynomial with <code>N</code> coefficients between -1 and 1.<br/>
+     * Ignores any excess bytes.
+     * @param data an encoded ternary polynomial
+     * @param N number of coefficients
+     * @return the decoded polynomial
+     */
     static IntegerPolynomial fromBinary3(byte[] data, int N) {
         IntegerPolynomial poly = new IntegerPolynomial(N);
         int coeffIndex = 0;
@@ -139,7 +168,15 @@ class IntegerPolynomial {
         return poly;
     }
     
-    // Returns a polynomial with N coefficients between 0 and q-1. q must be a power of 2.
+    /**
+     * Returns a polynomial with N coefficients between <code>0</code> and <code>q-1</code>.<br/>
+     * <code>q</code> must be a power of 2.<br/>
+     * Ignores any excess bytes.
+     * @param data an encoded ternary polynomial
+     * @param N number of coefficients
+     * @param q
+     * @return the decoded polynomial
+     */
     static IntegerPolynomial fromBinary(byte[] data, int N, int q) {
         IntegerPolynomial poly = new IntegerPolynomial(N);
         int bitsPerCoeff = 31 - Integer.numberOfLeadingZeros(q);
@@ -154,7 +191,15 @@ class IntegerPolynomial {
         return poly;
     }
     
-    // Returns a polynomial with N coefficients between 0 and q-1. q must be a power of 2.
+    /**
+     * Returns a polynomial with N coefficients between <code>0</code> and <code>q-1</code>.<br/>
+     * <code>q</code> must be a power of 2.<br/>
+     * Ignores any excess bytes.
+     * @param buf an encoded ternary polynomial
+     * @param N number of coefficients
+     * @param q
+     * @return the decoded polynomial
+     */
     static IntegerPolynomial fromBinary(ByteBuffer buf, int N, int q) {
         int qBits = 31 - Integer.numberOfLeadingZeros(q);
         int size = (N*qBits+7) / 8;
@@ -163,7 +208,15 @@ class IntegerPolynomial {
         return fromBinary(arr, N, q);
     }
     
-    // Returns a polynomial with N coefficients between 0 and q-1. q must be a power of 2.
+    /**
+     * Returns a polynomial with N coefficients between <code>0</code> and <code>q-1</code>.<br/>
+     * <code>q</code> must be a power of 2.<br/>
+     * Ignores any excess bytes.
+     * @param is an encoded ternary polynomial
+     * @param N number of coefficients
+     * @param q
+     * @return the decoded polynomial
+     */
     static IntegerPolynomial fromBinary(InputStream is, int N, int q) throws IOException {
         int qBits = 31 - Integer.numberOfLeadingZeros(q);
         int size = (N*qBits+7) / 8;
@@ -178,9 +231,12 @@ class IntegerPolynomial {
         return (arrElem >> (bitIndex%8)) & 1;
     }
     
-    // Converts a polynomial whose coefficients are between -1 and 1, to binary.
-    // coeffs[2*i] and coeffs[2*i+1] must not both equal -1 for any integer i,
-    // so this method is only safe to use with polynomials produced by fromBinary3().
+    /**
+     * Encodes a polynomial whose coefficients are between -1 and 1, to binary.
+     * <code>coeffs[2*i]</code> and <code>coeffs[2*i+1]</code> must not both equal -1 for any integer </code>i<code>,
+     * so this method is only safe to use with polynomials produced by <code>fromBinary3()</code>.
+     * @return the encoded polynomial
+     */
     byte[] toBinary3() {
         int numBits = (coeffs.length*3+2) / 2;
         int numBytes = (numBits+7) / 8;
@@ -207,7 +263,10 @@ class IntegerPolynomial {
         return data;
     }
     
-    // Converts a polynomial whose coefficients are between -1 and 1, to binary.
+    /**
+     * Converts a polynomial whose coefficients are between -1 and 1, to binary.
+     * @return the encoded polynomial
+     */
     byte[] toBinary3Arith() {
         BigInteger sum = ZERO;
         for (int i=coeffs.length-1; i>=0; i--) {
@@ -231,7 +290,12 @@ class IntegerPolynomial {
         return arr;
     }
     
-    // Converts a byte array produced by toBinary3Arith() to a polynomial.
+    /**
+     * Converts a byte array produced by toBinary3Arith() to a polynomial.
+     * @param b a byte array
+     * @param N number of coefficients
+     * @return the decoded polynomial
+     */
     static IntegerPolynomial fromBinary3Arith(byte[] b, int N) {
         BigInteger sum = new BigInteger(1, b);
         IntegerPolynomial p = new IntegerPolynomial(N);
@@ -244,6 +308,12 @@ class IntegerPolynomial {
         return p;
     }
     
+    /**
+     * Reads data produced by toBinary3Arith() from a byte buffer and converts it to a polynomial.
+     * @param b a byte buffer
+     * @param N number of coefficients
+     * @return the decoded polynomial
+     */
     static IntegerPolynomial fromBinary3Arith(ByteBuffer buf, int N) {
         int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
         byte[] arr = new byte[size];
@@ -251,6 +321,12 @@ class IntegerPolynomial {
         return fromBinary3Arith(arr, N);
     }
     
+    /**
+     * Reads data produced by toBinary3Arith() from an input stream and converts it to a polynomial.
+     * @param b an input stream
+     * @param N number of coefficients
+     * @return the decoded polynomial
+     */
     static IntegerPolynomial fromBinary3Arith(InputStream is, int N) throws IOException {
         int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
         byte[] arr = new byte[size];
@@ -258,7 +334,11 @@ class IntegerPolynomial {
         return fromBinary3Arith(arr, N);
     }
     
-    // Converts a polynomial whose coefficients are between 0 and q, to binary. q must be a power of 2.
+    /**
+     * Encodes a polynomial whose coefficients are between 0 and q, to binary. q must be a power of 2.
+     * @param q
+     * @return the encoded polynomial
+     */
     byte[] toBinary(int q) {
         int bitsPerCoeff = 31 - Integer.numberOfLeadingZeros(q);
         int numBits = coeffs.length * bitsPerCoeff;
@@ -348,8 +428,12 @@ class IntegerPolynomial {
         }
     }
     
-    // Computes the inverse mod q; q must be a power of 2.
-    // Returns null if the polynomial is not invertible.
+    /**
+     * Computes the inverse mod <code>q; q</code> must be a power of 2.<br/>
+     * Returns <code>null</code> if the polynomial is not invertible.
+     * @param q the modulus
+     * @return a new polynomial
+     */
     IntegerPolynomial invertFq(int q) {
         int N = coeffs.length;
         int k = 0;
@@ -418,8 +502,11 @@ class IntegerPolynomial {
         return Fq;
     }
     
-    // Computes the inverse mod 3.
-    // Returns null if the polynomial is not invertible.
+    /**
+     * Computes the inverse mod 3.
+     * Returns <code>null</code> if the polynomial is not invertible.
+     * @return a new polynomial
+     */
     IntegerPolynomial invertF3() {
         int N = coeffs.length;
         int k = 0;
@@ -484,13 +571,14 @@ class IntegerPolynomial {
     }
     
     /**
-     * Resultant of this polynomial with x^n-1.
-     * Returns (rho, res) satisfying res = rho*this + t*(x^n-1) for some integer t
+     * Resultant of this polynomial with <code>x^n-1</code>.<br/>
+     * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1)</code> for some integer <code>t</code>.
      */
     Resultant resultant() {
         int N = coeffs.length;
         
         // upper bound for resultant(f, g) = ||f, 2||^deg(f) * ||g, 2||^deg(g) = squaresum(f)^(deg(f)/2) * 2^(N/2) because g(x)=x^N-1
+        // see http://jondalon.mathematik.uni-osnabrueck.de/staff/phpages/brunsw/CompAlg.pdf chapter 3
         BigInteger max = squareSum().pow((degree()+1)/2);
         max = max.multiply(BigInteger.valueOf(2).pow((N+1)/2));
         BigInteger max2 = max.multiply(BigInteger.valueOf(2));
@@ -545,8 +633,8 @@ class IntegerPolynomial {
     }
         
     /**
-     * Resultant of this polynomial with x^n-1 mod p.
-     * Returns (rho, res) satisfying res = rho*this + t*(x^n-1) mod p for some integer t.
+     * Resultant of this polynomial with <code>x^n-1 mod p</code>.<br/>
+     * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1) mod p</code> for some integer <code>t</code>.
      */
     Resultant resultant(int p) {
         // Add a coefficient as the following operations involve polynomials of degree deg(f)+1
@@ -603,13 +691,23 @@ class IntegerPolynomial {
         return new Resultant(new BigIntPolynomial(v2), BigInteger.valueOf(r));
     }
     
-    // this = this - b*c*(x^k) mod p
+    /**
+     * Computes <code>b*c*(x^k) mod p</code> and stores the result in this polynomial.
+     * @param b
+     * @param c
+     * @param k
+     * @param p
+     */
     private void multShiftSub(IntegerPolynomial b, int c, int k, int p) {
         int N = coeffs.length;
         for (int i=k; i<N; i++)
             coeffs[i] = (coeffs[i]-b.coeffs[i-k]*c) % p;
     }
     
+    /**
+     * Adds the squares of all coefficients.
+     * @return the sum of squares
+     */
     private BigInteger squareSum() {
         BigInteger sum = ZERO;
         for (int i=0; i<coeffs.length; i++)
@@ -617,6 +715,10 @@ class IntegerPolynomial {
         return sum;
     }
     
+    /**
+     * Returns the degree of the polynomial
+     * @return the degree
+     */
     int degree() {
         int degree = coeffs.length - 1;
         while (degree>0 && coeffs[degree]==0)
@@ -624,12 +726,20 @@ class IntegerPolynomial {
         return degree;
     }
     
+    /**
+     * Adds another polynomial which can have a different number of coefficients,
+     * and takes the coefficient values mod <code>modulus</code>.
+     * @param b another polynomial
+     */
     void add(IntegerPolynomial b, int modulus) {
         add(b);
         mod(modulus);
     }
     
-    /** Adds another polynomial which can have a different number of coefficients */
+    /**
+     * Adds another polynomial which can have a different number of coefficients.
+     * @param b another polynomial
+     */
     void add(IntegerPolynomial b) {
         if (b.coeffs.length > coeffs.length)
             coeffs = Arrays.copyOf(coeffs, b.coeffs.length);
@@ -637,12 +747,20 @@ class IntegerPolynomial {
             coeffs[i] += b.coeffs[i];
     }
     
+    /**
+     * Subtracts another polynomial which can have a different number of coefficients,
+     * and takes the coefficient values mod <code>modulus</code>.
+     * @param b another polynomial
+     */
     void sub(IntegerPolynomial b, int modulus) {
         sub(b);
         mod(modulus);
     }
     
-    /** Subtracts another polynomial which can have a different number of coefficients */
+    /**
+     * Subtracts another polynomial which can have a different number of coefficients.
+     * @param b another polynomial
+     */
     void sub(IntegerPolynomial b) {
         if (b.coeffs.length > coeffs.length)
             coeffs = Arrays.copyOf(coeffs, b.coeffs.length);
@@ -650,16 +768,28 @@ class IntegerPolynomial {
             coeffs[i] -= b.coeffs[i];
     }
     
+    /**
+     * Subtracts a <code>int</code> from each coefficient. Does not return a new polynomial but modifies this polynomial.
+     * @param b
+     */
     void sub(int b) {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] -= b;
     }
     
+    /**
+     * Multiplies each coefficient by a <code>int</code>. Does not return a new polynomial but modifies this polynomial.
+     * @param factor
+     */
     void mult(int factor) {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] *= factor;
     }
     
+    /**
+     * Multiplies each coefficient by a 2 and applies a modulus. Does not return a new polynomial but modifies this polynomial.
+     * @param modulus a modulus
+     */
     private void mult2(int modulus) {
         for (int i=0; i<coeffs.length; i++) {
             coeffs[i] *= 2;
@@ -667,6 +797,10 @@ class IntegerPolynomial {
         }
     }
     
+    /**
+     * Multiplies each coefficient by a 2 and applies a modulus. Does not return a new polynomial but modifies this polynomial.
+     * @param modulus a modulus
+     */
     void mult3(int modulus) {
         for (int i=0; i<coeffs.length; i++) {
             coeffs[i] *= 3;
@@ -674,12 +808,10 @@ class IntegerPolynomial {
         }
     }
     
-    void mult3Add1(int modulus) {
-        for (int i=0; i<coeffs.length; i++)
-            coeffs[i] = (coeffs[i]*3+1) % modulus;
-    }
-    
-    /** divides by k and rounds to the nearest integer */
+    /**
+     * Divides each coefficient by <code>k</code> and rounds to the nearest integer. Does not return a new polynomial but modifies this polynomial.
+     * @param k the divisor
+     */
     void div(int k) {
         int k2 = (k+1) / 2;
         for (int i=0; i<coeffs.length; i++) {
@@ -688,7 +820,9 @@ class IntegerPolynomial {
         }
     }
     
-    // returns a polynomial all of whose coefficients are between -1 and 1
+    /**
+     * Takes each coefficient modulo 3 such that all coefficients are between -1 and 1.
+     */
     void mod3() {
         for (int i=0; i<coeffs.length; i++) {
             coeffs[i] %= 3;
@@ -699,7 +833,10 @@ class IntegerPolynomial {
         }
     }
     
-    // ensures all coefficients are between 0 and modulus-1
+    /**
+     * Ensures all coefficients are between 0 and <code>modulus-1</code>
+     * @param modulus a modulus
+     */
     void modPositive(int modulus) {
         mod(modulus);
         ensurePositive(modulus);
@@ -716,17 +853,29 @@ class IntegerPolynomial {
         }
     }
     
+    /**
+     * Takes each coefficient modulo <code>modulus</code>.
+     */
     void mod(int modulus) {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] %= modulus;
     }
     
+    /**
+     * Adds <code>modulus</code> until all coefficients are above 0.
+     * @param modulus a modulus
+     */
     void ensurePositive(int modulus) {
         for (int i=0; i<coeffs.length; i++)
             while (coeffs[i] < 0)
                 coeffs[i] += modulus;
     }
     
+    /**
+     * Computes the centered euclidean norm of the polynomial.
+     * @param q a modulus
+     * @return the centered norm
+     */
     long centeredNormSq(int q) {
         int N = coeffs.length;
         IntegerPolynomial p = clone();
@@ -743,7 +892,10 @@ class IntegerPolynomial {
         return centeredNormSq;
     }
     
-    // shifts all coefficients so the largest gap is centered around -q/2
+    /**
+     * Shifts all coefficients so the largest gap is centered around <code>-q/2</code>.
+     * @param q a modulus
+     */
     void shiftGap(int q) {
         modCenter(q);
         
@@ -772,7 +924,10 @@ class IntegerPolynomial {
         sub(shift);
     }
     
-    // shifts the values of all coefficients to the interval [-q/2, q/2]
+    /**
+     * Shifts the values of all coefficients to the interval <code>[-q/2, q/2]</code>.
+     * @param q a modulus
+     */
     void center0(int q) {
         for (int i=0; i<coeffs.length; i++) {
             while (coeffs[i] < -q/2)
@@ -782,16 +937,10 @@ class IntegerPolynomial {
         }
     }
     
-    // shifts all coefficients to the interval [A, A+q-1]
-    void centerN(int A, int q) {
-        for (int i=0; i<coeffs.length; i++) {
-            while (coeffs[i] < A)
-                coeffs[i] += q;
-            while (coeffs[i] >= A+q)
-                coeffs[i] -= q;
-        }
-    }
-    
+    /**
+     * Returns the sum of all coefficients, i.e. evaluates the polynomial at 0.
+     * @return the sum of all coefficients
+     */
     int sumCoeffs() {
         int sum = 0;
         for (int i=0; i<coeffs.length; i++)
@@ -799,7 +948,10 @@ class IntegerPolynomial {
         return sum;
     }
     
-    // tests if p(x) = 0
+    /**
+     * Tests if <code>p(x) = 0</code>.
+     * @return true iff all coefficients are zeros
+     */
     private boolean equalsZero() {
         for (int i=0; i<coeffs.length; i++)
             if (coeffs[i] != 0)
@@ -807,7 +959,10 @@ class IntegerPolynomial {
         return true;
     }
     
-    // tests if p(x) = 1
+    /**
+     * Tests if <code>p(x) = 1</code>.
+     * @return true iff all coefficients are equal to zero, except for the lowest coefficient which must equal 1
+     */
     boolean equalsOne() {
         for (int i=1; i<coeffs.length; i++)
             if (coeffs[i] != 0)
@@ -815,7 +970,10 @@ class IntegerPolynomial {
         return coeffs[0] == 1;
     }
     
-    // tests if |p(x)| = 1
+    /**
+     * Tests if <code>|p(x)| = 1</code>.
+     * @return true iff all coefficients are equal to zero, except for the lowest coefficient which must equal 1 or -1
+     */
     private boolean equalsAbsOne() {
         for (int i=1; i<coeffs.length; i++)
             if (coeffs[i] != 0)
@@ -823,7 +981,11 @@ class IntegerPolynomial {
         return Math.abs(coeffs[0]) == 1;
     }
     
-    // counts the number of coefficients equal to an integer
+    /**
+     * Counts the number of coefficients equal to an integer
+     * @param value an integer
+     * @return the number of coefficients equal to <code>value</code>
+     */
     int count(int value) {
         int count = 0;
         for (int coeff: coeffs)
@@ -832,7 +994,9 @@ class IntegerPolynomial {
         return count;
     }
     
-    // multiplication by X in Z[X]/Z[X^n-1]
+    /**
+     * Multiplication by <code>X</code> in <code>Z[X]/Z[X^n-1]</code>.
+     */
     void rotate1() {
         int clast = coeffs[coeffs.length-1];
         for (int i=coeffs.length-1; i>0; i--)

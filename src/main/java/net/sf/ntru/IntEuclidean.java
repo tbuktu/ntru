@@ -18,13 +18,19 @@
 
 package net.sf.ntru;
 
-/** Extended Euclidean Algorithm in ints */
+/** Extended Euclidean Algorithm in <code>int</code>s */
 public class IntEuclidean {
     public int x, y, gcd;
     
     private IntEuclidean() { }
     
-    // from pseudocode at http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
+    /**
+     * Runs the EEA on two <code>int</code>s<br/>
+     * Implemented from pseudocode at {@link http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm}.
+     * @param a
+     * @param b
+     * @return a <code>IntEuclidean</code> object that contains the result in the variables <code>x</code>, <code>y</code>, and <code>gcd</code>
+     */
     public static IntEuclidean calculate(int a, int b) {
         int x = 0;
         int lastx = 1;

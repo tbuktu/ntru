@@ -18,19 +18,33 @@
 
 package net.sf.ntru;
 
+/** Contains a public and a private signature key */
 public class SignatureKeyPair {
     SignaturePrivateKey priv;
     SignaturePublicKey pub;
     
+    /**
+     * Constructs a new key pair.
+     * @param priv a private key
+     * @param pub a public key
+     */
     public SignatureKeyPair(SignaturePrivateKey priv, SignaturePublicKey pub) {
         this.priv = priv;
         this.pub = pub;
     }
     
+    /**
+     * Returns the private key
+     * @return the private key
+     */
     public SignaturePrivateKey getPrivate() {
         return priv;
     }
     
+    /**
+     * Returns the public key (verification key)
+     * @return the public key
+     */
     public SignaturePublicKey getPublic() {
         return pub;
     }

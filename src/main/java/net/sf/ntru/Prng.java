@@ -22,18 +22,30 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-// deterministic pseudo-random generator
+/**
+ * An implementation of the deterministic pseudo-random generator in EESS section 3.7.3.1
+ */
 public class Prng {
     private int counter;
     private byte[] seed;
     private MessageDigest hashAlg;
     
+    /**
+     * Constructs a new PRNG and seeds it with a byte array.
+     * @param seed a seed
+     * @throws NoSuchAlgorithmException if the JRE doesn't implement SHA-512
+     */
     Prng(byte[] seed) throws NoSuchAlgorithmException {
         counter = 0;
         this.seed = seed;
         hashAlg = MessageDigest.getInstance("SHA-512");
     }
     
+    /**
+     * Returns <code>n</code> random bytes
+     * @param n number of bytes to return
+     * @return the next <code>n</code> random bytes
+     */
     byte[] nextBytes(int n) {
         ByteBuffer buf = ByteBuffer.allocate(n);
         

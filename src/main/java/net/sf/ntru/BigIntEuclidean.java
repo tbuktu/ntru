@@ -20,14 +20,20 @@ package net.sf.ntru;
 
 import java.math.BigInteger;
 
-/** Extended Euclidean Algorithm in BigIntegers */
+/** Extended Euclidean Algorithm in <code>BigInteger</code>s */
 public class BigIntEuclidean {
     BigInteger x, y, gcd;
     
     private BigIntEuclidean() {
     }
-    
-    // from pseudocode at http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
+
+    /**
+     * Runs the EEA on two <code>BigInteger</code>s<br/>
+     * Implemented from pseudocode at {@link http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm}.
+     * @param a
+     * @param b
+     * @return a <code>BigIntEuclidean</code> object that contains the result in the variables <code>x</code>, <code>y</code>, and <code>gcd</code>
+     */
     static BigIntEuclidean calculate(BigInteger a, BigInteger b) {
         BigInteger x = BigInteger.ZERO;
         BigInteger lastx = BigInteger.ONE;

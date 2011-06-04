@@ -18,13 +18,19 @@
 
 package net.sf.ntru;
 
-/** Extended Euclidean Algorithm in longs */
+/** Extended Euclidean Algorithm in <code>int</code>s */
 public class LongEuclidean {
     public long x, y, gcd;
     
     private LongEuclidean() { }
     
-    // from pseudocode at http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm
+    /**
+     * Runs the EEA on two <code>long</code>s<br/>
+     * Implemented from pseudocode at {@link http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm}.
+     * @param a
+     * @param b
+     * @return a <code>LongEuclidean</code> object that contains the result in the variables <code>x</code>, <code>y</code>, and <code>gcd</code>
+     */
     public static LongEuclidean calculate(long a, long b) {
         long x = 0;
         long lastx = 1;

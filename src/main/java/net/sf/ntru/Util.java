@@ -57,6 +57,15 @@ public class Util {
         return p;
     }
     
+    /**
+     * Generates a "sparse" or "dense" polynomial containing numOnes ints equal to 1,
+     * numNegOnes int equal to -1, and the rest equal to 0.
+     * @param N
+     * @param numOnes
+     * @param numNegOnes
+     * @param sparse whether to create a {@link SparseTernaryPolynomial} or {@link DenseTernaryPolynomial}
+     * @return a ternary polynomial
+     */
     static TernaryPolynomial generateRandomTernary(int N, int numOnes, int numNegOnes, boolean sparse) {
         if (sparse)
             return SparseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes);
@@ -64,8 +73,14 @@ public class Util {
             return DenseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes);
     }
     
-    // Generates an array containing numOnes ints equal to 1,
-    // numNegOnes int equal to -1, and the rest equal to 0.
+    /**
+     * Generates an array containing numOnes ints equal to 1,
+     * numNegOnes int equal to -1, and the rest equal to 0.
+     * @param N
+     * @param numOnes
+     * @param numNegOnes
+     * @return an array of integers
+     */
     static int[] generateRandomTernary(int N, int numOnes, int numNegOnes) {
         List<Integer> list = new ArrayList<Integer>();
         for (int i=0; i<numOnes; i++)

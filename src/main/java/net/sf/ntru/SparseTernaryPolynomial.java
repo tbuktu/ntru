@@ -21,16 +21,27 @@ package net.sf.ntru;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-/** a "sparsely populated" polynomial whose non-zero coefficients are all equal to -1 or 1 */
+/**
+ * A <code>TernaryPolynomial</code> with a "low" number of nonzero coefficients.
+ */
 public class SparseTernaryPolynomial implements TernaryPolynomial {
     private int N;
     private int[] ones;
     private int[] negOnes;
     
+    /**
+     * Constructs a <code>DenseTernaryPolynomial</code> from a <code>IntegerPolynomial</code>. The two polynomials are
+     * independent of each other.
+     * @param intPoly the original polynomial
+     */
     SparseTernaryPolynomial(IntegerPolynomial intPoly) {
         this(intPoly.coeffs);
     }
     
+    /**
+     * Constructs a new <code>SparseTernaryPolynomial</code> with a given set of coefficients.
+     * @param coeffs the coefficients
+     */
     SparseTernaryPolynomial(int[] coeffs) {
         N = coeffs.length;
         ones = new int[N];
@@ -54,12 +65,18 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         negOnes = Arrays.copyOf(negOnes, negOnesIdx);
     }
     
+    /**
+     * Generates a random polynomial with <code>numOnes</code> coefficients equal to 1,
+     * <code>numNegOnes</code> coefficients equal to -1, and the rest equal to 0.
+     * @param N number of coefficients
+     * @param numOnes number of 1's
+     * @param numNegOnes number of -1's
+     */
     static SparseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes) {
         int[] coeffs = Util.generateRandomTernary(N, numOnes, numNegOnes);
         return new SparseTernaryPolynomial(coeffs);
     }
     
-    /** Multiplies the polynomial by an IntegerPolynomial, taking the indices mod N */
     @Override
     public IntegerPolynomial mult(IntegerPolynomial poly2) {
         int[] b = poly2.coeffs;
@@ -90,7 +107,6 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         return new IntegerPolynomial(c);
     }
     
-    /** Multiplies the polynomial by an IntegerPolynomial, taking the values mod modulus and the indices mod N */
     @Override
     public IntegerPolynomial mult(IntegerPolynomial poly2, int modulus) {
         IntegerPolynomial c = mult(poly2);

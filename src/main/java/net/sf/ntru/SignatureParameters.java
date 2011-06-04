@@ -25,10 +25,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
+/**
+ * A set of parameters for NtruSign. Several predefined parameter sets are available and new ones can be created as well.
+ */
 public class SignatureParameters {
+    /** Gives 128 bits of security */
+    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, 1000, false, true);
+    
+    /** Gives 256 bits of security */
+    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, 1900, true, false);
+    
+    /** Generates key pairs quickly. Use for testing only. */
     public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, 300, false, false);
-    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, 1000, false, true);   // gives 128 bits of security
-    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, 1900, true, false);   // gives 256 bits of security
     
     public enum BasisType {STANDARD, TRANSPOSE};
     
@@ -43,6 +51,20 @@ public class SignatureParameters {
     boolean sparse;   // whether to treat ternary polynomials as sparsely populated
     byte[] reserved;
     
+    /**
+     * Constructs a new set of signature parameters.
+     * @param N number of polynomial coefficients
+     * @param q modulus
+     * @param d number of -1's in the private polynomials <code>f</code> and <code>g</code>
+     * @param B number of perturbations
+     * @param basisType whether to use the standard or transpose lattice
+     * @param beta balancing factor for the transpose lattice
+     * @param normBound maximum norm for valid signatures
+     * @param keyNormBound maximum norm for the ploynomials <code>F</code> and <code>G</code>
+     * @param keyGenerationDecimalPlaces amount of precision required for generating a key pair
+     * @param primeCheck whether <code>2N+1</code> is prime
+     * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
+     */
     public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, int keyGenerationDecimalPlaces, boolean primeCheck, boolean sparse) {
         this.N = N;
         this.q = q;
@@ -65,6 +87,11 @@ public class SignatureParameters {
         keyNormBoundSq = keyNormBound * keyNormBound;
     }
 
+    /**
+     * Reads a parameter set from an input stream.
+     * @param is an input stream
+     * @throws IOException
+     */
     public SignatureParameters(InputStream is) throws IOException {
         DataInputStream dis = new DataInputStream(is);
         N = dis.readInt();
@@ -84,6 +111,11 @@ public class SignatureParameters {
         init();
     }
     
+    /**
+     * Writes the parameter set to an output stream
+     * @param os an output stream
+     * @throws IOException
+     */
     public void writeTo(OutputStream os) throws IOException {
         DataOutputStream dos = new DataOutputStream(os);
         dos.writeInt(N);

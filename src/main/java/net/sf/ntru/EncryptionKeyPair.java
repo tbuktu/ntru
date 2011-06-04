@@ -18,19 +18,33 @@
 
 package net.sf.ntru;
 
+/** Contains a public and a private encryption key */
 public class EncryptionKeyPair {
     EncryptionPrivateKey priv;
     EncryptionPublicKey pub;
     
+    /**
+     * Constructs a new key pair.
+     * @param priv a private key
+     * @param pub a public key
+     */
     public EncryptionKeyPair(EncryptionPrivateKey priv, EncryptionPublicKey pub) {
         this.priv = priv;
         this.pub = pub;
     }
     
+    /**
+     * Returns the private key
+     * @return the private key
+     */
     public EncryptionPrivateKey getPrivate() {
         return priv;
     }
     
+    /**
+     * Returns the public key
+     * @return the public key
+     */
     public EncryptionPublicKey getPublic() {
         return pub;
     }

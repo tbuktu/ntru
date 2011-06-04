@@ -24,21 +24,38 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
 
+/**
+ * A polynomial with {@link BigDecimal} coefficients.
+ * Some methods (like <code>add</code>) change the polynomial, others (like <code>mult</code>) do
+ * not but return the result as a new polynomial.
+ */
 public class BigDecimalPolynomial {
     private static final BigDecimal ONE_HALF = new BigDecimal("0.5");
     
     BigDecimal[] coeffs;
     
+    /**
+     * Constructs a new polynomial with <code>N</code> coefficients initialized to 0.
+     * @param N the number of coefficients
+     */
     BigDecimalPolynomial(int N) {
         coeffs = new BigDecimal[N];
         for (int i=0; i<N; i++)
             coeffs[i] = ZERO;
     }
     
+    /**
+     * Constructs a new polynomial with a given set of coefficients.
+     * @param coeffs the coefficients
+     */
     BigDecimalPolynomial(BigDecimal[] coeffs) {
         this.coeffs = coeffs;
     }
     
+    /**
+     * Constructs a <code>BigDecimalPolynomial</code> from a <code>BigIntPolynomial</code>. The two polynomials are independent of each other.
+     * @param p the original polynomial
+     */
     BigDecimalPolynomial(BigIntPolynomial p) {
         int N = p.coeffs.length;
         coeffs = new BigDecimal[N];
@@ -46,16 +63,30 @@ public class BigDecimalPolynomial {
             coeffs[i] = new BigDecimal(p.coeffs[i]);
     }
     
+    /**
+     * Divides all coefficients by 2.
+     */
     void halve() {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] = coeffs[i].multiply(ONE_HALF);
     }
     
+    /**
+     * Multiplies the polynomial by another. Does not change this polynomial
+     * but returns the result as a new polynomial.
+     * @param poly2 the polynomial to multiply by
+     * @return a new polynomial
+     */
     BigDecimalPolynomial mult(BigIntPolynomial poly2) {
         return mult(new BigDecimalPolynomial(poly2));
     }
     
-    /** Multiplies the polynomial with another, taking the indices mod N */
+    /**
+     * Multiplies the polynomial by another, taking the indices mod N. Does not
+     * change this polynomial but returns the result as a new polynomial.
+     * @param poly2 the polynomial to multiply by
+     * @return a new polynomial
+     */
     BigDecimalPolynomial mult(BigDecimalPolynomial poly2) {
         int N = coeffs.length;
         if (poly2.coeffs.length != N)
@@ -113,7 +144,10 @@ public class BigDecimalPolynomial {
         }
     }
     
-    /** Adds another polynomial which can have a different number of coefficients */
+    /**
+     * Adds another polynomial which can have a different number of coefficients.
+     * @param b another polynomial
+     */
     void add(BigDecimalPolynomial b) {
       if (b.coeffs.length > coeffs.length) {
           int N = coeffs.length;
@@ -124,8 +158,11 @@ public class BigDecimalPolynomial {
       for (int i=0; i<b.coeffs.length; i++)
           coeffs[i] = coeffs[i].add(b.coeffs[i]);
     }
-    
-    /** Subtracts another polynomial which can have a different number of coefficients */
+
+    /**
+     * Subtracts another polynomial which can have a different number of coefficients.
+     * @param b
+     */
     void sub(BigDecimalPolynomial b) {
         if (b.coeffs.length > coeffs.length) {
             int N = coeffs.length;
@@ -137,6 +174,10 @@ public class BigDecimalPolynomial {
             coeffs[i] = coeffs[i].subtract(b.coeffs[i]);
     }
     
+    /**
+     * Rounds all coefficients to the nearest integer.
+     * @return a new polynomial with <code>BigInteger</code> coefficients
+     */
     BigIntPolynomial round() {
         int N = coeffs.length;
         BigIntPolynomial p = new BigIntPolynomial(N);
@@ -145,6 +186,9 @@ public class BigDecimalPolynomial {
         return p;
     }
     
+    /**
+     * Makes a copy of the polynomial that is independent of the original.
+     */
     @Override
     public BigDecimalPolynomial clone() {
         return new BigDecimalPolynomial(coeffs.clone());

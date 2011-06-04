@@ -20,18 +20,33 @@ package net.sf.ntru;
 
 import java.security.SecureRandom;
 
-/** a polynomial whose coefficients are all equal to -1, 0, or 1 */
+/**
+ * A <code>TernaryPolynomial</code> with a "high" number of nonzero coefficients.
+ */
 class DenseTernaryPolynomial extends IntegerPolynomial implements TernaryPolynomial {
     
+    /**
+     * Constructs a new <code>DenseTernaryPolynomial</code> with <code>N</code> coefficients.
+     * @param N the number of coefficients
+     */
     DenseTernaryPolynomial(int N) {
         super(N);
         checkTernarity();
     }
     
+    /**
+     * Constructs a <code>DenseTernaryPolynomial</code> from a <code>IntegerPolynomial</code>. The two polynomials are
+     * independent of each other.
+     * @param intPoly the original polynomial
+     */
     DenseTernaryPolynomial(IntegerPolynomial intPoly) {
         this(intPoly.coeffs);
     }
     
+    /**
+     * Constructs a new <code>DenseTernaryPolynomial</code> with a given set of coefficients.
+     * @param coeffs the coefficients
+     */
     DenseTernaryPolynomial(int[] coeffs) {
         super(coeffs);
         checkTernarity();
@@ -43,13 +58,23 @@ class DenseTernaryPolynomial extends IntegerPolynomial implements TernaryPolynom
                 throw new NtruException("Illegal value: " + c + ", must be one of {-1, 0, 1}");
     }
     
-    // Generates a random polynomial with numOnes coefficients equal to 1,
-    // numNegOnes coefficients equal to -1, and the rest equal to 0.
+    /**
+     * Generates a random polynomial with <code>numOnes</code> coefficients equal to 1,
+     * <code>numNegOnes</code> coefficients equal to -1, and the rest equal to 0.
+     * @param N number of coefficients
+     * @param numOnes number of 1's
+     * @param numNegOnes number of -1's
+     */
     static DenseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes) {
         int[] coeffs = Util.generateRandomTernary(N, numOnes, numNegOnes);
         return new DenseTernaryPolynomial(coeffs);
     }
     
+    /**
+     * Generates a polynomial with coefficients randomly selected from <code>{-1, 0, 1}</code>.
+     * @param N number of coefficients
+     * @return
+     */
     static DenseTernaryPolynomial generateRandom(int N) {
         SecureRandom rng = new SecureRandom();
         DenseTernaryPolynomial poly = new DenseTernaryPolynomial(N);

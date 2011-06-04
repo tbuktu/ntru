@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 
 class LongPolynomial {
-    // prime numbers > 3*10^9
+    /** prime numbers &gt; <code>3*10^9</code> */
     private static final long[] PRIMES = new long[] {
         3000000019L, 3000000037L, 3000000077L, 3000000109L, 3000000151L, 3000000209L, 
         3000000253L, 3000000257L, 3000000277L, 3000000343L, 3000000347L, 3000000349L, 
@@ -60,14 +60,26 @@ class LongPolynomial {
     
     long[] coeffs;
     
+    /**
+     * Constructs a new polynomial with <code>N</code> coefficients initialized to 0.
+     * @param N the number of coefficients
+     */
     LongPolynomial(int N) {
         coeffs = new long[N];
     }
 
+    /**
+     * Constructs a new polynomial with a given set of coefficients.
+     * @param coeffs the coefficients
+     */
     LongPolynomial(long[] coeffs) {
         this.coeffs = coeffs;
     }
 
+    /**
+     * Constructs a <code>LongPolynomial</code> from a <code>IntegerPolynomial</code>. The two polynomials are independent of each other.
+     * @param p the original polynomial
+     */
     LongPolynomial(IntegerPolynomial p) {
         coeffs = new long[p.coeffs.length];
         for (int i=0; i<coeffs.length; i++)
@@ -75,13 +87,14 @@ class LongPolynomial {
     }
     
     /**
-     * Resultant of this polynomial with x^n-1.
-     * Returns (rho, res) satisfying res = rho*this + t*(x^n-1) for some integer t
+     * Resultant of this polynomial with <code>x^n-1</code>.<br/>
+     * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1)</code> for some integer <code>t</code>.
      */
     Resultant resultant() {
         int N = coeffs.length;
         
         // upper bound for resultant(f, g) = ||f, 2||^deg(f) * ||g, 2||^deg(g) = squaresum(f)^(deg(f)/2) * 2^(N/2) because g(x)=x^N-1
+        // see http://jondalon.mathematik.uni-osnabrueck.de/staff/phpages/brunsw/CompAlg.pdf chapter 3
         BigInteger max = squareSum().pow((degree()+1)/2);
         max = max.multiply(BigInteger.valueOf(2).pow((N+1)/2));
         BigInteger max2 = max.multiply(BigInteger.valueOf(2));
@@ -136,8 +149,8 @@ class LongPolynomial {
     }
         
     /**
-     * Resultant of this polynomial with x^n-1 mod p.
-     * Returns (rho, res) satisfying res = rho*this + t*(x^n-1) mod p for some integer t.
+     * Resultant of this polynomial with <code>x^n-1 mod p</code>.<br/>
+     * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1) mod p</code> for some integer <code>t</code>.
      */
     Resultant resultant(long p) {
         // Add a coefficient as the following operations involve polynomials of degree deg(f)+1
@@ -194,13 +207,23 @@ class LongPolynomial {
         return new Resultant(new BigIntPolynomial(v2), BigInteger.valueOf(r));
     }
     
-    // this = this - b*c*(x^k) mod p
+    /**
+     * Computes <code>b*c*(x^k) mod p</code> and stores the result in this polynomial.
+     * @param b
+     * @param c
+     * @param k
+     * @param p
+     */
     private void multShiftSub(LongPolynomial b, long c, int k, long p) {
         int N = coeffs.length;
         for (int i=k; i<N; i++)
             coeffs[i] = (coeffs[i]-b.coeffs[i-k]*c) % p;
     }
     
+    /**
+     * Adds the squares of all coefficients.
+     * @return the sum of squares
+     */
     private BigInteger squareSum() {
         BigInteger sum = ZERO;
         for (int i=0; i<coeffs.length; i++)
@@ -208,6 +231,10 @@ class LongPolynomial {
         return sum;
     }
     
+    /**
+     * Returns the degree of the polynomial
+     * @return the degree
+     */
     int degree() {
         int degree = coeffs.length - 1;
         while (degree>0 && coeffs[degree]==0)
@@ -215,7 +242,10 @@ class LongPolynomial {
         return degree;
     }
     
-    /** Adds another polynomial which can have a different number of coefficients */
+    /**
+     * Adds another polynomial which can have a different number of coefficients.
+     * @param b another polynomial
+     */
     void add(LongPolynomial b) {
         if (b.coeffs.length > coeffs.length)
             coeffs = Arrays.copyOf(coeffs, b.coeffs.length);
@@ -223,11 +253,18 @@ class LongPolynomial {
             coeffs[i] += b.coeffs[i];
     }
     
+    /**
+     * Multiplies each coefficient by a <code>long</code>. Does not return a new polynomial but modifies this polynomial.
+     * @param factor
+     */
     void mult(long factor) {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] *= factor;
     }
     
+    /**
+     * Takes each coefficient modulo <code>modulus</code>.
+     */
     void mod(long modulus) {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] %= modulus;

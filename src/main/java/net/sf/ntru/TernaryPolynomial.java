@@ -18,13 +18,16 @@
 
 package net.sf.ntru;
 
-/** a polynomial whose coefficients are all equal to -1, 0, or 1 */
+/** A polynomial whose coefficients are all equal to -1, 0, or 1 */
 interface TernaryPolynomial {
     
+    /** Multiplies the polynomial by an <code>IntegerPolynomial</code>, taking the indices mod N */
     IntegerPolynomial mult(IntegerPolynomial poly2);
     
+    /** Multiplies the polynomial by an <code>IntegerPolynomial</code>, taking the coefficient values mod modulus and the indices mod N */
     IntegerPolynomial mult(IntegerPolynomial poly2, int modulus);
     
+    /** Multiplies the polynomial by an <code>BigIntPolynomial</code>, taking the indices mod N */
     BigIntPolynomial mult(BigIntPolynomial poly2);
     
     IntegerPolynomial toIntegerPolynomial();

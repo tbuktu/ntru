@@ -25,15 +25,24 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 /**
+ * Encrypts, decrypts data and generates key pairs.<br/>
  * The parameter p is hardcoded to 3.
  */
 public class NtruEncrypt {
     private EncryptionParameters params;
     
+    /**
+     * Constructs a new instance with a set of encryption parameters.
+     * @param params encryption parameters
+     */
     public NtruEncrypt(EncryptionParameters params) {
         this.params = params;
     }
     
+    /**
+     * Generates a new encryption key pair.
+     * @return a key pair
+     */
     public EncryptionKeyPair generateKeyPair() {
         int N = params.N;
         int q = params.q;
@@ -63,11 +72,12 @@ public class NtruEncrypt {
     }
     
     /**
-     * 
+     * Encrypts a message.
      * @param m The message to encrypt
-     * @param pubKey
+     * @param pubKey the public key to encrypt the message with
      * @return
-     * @throws NoSuchAlgorithmException 
+     * @throws NoSuchAlgorithmException if SHA-512 is not available
+     * @throws NtruException if the message is longer than <code>maxLenBytes</code> or <code>maxLenBytes</code> is greater than 255
      */
     public byte[] encrypt(byte[] m, EncryptionPublicKey pubKey) throws NoSuchAlgorithmException {
         IntegerPolynomial pub = pubKey.h;
@@ -165,7 +175,14 @@ public class NtruEncrypt {
             return new DenseTernaryPolynomial(r);
     }
     
-    // XXX verify this correctly implements MGF-TP-1
+    /**
+     * An implementation of MGF-TP-1 from P1363.1 section 8.4.1.1.
+     * @param input
+     * @param N
+     * @param minCallsMask
+     * @return
+     * @throws NoSuchAlgorithmException
+     */
     private IntegerPolynomial MGF1(byte[] input, int N, int minCallsMask) throws NoSuchAlgorithmException {
         int numBytes = (N*3+2)/2;
         int numCalls = (numBytes+63) / 64;   // calls to SHA-512
@@ -183,6 +200,14 @@ public class NtruEncrypt {
         return IntegerPolynomial.fromBinary3(buf.array(), N);
     }
 
+    /**
+     * Decrypts a message.
+     * @param m The message to decrypt
+     * @param kp a key pair that contains the public key the message was encrypted with, and the corresponding private key
+     * @return
+     * @throws NoSuchAlgorithmException if SHA-512 is not available
+     * @throws NtruException if the encrypted data is invalid or <code>maxLenBytes</code> is greater than 255
+     */
     public byte[] decrypt(byte[] data, EncryptionKeyPair kp) throws NoSuchAlgorithmException {
         TernaryPolynomial priv_f = kp.priv.f;
         IntegerPolynomial priv_fp = kp.priv.fp;

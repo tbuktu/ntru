@@ -23,7 +23,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 
-// implementation of IGF-2
+/**
+ * An implementation of the Index Generation Function in IEEE P1363.1.
+ */
 class IndexGenerator {
     private byte[] seed;
     private int N;
@@ -37,6 +39,12 @@ class IndexGenerator {
     private MessageDigest hashAlg;
     private int hLen;
     
+    /**
+     * Constructs a new index generator.
+     * @param seed a seed of arbitrary length to initialize the index generator with
+     * @param params NtruEncrypt parameters
+     * @throws NoSuchAlgorithmException
+     */
     IndexGenerator(byte[] seed, EncryptionParameters params) throws NoSuchAlgorithmException {
         this.seed = seed;
         N = params.N;
@@ -52,7 +60,7 @@ class IndexGenerator {
     }
     
     /**
-     * returns a number i such that 0<=i<N
+     * Returns a number <code>i</code> such that <code>0 &lt;= i &lt; N</code>.
      * @return
      */
     int nextIndex() {
@@ -101,16 +109,27 @@ class IndexGenerator {
         }
     }
     
+    /**
+     * Represents a string of bits and supports appending, reading the head, and reading the tail.
+     */
     static class BitString {
         byte[] bytes = new byte[4];
         int numBytes;   // includes the last byte even if only some of its bits are used
         int lastByteBits;   // lastByteBits <= 8
         
+        /**
+         * Appends all bits in a byte array to the end of the bit string.
+         * @param bytes a byte array
+         */
         void appendBits(byte[] bytes) {
             for (byte b: bytes)
                 appendBits(b);
         }
         
+        /**
+         * Appends all bits in a byte to the end of the bit string.
+         * @param b a byte
+         */
         void appendBits(byte b) {
             if (numBytes == bytes.length)
                 bytes = Arrays.copyOf(bytes, 2*bytes.length);
@@ -129,6 +148,11 @@ class IndexGenerator {
             }
         }
         
+        /**
+         * Returns the last <code>numBits</code> bits from the end of the bit string.
+         * @param numBits number of bits
+         * @return a new <code>BitString</code> of length <code>numBits</code>
+         */
         BitString getTrailing(int numBits) {
             BitString newStr = new BitString();
             newStr.numBytes = (numBits+7) / 8;
@@ -147,6 +171,11 @@ class IndexGenerator {
             return newStr;
         }
         
+        /**
+         * Returns up to 32 bits from the beginning of the bit string.
+         * @param numBits number of bits
+         * @return an <code>int</code> whose lower <code>numBits</code> bits are the beginning of the bit string
+         */
         int getLeadingAsInt(int numBits) {
             int startBit = (numBytes-1)*8 + lastByteBits - numBits;
             int startByte = startBit / 8;

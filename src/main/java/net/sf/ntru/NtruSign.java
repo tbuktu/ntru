@@ -36,6 +36,9 @@ import java.util.concurrent.Future;
 import net.sf.ntru.SignatureParameters.BasisType;
 import net.sf.ntru.SignaturePrivateKey.Basis;
 
+/**
+ * Signs, verifies data and generates key pairs.
+ */
 public class NtruSign {
     private SignatureParameters params;
     private MessageDigest hashAlg;
@@ -43,11 +46,21 @@ public class NtruSign {
     private SignaturePublicKey verificationKey;
     private boolean use64Bits;
     
+    /**
+     * Constructs a new instance with a set of signature parameters and takes an educated guess
+     * as to whether 64 bits are supported by the JVM.
+     * @param params signature parameters
+     */
     public NtruSign(SignatureParameters params) {
         this.params = params;
         use64Bits = is64BitJVM();
     }
     
+    /**
+     * Constructs a new instance with a set of signature parameters.
+     * @param params signature parameters
+     * @param use64Bits whether to prefer <code>long</code>s over <code>int</code>s for certain calculations
+     */
     public NtruSign(SignatureParameters params, boolean use64Bits) {
         this.params = params;
         this.use64Bits = use64Bits;
@@ -59,7 +72,10 @@ public class NtruSign {
         return "amd64".equals(arch) || "x86_64".equals(arch) || "ppc64".equals(arch) || "64".equals(sunModel);
     }
     
-    /** Uses B+1 threads */
+    /**
+     * Generates a new signature key pair. Starts <code>B+1</code> threads.
+     * @return a key pair
+     */
     public SignatureKeyPair generateKeyPair() {
         SignaturePrivateKey priv = new SignaturePrivateKey();
         SignaturePublicKey pub = null;
@@ -83,6 +99,10 @@ public class NtruSign {
         return kp;
     }
 
+    /**
+     * Generates a new signature key pair. Runs in a single thread.
+     * @return a key pair
+     */
     public SignatureKeyPair generateKeyPairSingleThread() {
         SignaturePrivateKey priv = new SignaturePrivateKey();
         SignaturePublicKey pub = null;
@@ -96,6 +116,10 @@ public class NtruSign {
         return kp;
     }
 
+    /**
+     * Resets the engine for signing a message.
+     * @param kp
+     */
     public void initSign(SignatureKeyPair kp) {
         this.signingKeyPair = kp;
         try {
@@ -106,6 +130,10 @@ public class NtruSign {
         hashAlg.reset();
     }
 
+    /**
+     * Adds data to sign or verify.
+     * @param kp
+     */
     public void update(byte[] m) {
         if (hashAlg == null)
             throw new NtruException("Call initSign or initVerify first!");
@@ -113,6 +141,12 @@ public class NtruSign {
         hashAlg.update(m);
     }
     
+    /**
+     * Adds data to sign and computes a signature over this data and any data previously added via {@link #update(byte[])}.
+     * @param m
+     * @return
+     * @throws NtruException if <code>initSign</code> was not called
+     */
     public byte[] sign(byte[] m) {
         if (hashAlg==null || signingKeyPair==null)
             throw new NtruException("Call initSign first!");
@@ -122,6 +156,14 @@ public class NtruSign {
         return signHash(msgHash, signingKeyPair);
     }
     
+    /**
+     * Signs a message.<br/>
+     * This is a "one stop" method and does not require <code>initSign</code> to be called. Only the message supplied via
+     * the parameter <code>m</code> is signed, regardless of prior calls to {@link #update(byte[])}.
+     * @param m the message to sign
+     * @param kp a key pair (the public key is needed to ensure there are no signing failures)
+     * @return a signature
+     */
     public byte[] sign(byte[] m, SignatureKeyPair kp) {
         try {
             // EESS directly passes the message into the MRGM (message representative
@@ -207,6 +249,10 @@ public class NtruSign {
         return s;
     }
     
+    /**
+     * Resets the engine for verifying a signature.
+     * @param pub the public key to use in the {@link #verify(byte[]) step
+     */
     public void initVerify(SignaturePublicKey pub) {
         verificationKey = pub;
         try {
@@ -217,6 +263,12 @@ public class NtruSign {
         hashAlg.reset();
     }
 
+    /**
+     * Verifies a signature for any data previously added via {@link #update(byte[])}.
+     * @param sig a signature
+     * @return whether the signature is valid
+     * @throws NtruException if <code>initVerify</code> was not called
+     */
     public boolean verify(byte[] sig) {
         if (hashAlg==null || verificationKey==null)
             throw new NtruException("Call initVerify first!");
@@ -225,6 +277,15 @@ public class NtruSign {
         return verifyHash(msgHash, sig, verificationKey);
     }
     
+    /**
+     * Verifies a signature.<br/>
+     * This is a "one stop" method and does not require <code>initVerify</code> to be called. Only the message supplied via
+     * the parameter <code>m</code> is signed, regardless of prior calls to {@link #update(byte[])}.
+     * @param m the message to sign
+     * @param sig the signature
+     * @param pub a public key
+     * @return whether the signature is valid
+     */
     public boolean verify(byte[] m, byte[] sig, SignaturePublicKey pub) {
         try {
             byte[] msgHash = MessageDigest.getInstance("SHA-512").digest(m);
@@ -247,7 +308,7 @@ public class NtruSign {
         }
     }
     
-    boolean verify(IntegerPolynomial i, IntegerPolynomial s, IntegerPolynomial h) {
+    private boolean verify(IntegerPolynomial i, IntegerPolynomial s, IntegerPolynomial h) {
         int q = params.q;
         double normBoundSq = params.normBoundSq;
         double betaSq = params.betaSq;
@@ -287,7 +348,10 @@ public class NtruSign {
         return i;
     }
     
-    // creates a basis such that |F|<keyNormBound and |G|<keyNormBound
+    /**
+     * Creates a basis such that <code>|F| &lt; keyNormBound</code> and <code>|G| &lt; keyNormBound</code>
+     * @return a NtruSign basis
+     */
     private Basis createBoundedBasis() {
         double keyNormBoundSq = params.keyNormBoundSq;
         int q = params.q;
@@ -353,8 +417,8 @@ public class NtruSign {
         TernaryPolynomial gTer = new SparseTernaryPolynomial(g);
         G.sub(gTer.mult(C));
 
-        IntegerPolynomial FInt=new IntegerPolynomial(F);
-        IntegerPolynomial GInt=new IntegerPolynomial(G);
+        IntegerPolynomial FInt = new IntegerPolynomial(F);
+        IntegerPolynomial GInt = new IntegerPolynomial(G);
         minimizeFG(f, g, FInt, GInt, N);
         
         IntegerPolynomial fPrime;
@@ -435,7 +499,9 @@ public class NtruSign {
         }
     }
     
-    // a subclass of Basis that contains the polynomials F and G
+    /**
+     * A subclass of Basis that additionally contains the polynomials <code>F</code> and <code>G</code>.
+     */
     class FGBasis extends Basis {
         IntegerPolynomial F, G;
         
