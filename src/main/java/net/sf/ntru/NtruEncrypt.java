@@ -53,11 +53,17 @@ public class NtruEncrypt {
         IntegerPolynomial f = null;
         IntegerPolynomial fp = null;
         IntegerPolynomial fq = null;
-        do {
+        // choose random f until it is invertible mod 3 and q
+        while (true) {
             f = Util.generateRandomTernary(N, df, df-1, sparse).toIntegerPolynomial();
             fp = f.invertF3();
+            if (fp == null)
+                continue;
             fq = f.invertFq(q);
-        } while (fp==null || fq==null);   // repeat until f is invertible
+            if (fq == null)
+                continue;
+            break;
+        }
         TernaryPolynomial g = Util.generateRandomTernary(N, dg, dg, sparse);
         IntegerPolynomial h = g.mult(fq, q);
         h.mult3(q);
