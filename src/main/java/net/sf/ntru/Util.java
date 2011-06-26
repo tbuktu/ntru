@@ -24,6 +24,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class Util {
+//    private static boolean IS_64_BITNESS_KNOWN;
+    private static boolean IS_64_BITNESS_KNOWN = true;
+//    private static boolean IS_64_BIT_JVM;
+    static boolean IS_64_BIT_JVM;
 
     /** Calculates the inverse of n mod modulus */
     static int invert(int n, int modulus) {
@@ -95,5 +99,14 @@ public class Util {
         for (int i=0; i<N; i++)
             arr[i] = list.get(i);
         return arr;
+    }
+    
+    static boolean is64BitJVM() {
+        if (!IS_64_BITNESS_KNOWN) {
+            String arch = System.getProperty("os.arch");
+            String sunModel = System.getProperty("sun.arch.data.model");
+            IS_64_BIT_JVM = "amd64".equals(arch) || "x86_64".equals(arch) || "ppc64".equals(arch) || "64".equals(sunModel);
+        }
+        return IS_64_BIT_JVM;
     }
 }

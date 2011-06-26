@@ -487,19 +487,42 @@ class IntegerPolynomial {
             Fq.coeffs[j] = b.coeffs[i];
         }
         
-        // inverse mod 2 --> inverse mod q
-        int v = 2;
-        while (v < q) {
-            v *= 2;
-            IntegerPolynomial temp = new IntegerPolynomial(Arrays.copyOf(Fq.coeffs, Fq.coeffs.length));
-            temp.mult2(v);
-            Fq = mult(Fq, v).mult(Fq, v);
-            temp.sub(Fq, v);
-            Fq = temp;
+        return mod2ToModq(Fq, q);
+    }
+    
+    /**
+     * Computes the inverse mod q from the inverse mod 2
+     * @param Fq
+     * @param q
+     * @return The inverse of this polynomial mod q
+     */
+    private IntegerPolynomial mod2ToModq(IntegerPolynomial Fq, int q) {
+        if (Util.is64BitJVM()) {
+            LongPolynomial2048 thisLong = new LongPolynomial2048(this);
+            LongPolynomial2048 FqLong = new LongPolynomial2048(Fq);
+            int v = 2;
+            while (v < q) {
+                v *= 2;
+                LongPolynomial2048 temp = FqLong.clone();
+                temp.mult2And(v-1);
+                FqLong = thisLong.mult(FqLong).mult(FqLong);
+                temp.subAnd(FqLong, v-1);
+                FqLong = temp;
+            }
+            return FqLong.toIntegerPolynomial();
         }
-        
-        Fq.ensurePositive(q);
-        return Fq;
+        else {
+            int v = 2;
+            while (v < q) {
+                v *= 2;
+                IntegerPolynomial temp = new IntegerPolynomial(Arrays.copyOf(Fq.coeffs, Fq.coeffs.length));
+                temp.mult2(v);
+                Fq = mult(Fq, v).mult(Fq, v);
+                temp.sub(Fq, v);
+                Fq = temp;
+            }
+            return Fq;
+        }
     }
     
     /**

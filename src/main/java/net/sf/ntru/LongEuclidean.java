@@ -18,7 +18,7 @@
 
 package net.sf.ntru;
 
-/** Extended Euclidean Algorithm in <code>int</code>s */
+/** Extended Euclidean Algorithm in <code>long</code>s */
 public class LongEuclidean {
     public long x, y, gcd;
     
