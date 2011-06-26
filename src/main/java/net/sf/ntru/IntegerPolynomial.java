@@ -497,7 +497,7 @@ class IntegerPolynomial {
      * @return The inverse of this polynomial mod q
      */
     private IntegerPolynomial mod2ToModq(IntegerPolynomial Fq, int q) {
-        if (Util.is64BitJVM()) {
+        if (Util.is64BitJVM() && q==2048) {
             LongPolynomial2048 thisLong = new LongPolynomial2048(this);
             LongPolynomial2048 FqLong = new LongPolynomial2048(Fq);
             int v = 2;

@@ -24,10 +24,8 @@ import java.util.Collections;
 import java.util.List;
 
 public class Util {
-//    private static boolean IS_64_BITNESS_KNOWN;
-    private static boolean IS_64_BITNESS_KNOWN = true;
-//    private static boolean IS_64_BIT_JVM;
-    static boolean IS_64_BIT_JVM;
+    private static boolean IS_64_BITNESS_KNOWN;
+    private static boolean IS_64_BIT_JVM;
 
     /** Calculates the inverse of n mod modulus */
     static int invert(int n, int modulus) {
