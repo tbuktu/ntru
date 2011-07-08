@@ -25,15 +25,15 @@ import java.util.Arrays;
  * faster multiplication in 64 bit environments.<br/>
  * Coefficients can be between 0 and 2047 and are stored in pairs in the bits 0..10 and 24..34 of a <code>long</code> number.
  */
-class LongPolynomial2048 {
+class LongPolynomial2 {
     private long[] coeffs;   // each representing two coefficients in the original IntegerPolynomial
     private int numCoeffs;
     
     /**
-     * Constructs a <code>LongPolynomial2048</code> from a <code>IntegerPolynomial</code>. The two polynomials are independent of each other.
+     * Constructs a <code>LongPolynomial2</code> from a <code>IntegerPolynomial</code>. The two polynomials are independent of each other.
      * @param p the original polynomial. Coefficients must be between 0 and 2047.
      */
-    LongPolynomial2048(IntegerPolynomial p) {
+    LongPolynomial2(IntegerPolynomial p) {
         numCoeffs = p.coeffs.length;
         coeffs = new long[(numCoeffs+1) / 2];
         int idx = 0;
@@ -49,21 +49,21 @@ class LongPolynomial2048 {
         }
     }
     
-    private LongPolynomial2048(long[] coeffs) {
+    private LongPolynomial2(long[] coeffs) {
         this.coeffs = coeffs;
     }
     
-    private LongPolynomial2048(int N) {
+    private LongPolynomial2(int N) {
         coeffs = new long[N];
     }
     
     /** Multiplies the polynomial with another, taking the indices mod N and the values mod 2048. */
-    public LongPolynomial2048 mult(LongPolynomial2048 poly2) {
+    public LongPolynomial2 mult(LongPolynomial2 poly2) {
         int N = coeffs.length;
         if (poly2.coeffs.length!=N || numCoeffs!=poly2.numCoeffs)
             throw new NtruException("Number of coefficients must be the same");
 
-        LongPolynomial2048 c = multRecursive(poly2);
+        LongPolynomial2 c = multRecursive(poly2);
         
         if (c.coeffs.length > N) {
             if (numCoeffs%2 == 0) {
@@ -82,7 +82,7 @@ class LongPolynomial2048 {
             }
         }
 
-        c = new LongPolynomial2048(c.coeffs);
+        c = new LongPolynomial2(c.coeffs);
         c.numCoeffs = numCoeffs;
         return c;
     }
@@ -99,14 +99,14 @@ class LongPolynomial2048 {
     }
 
     /** Karazuba multiplication */
-    private LongPolynomial2048 multRecursive(LongPolynomial2048 poly2) {
+    private LongPolynomial2 multRecursive(LongPolynomial2 poly2) {
         long[] a = coeffs;
         long[] b = poly2.coeffs;
 
         int n = poly2.coeffs.length;
         if (n <= 32) {
             int cn = 2 * n;
-            LongPolynomial2048 c = new LongPolynomial2048(new long[cn]);
+            LongPolynomial2 c = new LongPolynomial2(new long[cn]);
             for (int k=0; k<cn; k++) {
                 for (int i=Math.max(0, k-n+1); i<=Math.min(k,n-1); i++) {
                     long c0 = a[k-i] * b[i];
@@ -122,23 +122,23 @@ class LongPolynomial2048 {
         else {
             int n1 = n / 2;
 
-            LongPolynomial2048 a1 = new LongPolynomial2048(Arrays.copyOf(a, n1));
-            LongPolynomial2048 a2 = new LongPolynomial2048(Arrays.copyOfRange(a, n1, n));
-            LongPolynomial2048 b1 = new LongPolynomial2048(Arrays.copyOf(b, n1));
-            LongPolynomial2048 b2 = new LongPolynomial2048(Arrays.copyOfRange(b, n1, n));
+            LongPolynomial2 a1 = new LongPolynomial2(Arrays.copyOf(a, n1));
+            LongPolynomial2 a2 = new LongPolynomial2(Arrays.copyOfRange(a, n1, n));
+            LongPolynomial2 b1 = new LongPolynomial2(Arrays.copyOf(b, n1));
+            LongPolynomial2 b2 = new LongPolynomial2(Arrays.copyOfRange(b, n1, n));
 
-            LongPolynomial2048 A = a1.clone();
+            LongPolynomial2 A = a1.clone();
             A.add(a2);
-            LongPolynomial2048 B = b1.clone();
+            LongPolynomial2 B = b1.clone();
             B.add(b2);
 
-            LongPolynomial2048 c1 = a1.multRecursive(b1);
-            LongPolynomial2048 c2 = a2.multRecursive(b2);
-            LongPolynomial2048 c3 = A.multRecursive(B);
+            LongPolynomial2 c1 = a1.multRecursive(b1);
+            LongPolynomial2 c2 = a2.multRecursive(b2);
+            LongPolynomial2 c3 = A.multRecursive(B);
             c3.sub(c1);
             c3.sub(c2);
 
-            LongPolynomial2048 c = new LongPolynomial2048(2*n);
+            LongPolynomial2 c = new LongPolynomial2(2*n);
             for (int i=0; i<c1.coeffs.length; i++)
                 c.coeffs[i] = c1.coeffs[i] & 0x7FF0007FFL;
             for (int i=0; i<c3.coeffs.length; i++)
@@ -153,7 +153,7 @@ class LongPolynomial2048 {
      * Adds another polynomial which can have a different number of coefficients.
      * @param b another polynomial
      */
-    private void add(LongPolynomial2048 b) {
+    private void add(LongPolynomial2 b) {
         if (b.coeffs.length > coeffs.length)
             coeffs = Arrays.copyOf(coeffs, b.coeffs.length);
         for (int i=0; i<b.coeffs.length; i++)
@@ -164,7 +164,7 @@ class LongPolynomial2048 {
      * Subtracts another polynomial which can have a different number of coefficients.
      * @param b another polynomial
      */
-    private void sub(LongPolynomial2048 b) {
+    private void sub(LongPolynomial2 b) {
         if (b.coeffs.length > coeffs.length)
             coeffs = Arrays.copyOf(coeffs, b.coeffs.length);
         for (int i=0; i<b.coeffs.length; i++)
@@ -177,7 +177,7 @@ class LongPolynomial2048 {
      * @param b another polynomial
      * @param mask a bit mask less than 2048 to apply to each 11-bit coefficient
      */
-    void subAnd(LongPolynomial2048 b, int mask) {
+    void subAnd(LongPolynomial2 b, int mask) {
         long longMask = (((long)mask)<<24) + mask;
         for (int i=0; i<b.coeffs.length; i++)
             coeffs[i] = (0x0800000800000L + coeffs[i] - b.coeffs[i]) & longMask;
@@ -195,16 +195,16 @@ class LongPolynomial2048 {
     }
 
     @Override
-    public LongPolynomial2048 clone() {
-        LongPolynomial2048 p = new LongPolynomial2048(coeffs.clone());
+    public LongPolynomial2 clone() {
+        LongPolynomial2 p = new LongPolynomial2(coeffs.clone());
         p.numCoeffs = numCoeffs;
         return p;
     }
     
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof LongPolynomial2048)
-            return Arrays.equals(coeffs, ((LongPolynomial2048)obj).coeffs);
+        if (obj instanceof LongPolynomial2)
+            return Arrays.equals(coeffs, ((LongPolynomial2)obj).coeffs);
         else
             return false;
     }

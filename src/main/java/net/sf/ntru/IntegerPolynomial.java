@@ -498,12 +498,12 @@ class IntegerPolynomial {
      */
     private IntegerPolynomial mod2ToModq(IntegerPolynomial Fq, int q) {
         if (Util.is64BitJVM() && q==2048) {
-            LongPolynomial2048 thisLong = new LongPolynomial2048(this);
-            LongPolynomial2048 FqLong = new LongPolynomial2048(Fq);
+            LongPolynomial2 thisLong = new LongPolynomial2(this);
+            LongPolynomial2 FqLong = new LongPolynomial2(Fq);
             int v = 2;
             while (v < q) {
                 v *= 2;
-                LongPolynomial2048 temp = FqLong.clone();
+                LongPolynomial2 temp = FqLong.clone();
                 temp.mult2And(v-1);
                 FqLong = thisLong.mult(FqLong).mult(FqLong);
                 temp.subAnd(FqLong, v-1);

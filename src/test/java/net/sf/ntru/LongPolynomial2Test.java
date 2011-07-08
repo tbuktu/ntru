@@ -24,14 +24,14 @@ import java.util.Random;
 
 import org.junit.Test;
 
-public class LongPolynomial2048Test {
+public class LongPolynomial2Test {
     
     @Test
     public void testMult() {
         IntegerPolynomial i1 = new IntegerPolynomial(new int[] {1368, 2047, 672, 871, 1662, 1352, 1099, 1608});
         IntegerPolynomial i2 = new IntegerPolynomial(new int[] {1729, 1924, 806, 179, 1530, 1381, 1695, 60});
-        LongPolynomial2048 a = new LongPolynomial2048(i1);
-        LongPolynomial2048 b = new LongPolynomial2048(i2);
+        LongPolynomial2 a = new LongPolynomial2(i1);
+        LongPolynomial2 b = new LongPolynomial2(i2);
         IntegerPolynomial c1 = i1.mult(i2, 2048);
         IntegerPolynomial c2 = a.mult(b).toIntegerPolynomial();
         assertArrayEquals(c1.coeffs, c2.coeffs);
@@ -47,8 +47,8 @@ public class LongPolynomial2048Test {
             }
             i1 = new IntegerPolynomial(coeffs1);
             i2 = new IntegerPolynomial(coeffs2);
-            a = new LongPolynomial2048(i1);
-            b = new LongPolynomial2048(i2);
+            a = new LongPolynomial2(i1);
+            b = new LongPolynomial2(i2);
             c1 = i1.mult(i2);
             c1.modPositive(2048);
             c2 = a.mult(b).toIntegerPolynomial();
@@ -60,8 +60,8 @@ public class LongPolynomial2048Test {
     public void testSubAnd() {
         IntegerPolynomial i1 = new IntegerPolynomial(new int[] {1368, 2047, 672, 871, 1662, 1352, 1099, 1608});
         IntegerPolynomial i2 = new IntegerPolynomial(new int[] {1729, 1924, 806, 179, 1530, 1381, 1695, 60});
-        LongPolynomial2048 a = new LongPolynomial2048(i1);
-        LongPolynomial2048 b = new LongPolynomial2048(i2);
+        LongPolynomial2 a = new LongPolynomial2(i1);
+        LongPolynomial2 b = new LongPolynomial2(i2);
         a.subAnd(b, 2047);
         i1.sub(i2);
         i1.modPositive(2048);
@@ -71,7 +71,7 @@ public class LongPolynomial2048Test {
     @Test
     public void testMult2And() {
         IntegerPolynomial i1 = new IntegerPolynomial(new int[] {1368, 2047, 672, 871, 1662, 1352, 1099, 1608});
-        LongPolynomial2048 i2 = new LongPolynomial2048(i1);
+        LongPolynomial2 i2 = new LongPolynomial2(i1);
         i2.mult2And(2047);
         i1.mult(2);
         i1.modPositive(2048);
