@@ -30,7 +30,14 @@ interface TernaryPolynomial {
     /** Multiplies the polynomial by an <code>BigIntPolynomial</code>, taking the indices mod N */
     BigIntPolynomial mult(BigIntPolynomial poly2);
     
+    int[] getOnes();
+    
+    int[] getNegOnes();
+    
     IntegerPolynomial toIntegerPolynomial();
+    
+    /** Returns the maximum number of coefficients the polynomial can have */
+    int size();
     
     void clear();
 }

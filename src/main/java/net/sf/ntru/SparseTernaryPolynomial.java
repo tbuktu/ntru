@@ -148,6 +148,16 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
     }
     
     @Override
+    public int[] getOnes() {
+        return ones;
+    }
+    
+    @Override
+    public int[] getNegOnes() {
+        return negOnes;
+    }
+
+    @Override
     public IntegerPolynomial toIntegerPolynomial() {
         int[] coeffs = new int[N];
         for (int i: ones)
@@ -155,6 +165,11 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         for (int i: negOnes)
             coeffs[i] = -1;
         return new IntegerPolynomial(coeffs);
+    }
+    
+    @Override
+    public int size() {
+        return N;
     }
     
     @Override
