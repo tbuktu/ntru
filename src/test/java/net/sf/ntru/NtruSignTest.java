@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import net.sf.ntru.NtruSign.FGBasis;
+import net.sf.ntru.SignatureParameters.KeyGenAlg;
 
 import org.junit.Test;
 
@@ -36,6 +37,12 @@ public class NtruSignTest {
         SignatureParameters params = SignatureParameters.TEST157;
         NtruSign ntru = new NtruSign(params);
         FGBasis basis = ntru.createBasis();
+        assertTrue(equalsQ(basis.f, basis.fPrime, basis.F, basis.G, params.q, params.N));
+        
+        // test KeyGenAlg.FLOAT (default=RESULTANT)
+        params.setKeyGenAlgorithm(KeyGenAlg.FLOAT);
+        ntru = new NtruSign(params);
+        basis = ntru.createBasis();
         assertTrue(equalsQ(basis.f, basis.fPrime, basis.F, basis.G, params.q, params.N));
     }
     
@@ -106,6 +113,17 @@ public class NtruSignTest {
         s = ntru.sign(msg, kp);
         valid = ntru.verify(msg, s, kp.pub);
         assertTrue(valid);
+        
+        // test KeyGenAlg.FLOAT (default=RESULTANT)
+        params.setKeyGenAlgorithm(KeyGenAlg.FLOAT);
+        ntru = new NtruSign(params);
+        kp = ntru.generateKeyPair();
+        s = ntru.sign(msg, kp);
+        valid = ntru.verify(msg, s, kp.pub);
+        assertTrue(valid);
+        s[rng.nextInt(s.length)] += 1;
+        valid = ntru.verify(msg, s, kp.pub);
+        assertFalse(valid);
     }
     
     /** test for the initSign/update/sign and initVerify/update/verify variant */

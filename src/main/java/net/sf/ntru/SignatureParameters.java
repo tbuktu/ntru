@@ -28,17 +28,24 @@ import java.util.Arrays;
 /**
  * A set of parameters for NtruSign. Several predefined parameter sets are available and new ones can be created as well.
  */
-public class SignatureParameters {
+public class SignatureParameters implements Cloneable {
     /** Gives 128 bits of security */
-    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, 1000, false, true);
+    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, 1000, false, true, KeyGenAlg.RESULTANT);
+    
+    /** Same as APR2011_439 but uses KeyGenAlg.FLOAT */
+    public static final SignatureParameters APR2011_439_FAST = APR2011_439.clone().setKeyGenAlgorithm(KeyGenAlg.FLOAT);
     
     /** Gives 256 bits of security */
-    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, 1900, true, false);
+    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, 1900, true, false, KeyGenAlg.RESULTANT);
+    
+    /** Same as APR2011_743 but uses KeyGenAlg.FLOAT */
+    public static final SignatureParameters APR2011_743_FAST = APR2011_743.clone().setKeyGenAlgorithm(KeyGenAlg.FLOAT);
     
     /** Generates key pairs quickly. Use for testing only. */
-    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, 300, false, false);
+    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, 300, false, false, KeyGenAlg.RESULTANT);
     
     public enum BasisType {STANDARD, TRANSPOSE};
+    public enum KeyGenAlg {RESULTANT, FLOAT};
     
     int N, q, d, B;
     double beta, betaSq, normBound, normBoundSq;
@@ -49,6 +56,7 @@ public class SignatureParameters {
     BasisType basisType;
     int bitsF = 6;   // max #bits needed to encode one coefficient of the polynomial F
     boolean sparse;   // whether to treat ternary polynomials as sparsely populated
+    KeyGenAlg keyGenAlg;
     byte[] reserved;
     
     /**
@@ -64,8 +72,9 @@ public class SignatureParameters {
      * @param keyGenerationDecimalPlaces amount of precision required for generating a key pair
      * @param primeCheck whether <code>2N+1</code> is prime
      * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
+     * @param keyGenAlg <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is faster
      */
-    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, int keyGenerationDecimalPlaces, boolean primeCheck, boolean sparse) {
+    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, int keyGenerationDecimalPlaces, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg) {
         this.N = N;
         this.q = q;
         this.d = d;
@@ -77,7 +86,8 @@ public class SignatureParameters {
         this.keyGenerationDecimalPlaces = keyGenerationDecimalPlaces;
         this.primeCheck = primeCheck;
         this.sparse = sparse;
-        reserved = new byte[16];
+        this.keyGenAlg = keyGenAlg;
+        reserved = new byte[15];
         init();
     }
 
@@ -107,8 +117,19 @@ public class SignatureParameters {
         primeCheck = dis.readBoolean();
         sparse = dis.readBoolean();
         bitsF = dis.readInt();
-        dis.read(reserved = new byte[16]);
+        keyGenAlg = KeyGenAlg.values()[dis.read()];
+        dis.read(reserved = new byte[15]);
         init();
+    }
+    
+    /**
+     * Sets the algorithm to use when generating a key pair. Modifies this object and returns it.
+     * @param alg KeyGenAlg.FLOAT or KeyGenAlg.RESULTANT
+     * @return the modified parameters
+     */
+    public SignatureParameters setKeyGenAlgorithm(KeyGenAlg alg) {
+        keyGenAlg = alg;
+        return this;
     }
     
     /**
@@ -131,9 +152,15 @@ public class SignatureParameters {
         dos.writeBoolean(primeCheck);
         dos.writeBoolean(sparse);
         dos.writeInt(bitsF);
+        dos.write(keyGenAlg.ordinal());
         dos.write(reserved);
     }
 
+    @Override
+    public SignatureParameters clone() {
+        return new SignatureParameters(N, q, d, B, basisType, beta, keyNormBoundSq, keyNormBound, keyGenerationDecimalPlaces, primeCheck, sparse, keyGenAlg);
+    }
+    
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -148,6 +175,7 @@ public class SignatureParameters {
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + bitsF;
         result = prime * result + d;
+        result = prime * result + ((keyGenAlg == null) ? 0 : keyGenAlg.hashCode());
         result = prime * result + keyGenerationDecimalPlaces;
         temp = Double.doubleToLongBits(keyNormBound);
         result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -190,6 +218,11 @@ public class SignatureParameters {
         if (bitsF != other.bitsF)
             return false;
         if (d != other.d)
+            return false;
+        if (keyGenAlg == null) {
+            if (other.keyGenAlg != null)
+                return false;
+        } else if (!keyGenAlg.equals(other.keyGenAlg))
             return false;
         if (keyGenerationDecimalPlaces != other.keyGenerationDecimalPlaces)
             return false;

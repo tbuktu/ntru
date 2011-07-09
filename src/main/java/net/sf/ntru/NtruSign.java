@@ -34,6 +34,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
 import net.sf.ntru.SignatureParameters.BasisType;
+import net.sf.ntru.SignatureParameters.KeyGenAlg;
 import net.sf.ntru.SignaturePrivateKey.Basis;
 
 /**
@@ -384,13 +385,36 @@ public class NtruSign {
         BigIntPolynomial B = rg.rho.clone();
         B.mult(r.y.multiply(BigInteger.valueOf(-q)));
         
-        BigDecimalPolynomial fInv = rf.rho.div(new BigDecimal(rf.res), decimalPlaces);
-        BigDecimalPolynomial gInv = rg.rho.div(new BigDecimal(rg.res), decimalPlaces);
-        
-        BigDecimalPolynomial Cdec = fInv.mult(B);
-        Cdec.add(gInv.mult(A));
-        Cdec.halve();
-        BigIntPolynomial C = Cdec.round();
+        BigIntPolynomial C;
+        if (params.keyGenAlg == KeyGenAlg.RESULTANT) {
+            int[] fRevCoeffs = new int[N];
+            int[] gRevCoeffs = new int[N];
+            fRevCoeffs[0] = f.coeffs[0];
+            gRevCoeffs[0] = g.coeffs[0];
+            for (int i=1; i<N; i++) {
+                fRevCoeffs[i] = f.coeffs[N-i];
+                gRevCoeffs[i] = g.coeffs[N-i];
+            }
+            IntegerPolynomial fRev = new IntegerPolynomial(fRevCoeffs);
+            IntegerPolynomial gRev = new IntegerPolynomial(gRevCoeffs);
+            
+            IntegerPolynomial t = f.mult(fRev);
+            t.add(g.mult(gRev));
+            Resultant rt = Util.is64BitJVM() ? new LongPolynomial(t).resultant() : t.resultant();
+            C = B.mult(fRev);
+            C.add(A.mult(gRev));
+            C = C.mult(rt.rho);
+            C.div(rt.res);
+        }
+        else {   // KeyGenAlg.FLOAT
+            BigDecimalPolynomial fInv = rf.rho.div(new BigDecimal(rf.res), decimalPlaces);
+            BigDecimalPolynomial gInv = rg.rho.div(new BigDecimal(rg.res), decimalPlaces);
+            
+            BigDecimalPolynomial Cdec = fInv.mult(B);
+            Cdec.add(gInv.mult(A));
+            Cdec.halve();
+            C = Cdec.round();
+        }
         
         BigIntPolynomial F = B.clone();
         // always use sparse multiplication here

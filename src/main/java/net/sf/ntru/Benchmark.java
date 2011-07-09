@@ -44,7 +44,7 @@ public class Benchmark {
         int iterations = 5;
         
         NtruEncrypt ntruEncrypt = new NtruEncrypt(EncryptionParameters.APR2011_439);
-        NtruSign ntruSign = new NtruSign(SignatureParameters.APR2011_439);
+        NtruSign ntruSign = new NtruSign(SignatureParameters.APR2011_439_FAST);
         for (int i=0; i<iterations; i++) {
             long encKeyGenTime = encKeyGenBench(ntruEncrypt);
             System.out.print("EncKeyG " + encKeyGenTime + "ms");

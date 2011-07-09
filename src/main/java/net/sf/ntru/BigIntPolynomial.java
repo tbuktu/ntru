@@ -249,6 +249,19 @@ class BigIntPolynomial {
     }
     
     /**
+     * Divides each coefficient by a <code>BigInteger</code> and rounds the result to the nearest whole number.<br/>
+     * Does not return a new polynomial but modifies this polynomial.
+     * @param divisor the number to divide by
+     */
+    void div(BigInteger divisor) {
+        BigInteger d = divisor.add(ONE).divide(BigInteger.valueOf(2));
+        for (int i=0; i<coeffs.length; i++) {
+            coeffs[i] = coeffs[i].compareTo(ZERO)>0 ? coeffs[i].add(d) : coeffs[i].add(d.negate());
+            coeffs[i] = coeffs[i].divide(divisor);
+        }
+    }
+    
+    /**
      * Divides each coefficient by a <code>BigDecimal</code> and rounds the result to <code>decimalPlaces</code> places.
      * @param divisor the number to divide by
      * @param decimalPlaces the number of fractional digits to round the result to
