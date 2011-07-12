@@ -116,10 +116,10 @@ class LongPolynomial {
     Resultant resultant() {
         int N = coeffs.length;
         
-        // upper bound for resultant(f, g) = ||f, 2||^deg(f) * ||g, 2||^deg(g) = squaresum(f)^(deg(f)/2) * 2^(N/2) because g(x)=x^N-1
+        // upper bound for resultant(f, g) = ||f, 2||^deg(g) * ||g, 2||^deg(f) = squaresum(f)^(N/2) * 2^(deg(f)/2) because g(x)=x^N-1
         // see http://jondalon.mathematik.uni-osnabrueck.de/staff/phpages/brunsw/CompAlg.pdf chapter 3
-        BigInteger max = squareSum().pow((degree()+1)/2);
-        max = max.multiply(BigInteger.valueOf(2).pow((N+1)/2));
+        BigInteger max = squareSum().pow((N+1)/2);
+        max = max.multiply(BigInteger.valueOf(2).pow((degree()+1)/2));
         BigInteger max2 = max.multiply(BigInteger.valueOf(2));
         BigInteger pProd = ONE;
         Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
