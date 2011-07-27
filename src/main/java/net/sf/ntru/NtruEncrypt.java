@@ -49,21 +49,43 @@ public class NtruEncrypt {
         int df = params.df;
         int dg = params.dg;
         boolean sparse = params.sparse;
+        boolean fastFp = params.fastFp;
         
-        IntegerPolynomial f = null;
-        IntegerPolynomial fp = null;
+        DenseTernaryPolynomial t = null;
         IntegerPolynomial fq = null;
-        // choose random f until it is invertible mod 3 and q
+        IntegerPolynomial fp = null;
+        
+        // choose a random f that is invertible mod 3 and q
         while (true) {
-            f = Util.generateRandomTernary(N, df, df-1, sparse).toIntegerPolynomial();
-            fp = f.invertF3();
-            if (fp == null)
-                continue;
+            IntegerPolynomial f;
+            
+            // choose random t, calculate f and fp
+            if (fastFp) {
+                // if fastFp=true, f is always invertible mod 3
+                t = DenseTernaryPolynomial.generateRandom(N, df, df);
+                f = t.clone();
+                f.mult(3);
+                f.coeffs[0] += 1;
+            }
+            else {
+                f = t = DenseTernaryPolynomial.generateRandom(N, df, df-1);
+                fp = f.invertF3();
+                if (fp == null)
+                    continue;
+            }
+            
             fq = f.invertFq(q);
             if (fq == null)
                 continue;
             break;
         }
+        
+        // if fastFp=true, fp=1
+        if (fastFp) {
+            fp = new IntegerPolynomial(N);
+            fp.coeffs[0] = 1;
+        }
+        
         TernaryPolynomial g = Util.generateRandomTernary(N, dg, dg, sparse);
         IntegerPolynomial h = g.mult(fq, q);
         h.mult3(q);
@@ -71,8 +93,7 @@ public class NtruEncrypt {
         g.clear();
         fq.clear();
         
-        TernaryPolynomial fTer = sparse ? new SparseTernaryPolynomial(f) : new DenseTernaryPolynomial(f);
-        EncryptionPrivateKey priv = new EncryptionPrivateKey(fTer, params);
+        EncryptionPrivateKey priv = new EncryptionPrivateKey(t, fp, params);
         EncryptionPublicKey pub = new EncryptionPublicKey(h, params);
         return new EncryptionKeyPair(priv, pub);
     }
@@ -218,7 +239,7 @@ public class NtruEncrypt {
      * @throws NtruException if SHA-512 is not available, the encrypted data is invalid, or <code>maxLenBytes</code> is greater than 255
      */
     public byte[] decrypt(byte[] data, EncryptionKeyPair kp) {
-        TernaryPolynomial priv_f = kp.priv.f;
+        TernaryPolynomial priv_t = kp.priv.t;
         IntegerPolynomial priv_fp = kp.priv.fp;
         IntegerPolynomial pub = kp.pub.h;
         int N = params.N;
@@ -236,7 +257,7 @@ public class NtruEncrypt {
         int bLen = db / 8;
         
         IntegerPolynomial e = IntegerPolynomial.fromBinary(data, N, q);
-        IntegerPolynomial ci = decrypt(e, priv_f, priv_fp);
+        IntegerPolynomial ci = decrypt(e, priv_t, priv_fp);
         
         if (ci.count(-1) < dm0)
             throw new NtruException("More than dm0 coefficients equal -1");
@@ -286,11 +307,26 @@ public class NtruEncrypt {
         return cm;
     }
     
-    IntegerPolynomial decrypt(IntegerPolynomial e, TernaryPolynomial priv_f, IntegerPolynomial priv_fp) {
-        IntegerPolynomial a = priv_f.mult(e, params.q);
+    /**
+     * 
+     * @param e
+     * @param priv_t a polynomial such that if <code>fastFp=true</code>, <code>f=1+3*priv_t</code>; otherwise, <code>f=priv_t</code>
+     * @param priv_fp
+     * @return
+     */
+    IntegerPolynomial decrypt(IntegerPolynomial e, TernaryPolynomial priv_t, IntegerPolynomial priv_fp) {
+        IntegerPolynomial a;
+        if (params.fastFp) {
+            a = priv_t.mult(e, params.q);
+            a.mult(3);
+            a.add(e);
+        }
+        else
+            a = priv_t.mult(e, params.q);
         a.center0(params.q);
         a.mod3();
-        IntegerPolynomial c = priv_fp.mult(a, 3);
+        
+        IntegerPolynomial c = params.fastFp ? a : new DenseTernaryPolynomial(a).mult(priv_fp, 3);
         c.center0(3);
         return c;
     }

@@ -473,9 +473,10 @@ class IntegerPolynomial {
         IntegerPolynomial c = new IntegerPolynomial(N+1);
         IntegerPolynomial f = new IntegerPolynomial(N+1);
         f.coeffs = Arrays.copyOf(coeffs, N+1);
+        f.modPositive(2);
         // set g(x) = x^N − 1
         IntegerPolynomial g = new IntegerPolynomial(N+1);
-        g.coeffs[0] = -1;
+        g.coeffs[0] = 1;
         g.coeffs[N] = 1;
         while (true) {
             while (f.coeffs[0] == 0) {
@@ -569,6 +570,7 @@ class IntegerPolynomial {
         IntegerPolynomial c = new IntegerPolynomial(N+1);
         IntegerPolynomial f = new IntegerPolynomial(N+1);
         f.coeffs = Arrays.copyOf(coeffs, N+1);
+        f.modPositive(3);
         // set g(x) = x^N − 1
         IntegerPolynomial g = new IntegerPolynomial(N+1);
         g.coeffs[0] = -1;

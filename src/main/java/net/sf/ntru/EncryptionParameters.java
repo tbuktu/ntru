@@ -30,23 +30,30 @@ import java.util.Arrays;
  */
 public class EncryptionParameters {
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for key size. */
-    public static final EncryptionParameters EES1087EP2 = new EncryptionParameters(1087, 2048, 120, 120, 256, 13, 25, 14, new byte[] {0, 6, 3}, true);
+    public static final EncryptionParameters EES1087EP2 = new EncryptionParameters(1087, 2048, 120, 120, 256, 13, 25, 14, new byte[] {0, 6, 3}, true, false);
     
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is a tradeoff between key size and encryption/decryption speed. */
-    public static final EncryptionParameters EES1171EP1 = new EncryptionParameters(1171, 2048, 106, 106, 256, 13, 20, 15, new byte[] {0, 6, 4}, true);
+    public static final EncryptionParameters EES1171EP1 = new EncryptionParameters(1171, 2048, 106, 106, 256, 13, 20, 15, new byte[] {0, 6, 4}, true, false);
     
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for encryption/decryption speed. */
-    public static final EncryptionParameters EES1499EP1 = new EncryptionParameters(1499, 2048, 79, 79, 256, 13, 17, 19, new byte[] {0, 6, 5}, true);
-    
-    /** A parameter set that gives 256 bits of security. */
-    public static final EncryptionParameters APR2011_439 = new EncryptionParameters(439, 2048, 146, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true);
+    public static final EncryptionParameters EES1499EP1 = new EncryptionParameters(1499, 2048, 79, 79, 256, 13, 17, 19, new byte[] {0, 6, 5}, true, false);
     
     /** A parameter set that gives 128 bits of security. */
-    public static final EncryptionParameters APR2011_743 = new EncryptionParameters(743, 2048, 248, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false);
+    public static final EncryptionParameters APR2011_439 = new EncryptionParameters(439, 2048, 146, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true, false);
+    
+    /** A parameter set that gives 128 bits of security. */
+    public static final EncryptionParameters APR2011_439_FAST = APR2011_439.setFastFp(true);
+    
+    /** A parameter set that gives 256 bits of security. */
+    public static final EncryptionParameters APR2011_743 = new EncryptionParameters(743, 2048, 248, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false, false);
+    
+    /** A parameter set that gives 256 bits of security. */
+    public static final EncryptionParameters APR2011_743_FAST = APR2011_743.setFastFp(true);
     
     int N, q, df, dr, dg, llen, maxMsgLenBytes, db, bufferLenBits, bufferLenTrits, dm0, pkLen, c, minCallsR, minCallsMask;
     byte[] oid;
     boolean sparse;
+    boolean fastFp;
     byte[] reserved;
     
     /**
@@ -54,15 +61,16 @@ public class EncryptionParameters {
      * @param N number of polynomial coefficients
      * @param q modulus
      * @param df number of ones in the private polynomial <code>f</code>
-     * @param dm0 minimum acceptable number of -1's, 0's, and 1's in the polynomial m' in the last encryption step
+     * @param dm0 minimum acceptable number of -1's, 0's, and 1's in the polynomial <code>m'</code> in the last encryption step
      * @param db number of random bits to prepend to the message
      * @param c a parameter for the Index Generation Function ({@link IndexGenerator})
      * @param minCallsR minimum number of hash calls for the IGF to make
      * @param minCallsMask minimum number of calls to generate the masking polynomial
      * @param oid three bytes that uniquely identify the parameter set
      * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
+     * @param fastFp whether <code>f=1+p*F</code> for a ternary <code>F</code> (true) or <code>f</code> is ternary (false)
      */
-    public EncryptionParameters(int N, int q, int df, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse) {
+    public EncryptionParameters(int N, int q, int df, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse, boolean fastFp) {
         this.N = N;
         this.q = q;
         this.df = df;
@@ -73,6 +81,7 @@ public class EncryptionParameters {
         this.minCallsMask = minCallsMask;
         this.oid = oid;
         this.sparse = sparse;
+        this.fastFp = fastFp;
         reserved = new byte[16];
         init();
     }
@@ -109,6 +118,16 @@ public class EncryptionParameters {
         init();
     }
 
+    private EncryptionParameters setFastFp(boolean fastFp) {
+        EncryptionParameters params = clone();
+        params.fastFp = fastFp;
+        return params;
+    }
+    
+    public EncryptionParameters clone() {
+        return new EncryptionParameters(N, q, df, dm0, db, c, minCallsR, minCallsMask, oid, sparse, fastFp);
+    }
+    
     /**
      * Writes the parameter set to an output stream
      * @param os an output stream
@@ -142,6 +161,7 @@ public class EncryptionParameters {
         result = prime * result + dg;
         result = prime * result + dm0;
         result = prime * result + dr;
+        result = prime * result + (fastFp ? 1231 : 1237);
         result = prime * result + llen;
         result = prime * result + maxMsgLenBytes;
         result = prime * result + minCallsMask;
@@ -180,6 +200,8 @@ public class EncryptionParameters {
         if (dm0 != other.dm0)
             return false;
         if (dr != other.dr)
+            return false;
+        if (fastFp != other.fastFp)
             return false;
         if (llen != other.llen)
             return false;

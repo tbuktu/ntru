@@ -28,18 +28,19 @@ import java.io.OutputStream;
  */
 public class EncryptionPrivateKey {
     private EncryptionParameters params;
-    TernaryPolynomial f;
+    TernaryPolynomial t;
     IntegerPolynomial fp;
 
     /**
      * Constructs a new private key from a polynomial
-     * @param f the polynomial <code>f</code> which determines the key
+     * @param t the polynomial which determines the key: if <code>fastFp=true</code>, <code>f=1+3t</code>; otherwise, <code>f=t</code>
+     * @param fp the inverse of f
      * @param params the NtruEncrypt parameters to use
      */
-    EncryptionPrivateKey(TernaryPolynomial f, EncryptionParameters params) {
-        this.f = f;
+    EncryptionPrivateKey(TernaryPolynomial t, IntegerPolynomial fp, EncryptionParameters params) {
+        this.t = t;
+        this.fp = fp;
         this.params = params;
-        fp = f.toIntegerPolynomial().invertF3();
     }
     
     /**
@@ -50,6 +51,7 @@ public class EncryptionPrivateKey {
     public EncryptionPrivateKey(byte[] b, EncryptionParameters params) {
         this.params = params;
         IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(b, params.N);
+        t = new SparseTernaryPolynomial(fInt);
         init(fInt);
     }
     
@@ -57,17 +59,27 @@ public class EncryptionPrivateKey {
      * Reads a polynomial <code>f</code> from an input stream and constructs a new private key
      * @param is an input stream
      * @param params the NtruEncrypt parameters to use
+     * @throws IOException
      */
     public EncryptionPrivateKey(InputStream is, EncryptionParameters params) throws IOException {
         this.params = params;
         IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(is, params.N);
+        t = new SparseTernaryPolynomial(fInt);
         init(fInt);
     }
     
+    /**
+     * Initializes fp and t from fInt.
+     */
     private void init(IntegerPolynomial fInt) {
         fInt.modCenter(params.q);
-        fp = fInt.invertF3();
-        f = new SparseTernaryPolynomial(fInt);
+        t = new SparseTernaryPolynomial(fInt);
+        if (params.fastFp) {
+            fp = new IntegerPolynomial(params.N);
+            fp.coeffs[0] = 1;
+        }
+        else
+            fp = fInt.invertF3();
     }
     
     /**
@@ -75,7 +87,7 @@ public class EncryptionPrivateKey {
      * @return the encoded key
      */
     public byte[] getEncoded() {
-        return f.toIntegerPolynomial().toBinary3Arith();
+        return t.toIntegerPolynomial().toBinary3Arith();
     }
     
     /**
