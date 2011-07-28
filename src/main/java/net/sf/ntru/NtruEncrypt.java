@@ -48,11 +48,10 @@ public class NtruEncrypt {
         int q = params.q;
         int df = params.df;
         int dg = params.dg;
-        boolean sparse = params.sparse;
         boolean fastFp = params.fastFp;
         
-        DenseTernaryPolynomial t = null;
-        IntegerPolynomial fq = null;
+        DenseTernaryPolynomial t;
+        IntegerPolynomial fq;
         IntegerPolynomial fp = null;
         
         // choose a random f that is invertible mod 3 and q
