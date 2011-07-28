@@ -86,7 +86,14 @@ public class NtruEncrypt {
             fp.coeffs[0] = 1;
         }
         
-        TernaryPolynomial g = Util.generateRandomTernary(N, dg, dg, sparse);
+        // choose a random g that is invertible mod q
+        DenseTernaryPolynomial g;
+        while (true) {
+            g = DenseTernaryPolynomial.generateRandom(N, dg, dg-1);
+            if (g.invertFq(q) != null)
+                break;
+        }
+
         IntegerPolynomial h = g.mult(fq, q);
         h.mult3(q);
         h.ensurePositive(q);
