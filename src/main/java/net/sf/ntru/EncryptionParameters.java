@@ -114,6 +114,7 @@ public class EncryptionParameters {
         oid = new byte[3];
         dis.read(oid);
         sparse = dis.readBoolean();
+        fastFp = dis.readBoolean();
         dis.read(reserved = new byte[16]);
         init();
     }
@@ -145,6 +146,7 @@ public class EncryptionParameters {
         dos.writeInt(minCallsMask);
         dos.write(oid);
         dos.writeBoolean(sparse);
+        dos.writeBoolean(fastFp);
         dos.write(reserved);
     }
 
