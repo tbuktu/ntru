@@ -24,6 +24,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
+import net.sf.ntru.EncryptionParameters.TernaryPolynomialType;
+
 /**
  * Encrypts, decrypts data and generates key pairs.<br/>
  * The parameter p is hardcoded to 3.
@@ -47,10 +49,13 @@ public class NtruEncrypt {
         int N = params.N;
         int q = params.q;
         int df = params.df;
+        int df1 = params.df1;
+        int df2 = params.df2;
+        int df3 = params.df3;
         int dg = params.dg;
         boolean fastFp = params.fastFp;
         
-        DenseTernaryPolynomial t;
+        Polynomial t;
         IntegerPolynomial fq;
         IntegerPolynomial fp = null;
         
@@ -61,13 +66,14 @@ public class NtruEncrypt {
             // choose random t, calculate f and fp
             if (fastFp) {
                 // if fastFp=true, f is always invertible mod 3
-                t = DenseTernaryPolynomial.generateRandom(N, df, df);
-                f = t.clone();
+                t = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, df, df) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3);
+                f = t.toIntegerPolynomial();
                 f.mult(3);
                 f.coeffs[0] += 1;
             }
             else {
-                f = t = DenseTernaryPolynomial.generateRandom(N, df, df-1);
+                t = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, df, df-1) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1);
+                f = t.toIntegerPolynomial();
                 fp = f.invertF3();
                 if (fp == null)
                     continue;
@@ -154,7 +160,7 @@ public class NtruEncrypt {
             sDataBuffer.put(hTrunc);
             byte[] sData = sDataBuffer.array();
             
-            TernaryPolynomial r = generateBlindingPoly(sData, M);
+            Polynomial r = generateBlindingPoly(sData, M);
             IntegerPolynomial R = r.mult(pub, q);
             IntegerPolynomial R4 = R.clone();
             R4.modPositive(4);
@@ -183,13 +189,43 @@ public class NtruEncrypt {
         return e;
     }
     
-    private TernaryPolynomial generateBlindingPoly(byte[] seed, byte[] M) {
+    /**
+     * Deterministically generates a blinding polynomial from a seed and a message representative.
+     * @param seed
+     * @param M message representative
+     * @return a blinding polynomial
+     */
+    private Polynomial generateBlindingPoly(byte[] seed, byte[] M) {
+        IndexGenerator ig = new IndexGenerator(seed, params);
+        
+        if (params.polyType == TernaryPolynomialType.PRODUCT) {
+            SparseTernaryPolynomial r1 = new SparseTernaryPolynomial(generateBlindingCoeffs(ig, params.dr1));
+            SparseTernaryPolynomial r2 = new SparseTernaryPolynomial(generateBlindingCoeffs(ig, params.dr2));
+            SparseTernaryPolynomial r3 = new SparseTernaryPolynomial(generateBlindingCoeffs(ig, params.dr3));
+            return new ProductFormPolynomial(r1, r2, r3);
+        }
+        else {
+            int dr = params.dr;
+            boolean sparse = params.sparse;
+            int[] r = generateBlindingCoeffs(ig, dr);
+            if (sparse)
+                return new SparseTernaryPolynomial(r);
+            else
+                return new DenseTernaryPolynomial(r);
+        }
+    }
+    
+    /**
+     * Generates an <code>int</code> array containing <code>dr</code> elements equal to <code>1</code>
+     * and <code>dr</code> elements equal to <code>-1</code> using an index generator.
+     * @param ig an index generator
+     * @param dr number of ones / negative ones
+     * @return an array containing numbers between <code>-1</code> and <code>1</code>
+     */
+    private int[] generateBlindingCoeffs(IndexGenerator ig, int dr) {
         int N = params.N;
-        int dr = params.dr;
-        boolean sparse = params.sparse;
         
         int[] r = new int[N];
-        IndexGenerator ig = new IndexGenerator(seed, params);
         for (int coeff=-1; coeff<=1; coeff+=2) {
             int t = 0;
             while (t < dr) {
@@ -201,10 +237,7 @@ public class NtruEncrypt {
             }
         }
         
-        if (sparse)
-            return new SparseTernaryPolynomial(r);
-        else
-            return new DenseTernaryPolynomial(r);
+        return r;
     }
     
     /**
@@ -245,7 +278,7 @@ public class NtruEncrypt {
      * @throws NtruException if SHA-512 is not available, the encrypted data is invalid, or <code>maxLenBytes</code> is greater than 255
      */
     public byte[] decrypt(byte[] data, EncryptionKeyPair kp) {
-        TernaryPolynomial priv_t = kp.priv.t;
+        Polynomial priv_t = kp.priv.t;
         IntegerPolynomial priv_fp = kp.priv.fp;
         IntegerPolynomial pub = kp.pub.h;
         int N = params.N;
@@ -305,7 +338,7 @@ public class NtruEncrypt {
         sDataBuffer.put(hTrunc);
         byte[] sData = sDataBuffer.array();
         
-        TernaryPolynomial cr = generateBlindingPoly(sData, cm);
+        Polynomial cr = generateBlindingPoly(sData, cm);
         IntegerPolynomial cRPrime = cr.mult(pub, q);
         if (cRPrime.equals(cr))
             throw new NtruException("Invalid message encoding");
@@ -320,7 +353,7 @@ public class NtruEncrypt {
      * @param priv_fp
      * @return
      */
-    IntegerPolynomial decrypt(IntegerPolynomial e, TernaryPolynomial priv_t, IntegerPolynomial priv_fp) {
+    IntegerPolynomial decrypt(IntegerPolynomial e, Polynomial priv_t, IntegerPolynomial priv_fp) {
         IntegerPolynomial a;
         if (params.fastFp) {
             a = priv_t.mult(e, params.q);

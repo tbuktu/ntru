@@ -39,14 +39,9 @@ public class LongPolynomial2Test {
         // test 10 random polynomials
         Random rng = new Random();
         for (int i=0; i<10; i++) {
-            int[] coeffs1 = new int[2+rng.nextInt(2000)];
-            int[] coeffs2 = new int[coeffs1.length];
-            for (int j=0; j<coeffs1.length; j++) {
-                coeffs1[j] = rng.nextInt(2048);
-                coeffs2[j] = rng.nextInt(2048);
-            }
-            i1 = new IntegerPolynomial(coeffs1);
-            i2 = new IntegerPolynomial(coeffs2);
+            int N = 2 + rng.nextInt(2000);
+            i1 = PolynomialGenerator.generateRandom(N, 2048);
+            i2 = PolynomialGenerator.generateRandom(N, 2048);
             a = new LongPolynomial2(i1);
             b = new LongPolynomial2(i2);
             c1 = i1.mult(i2);

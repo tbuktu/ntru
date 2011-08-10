@@ -41,23 +41,26 @@ public class EncryptionParameters {
     /** A parameter set that gives 128 bits of security. */
     public static final EncryptionParameters APR2011_439 = new EncryptionParameters(439, 2048, 146, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true, false);
     
-    /** A parameter set that gives 128 bits of security. */
-    public static final EncryptionParameters APR2011_439_FAST = APR2011_439.setFastFp(true);
+    /** Like <code>APR2011_439</code>, this parameter set gives 128 bits of security but uses product-form polynomials and <code>f=1+pF</code>. */
+    public static final EncryptionParameters APR2011_439_FAST = new EncryptionParameters(439, 2048, 9, 8, 5, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true, true);
     
     /** A parameter set that gives 256 bits of security. */
     public static final EncryptionParameters APR2011_743 = new EncryptionParameters(743, 2048, 248, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false, false);
     
-    /** A parameter set that gives 256 bits of security. */
-    public static final EncryptionParameters APR2011_743_FAST = APR2011_743.setFastFp(true);
+    /** Like <code>APR2011_743</code>, this parameter set gives 256 bits of security but uses product-form polynomials and <code>f=1+pF</code>. */
+    public static final EncryptionParameters APR2011_743_FAST = new EncryptionParameters(743, 2048, 11, 11, 15, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false, true);
     
-    int N, q, df, dr, dg, llen, maxMsgLenBytes, db, bufferLenBits, bufferLenTrits, dm0, pkLen, c, minCallsR, minCallsMask;
+    public enum TernaryPolynomialType {SIMPLE, PRODUCT};
+    
+    int N, q, df, df1, df2, df3, dr, dr1, dr2, dr3, dg, llen, maxMsgLenBytes, db, bufferLenBits, bufferLenTrits, dm0, pkLen, c, minCallsR, minCallsMask;
     byte[] oid;
     boolean sparse;
     boolean fastFp;
+    TernaryPolynomialType polyType;
     byte[] reserved;
     
     /**
-     * Constructs a new set of encryption parameters.
+     * Constructs a parameter set that uses ternary private keys (i.e. </code>polyType=SIMPLE</code>).
      * @param N number of polynomial coefficients
      * @param q modulus
      * @param df number of ones in the private polynomial <code>f</code>
@@ -82,12 +85,51 @@ public class EncryptionParameters {
         this.oid = oid;
         this.sparse = sparse;
         this.fastFp = fastFp;
+        this.polyType = TernaryPolynomialType.SIMPLE;
+        reserved = new byte[16];
+        init();
+    }
+
+    /**
+     * Constructs a parameter set that uses product-form private keys (i.e. </code>polyType=PRODUCT</code>).
+     * @param N number of polynomial coefficients
+     * @param q modulus
+     * @param df1 number of ones in the private polynomial <code>f1</code>
+     * @param df2 number of ones in the private polynomial <code>f2</code>
+     * @param df3 number of ones in the private polynomial <code>f3</code>
+     * @param dm0 minimum acceptable number of -1's, 0's, and 1's in the polynomial <code>m'</code> in the last encryption step
+     * @param db number of random bits to prepend to the message
+     * @param c a parameter for the Index Generation Function ({@link IndexGenerator})
+     * @param minCallsR minimum number of hash calls for the IGF to make
+     * @param minCallsMask minimum number of calls to generate the masking polynomial
+     * @param oid three bytes that uniquely identify the parameter set
+     * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
+     * @param fastFp whether <code>f=1+p*F</code> for a ternary <code>F</code> (true) or <code>f</code> is ternary (false)
+     */
+    public EncryptionParameters(int N, int q, int df1, int df2, int df3, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse, boolean fastFp) {
+        this.N = N;
+        this.q = q;
+        this.df1 = df1;
+        this.df2 = df2;
+        this.df3 = df3;
+        this.db = db;
+        this.dm0 = dm0;
+        this.c = c;
+        this.minCallsR = minCallsR;
+        this.minCallsMask = minCallsMask;
+        this.oid = oid;
+        this.sparse = sparse;
+        this.fastFp = fastFp;
+        this.polyType = TernaryPolynomialType.PRODUCT;
         reserved = new byte[16];
         init();
     }
 
     private void init() {
         dr = df;
+        dr1 = df1;
+        dr2 = df2;
+        dr3 = df3;
         dg = N / 3;
         llen = 1;   // ceil(log2(maxMsgLenBytes))
         maxMsgLenBytes = N*3/2/8 - llen - db/8;
@@ -106,6 +148,9 @@ public class EncryptionParameters {
         N = dis.readInt();
         q = dis.readInt();
         df = dis.readInt();
+        df1 = dis.readInt();
+        df2 = dis.readInt();
+        df3 = dis.readInt();
         db = dis.readInt();
         dm0 = dis.readInt();
         c = dis.readInt();
@@ -115,18 +160,16 @@ public class EncryptionParameters {
         dis.read(oid);
         sparse = dis.readBoolean();
         fastFp = dis.readBoolean();
+        polyType = TernaryPolynomialType.values()[dis.read()];
         dis.read(reserved = new byte[16]);
         init();
     }
 
-    private EncryptionParameters setFastFp(boolean fastFp) {
-        EncryptionParameters params = clone();
-        params.fastFp = fastFp;
-        return params;
-    }
-    
     public EncryptionParameters clone() {
-        return new EncryptionParameters(N, q, df, dm0, db, c, minCallsR, minCallsMask, oid, sparse, fastFp);
+        if (polyType == TernaryPolynomialType.SIMPLE)
+            return new EncryptionParameters(N, q, df, dm0, db, c, minCallsR, minCallsMask, oid, sparse, fastFp);
+        else
+            return new EncryptionParameters(N, q, df1, df2, df3, dm0, db, c, minCallsR, minCallsMask, oid, sparse, fastFp);
     }
     
     /**
@@ -139,6 +182,9 @@ public class EncryptionParameters {
         dos.writeInt(N);
         dos.writeInt(q);
         dos.writeInt(df);
+        dos.writeInt(df1);
+        dos.writeInt(df2);
+        dos.writeInt(df3);
         dos.writeInt(db);
         dos.writeInt(dm0);
         dos.writeInt(c);
@@ -147,6 +193,7 @@ public class EncryptionParameters {
         dos.write(oid);
         dos.writeBoolean(sparse);
         dos.writeBoolean(fastFp);
+        dos.write(polyType.ordinal());
         dos.write(reserved);
     }
 
@@ -160,9 +207,15 @@ public class EncryptionParameters {
         result = prime * result + c;
         result = prime * result + db;
         result = prime * result + df;
+        result = prime * result + df1;
+        result = prime * result + df2;
+        result = prime * result + df3;
         result = prime * result + dg;
         result = prime * result + dm0;
         result = prime * result + dr;
+        result = prime * result + dr1;
+        result = prime * result + dr2;
+        result = prime * result + dr3;
         result = prime * result + (fastFp ? 1231 : 1237);
         result = prime * result + llen;
         result = prime * result + maxMsgLenBytes;
@@ -170,6 +223,7 @@ public class EncryptionParameters {
         result = prime * result + minCallsR;
         result = prime * result + Arrays.hashCode(oid);
         result = prime * result + pkLen;
+        result = prime * result + ((polyType == null) ? 0 : polyType.hashCode());
         result = prime * result + q;
         result = prime * result + Arrays.hashCode(reserved);
         result = prime * result + (sparse ? 1231 : 1237);
@@ -197,11 +251,23 @@ public class EncryptionParameters {
             return false;
         if (df != other.df)
             return false;
+        if (df1 != other.df1)
+            return false;
+        if (df2 != other.df2)
+            return false;
+        if (df3 != other.df3)
+            return false;
         if (dg != other.dg)
             return false;
         if (dm0 != other.dm0)
             return false;
         if (dr != other.dr)
+            return false;
+        if (dr1 != other.dr1)
+            return false;
+        if (dr2 != other.dr2)
+            return false;
+        if (dr3 != other.dr3)
             return false;
         if (fastFp != other.fastFp)
             return false;
@@ -216,6 +282,11 @@ public class EncryptionParameters {
         if (!Arrays.equals(oid, other.oid))
             return false;
         if (pkLen != other.pkLen)
+            return false;
+        if (polyType == null) {
+            if (other.polyType != null)
+                return false;
+        } else if (!polyType.equals(other.polyType))
             return false;
         if (q != other.q)
             return false;

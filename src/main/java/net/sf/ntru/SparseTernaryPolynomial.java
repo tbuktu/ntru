@@ -19,15 +19,31 @@
 package net.sf.ntru;
 
 import java.math.BigInteger;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 /**
  * A <code>TernaryPolynomial</code> with a "low" number of nonzero coefficients.
  */
 public class SparseTernaryPolynomial implements TernaryPolynomial {
+    /** Number of bits to use for each coefficient. Determines the upper bound for <code>N</code>. */
+    private static final int BITS_PER_INDEX = 11;
+    
     private int N;
     private int[] ones;
     private int[] negOnes;
+    
+    /**
+     * Constructs a new polynomial.
+     * @param N total number of coefficients including zeros
+     * @param ones indices of coefficients equal to 1
+     * @param negOnes indices of coefficients equal to -1
+     */
+    SparseTernaryPolynomial(int N, int[] ones, int[] negOnes) {
+        this.N = N;
+        this.ones = ones;
+        this.negOnes = negOnes;
+    }
     
     /**
      * Constructs a <code>DenseTernaryPolynomial</code> from a <code>IntegerPolynomial</code>. The two polynomials are
@@ -63,6 +79,31 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         }
         ones = Arrays.copyOf(ones, onesIdx);
         negOnes = Arrays.copyOf(negOnes, negOnesIdx);
+    }
+    
+    /**
+     * Decodes a byte array encoded with {@link #toBinary()} to a ploynomial.
+     * @param data an encoded polynomial
+     * @param N number of coefficients including zeros
+     * @param numOnes number of coefficients equal to 1
+     * @param numNegOnes number of coefficients equal to -1
+     * @return the decoded polynomial
+     */
+    static SparseTernaryPolynomial fromBinary(ByteBuffer data, int N, int numOnes, int numNegOnes) {
+        int maxIndex = 1 << BITS_PER_INDEX;
+        int bitsPerIndex = 32 - Integer.numberOfLeadingZeros(maxIndex-1);
+        
+        int data1Len = (numOnes*bitsPerIndex+7) / 8;
+        byte[] data1 = new byte[data1Len];
+        data.get(data1);
+        int[] ones = ArrayEncoder.decodeModQ(data1, numOnes, maxIndex);
+        
+        int data2Len = (numNegOnes*bitsPerIndex+7) / 8;
+        byte[] data2 = new byte[data2Len];
+        data.get(data2);
+        int[] negOnes = ArrayEncoder.decodeModQ(data2, numNegOnes, maxIndex);
+        
+        return new SparseTernaryPolynomial(N, ones, negOnes);
     }
     
     /**
@@ -157,6 +198,20 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         return negOnes;
     }
 
+    /**
+     * Encodes the polynomial to a byte array writing <code>BITS_PER_INDEX</code> bits for each coefficient.
+     * @return the encoded polynomial
+     */
+    byte[] toBinary() {
+        int maxIndex = 1 << BITS_PER_INDEX;
+        byte[] bin1 = ArrayEncoder.encodeModQ(ones, maxIndex);
+        byte[] bin2 = ArrayEncoder.encodeModQ(negOnes, maxIndex);
+        
+        byte[] bin = Arrays.copyOf(bin1, bin1.length+bin2.length);
+        System.arraycopy(bin2, 0, bin, bin1.length, bin2.length);
+        return bin;
+    }
+    
     @Override
     public IntegerPolynomial toIntegerPolynomial() {
         int[] coeffs = new int[N];

@@ -18,21 +18,16 @@
 
 package net.sf.ntru;
 
-/** A polynomial whose coefficients are all equal to -1, 0, or 1 */
-interface TernaryPolynomial extends Polynomial {
+public interface Polynomial {
     
-    /** Multiplies the polynomial by an <code>IntegerPolynomial</code>, taking the indices mod N */
-    IntegerPolynomial mult(IntegerPolynomial poly2);
+    /**
+     * Multiplies the polynomial by an <code>IntegerPolynomial</code>,
+     * taking the coefficient values mod <code>modulus</code> and the indices mod <code>N</code>.
+     * @param poly2 a polynomial
+     * @param modulus a modulus to apply
+     * @return the product of the two polynomials
+     */
+    IntegerPolynomial mult(IntegerPolynomial poly2, int modulus);
     
-    /** Multiplies the polynomial by an <code>BigIntPolynomial</code>, taking the indices mod N */
-    BigIntPolynomial mult(BigIntPolynomial poly2);
-    
-    int[] getOnes();
-    
-    int[] getNegOnes();
-    
-    /** Returns the maximum number of coefficients the polynomial can have */
-    int size();
-    
-    void clear();
+    IntegerPolynomial toIntegerPolynomial();
 }

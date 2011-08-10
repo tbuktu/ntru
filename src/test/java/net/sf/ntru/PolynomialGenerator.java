@@ -18,21 +18,22 @@
 
 package net.sf.ntru;
 
-/** A polynomial whose coefficients are all equal to -1, 0, or 1 */
-interface TernaryPolynomial extends Polynomial {
+import java.util.Random;
+
+public class PolynomialGenerator {
     
-    /** Multiplies the polynomial by an <code>IntegerPolynomial</code>, taking the indices mod N */
-    IntegerPolynomial mult(IntegerPolynomial poly2);
-    
-    /** Multiplies the polynomial by an <code>BigIntPolynomial</code>, taking the indices mod N */
-    BigIntPolynomial mult(BigIntPolynomial poly2);
-    
-    int[] getOnes();
-    
-    int[] getNegOnes();
-    
-    /** Returns the maximum number of coefficients the polynomial can have */
-    int size();
-    
-    void clear();
+    /**
+     * Creates a random polynomial with <code>N</code> coefficients
+     * between <code>0</code> and <code>q-1</code>.
+     * @param N length of the polynomial
+     * @param q coefficients will all be below this number
+     * @return a random polynomial
+     */
+    static IntegerPolynomial generateRandom(int N, int q) {
+        Random rng = new Random();
+        int[] coeffs = new int[N];
+        for (int i=0; i<N; i++)
+            coeffs[i] = rng.nextInt(q);
+        return new IntegerPolynomial(coeffs);
+    }
 }

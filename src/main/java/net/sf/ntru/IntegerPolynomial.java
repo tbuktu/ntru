@@ -36,48 +36,6 @@ import java.util.List;
  * not but return the result as a new polynomial.
  */
 class IntegerPolynomial {
-    /**
-     * Bit string to coefficient conversion table from P1363.1. Also found at
-     * {@link http://stackoverflow.com/questions/1562548/how-to-make-a-message-into-a-polynomial}
-     * <p/>
-     * Convert each three-bit quantity to two ternary coefficients as follows, and concatenate the resulting
-     * ternary quantities to obtain [the output].
-     * <p/>
-     * <code>
-     * {0, 0, 0} -> {0, 0}<br/>
-     * {0, 0, 1} -> {0, 1}<br/>
-     * {0, 1, 0} -> {0, -1}<br/>
-     * {0, 1, 1} -> {1, 0}<br/>
-     * {1, 0, 0} -> {1, 1}<br/>
-     * {1, 0, 1} -> {1, -1}<br/>
-     * {1, 1, 0} -> {-1, 0}<br/>
-     * {1, 1, 1} -> {-1, 1}<br/>
-     * </code>
-     */
-    static final int[] COEFF1_TABLE = {0, 0, 0, 1, 1, 1, -1, -1};
-    static final int[] COEFF2_TABLE = {0, 1, -1, 0, 1, -1, 0, 1};
-    /**
-     * Coefficient to bit string conversion table from P1363.1. Also found at
-     * {@link http://stackoverflow.com/questions/1562548/how-to-make-a-message-into-a-polynomial}
-     * <p/>
-     * Convert each set of two ternary coefficients to three bits as follows, and concatenate the resulting bit
-     * quantities to obtain [the output]:
-     * <p/>
-     * <code>
-     * {-1, -1} -> set "fail" to 1 and set bit string to {1, 1, 1}
-     * {-1, 0} -> {1, 1, 0}<br/>
-     * {-1, 1} -> {1, 1, 1}<br/>
-     * {0, -1} -> {0, 1, 0}<br/>
-     * {0, 0} -> {0, 0, 0}<br/>
-     * {0, 1} -> {0, 0, 1}<br/>
-     * {1, -1} -> {1, 0, 1}<br/>
-     * {1, 0} -> {0, 1, 1}<br/>
-     * {1, 1} -> {1, 0, 0}<br/>
-     * </code>
-     */
-    static final int[] BIT1_TABLE = {1, 1, 1, 0, 0, 0, 1, 0, 1};
-    static final int[] BIT2_TABLE = {1, 1, 1, 1, 0, 0, 0, 1, 0};
-    static final int[] BIT3_TABLE = {1, 0, 1, 0, 0, 1, 1, 1, 0};
     /** prime numbers &gt; <code>10^4</code> */
     private static final int[] PRIMES = new int[] {
         10007, 10009, 10037, 10039, 10061, 10067, 10069, 10079, 10091, 10093, 
@@ -183,20 +141,7 @@ class IntegerPolynomial {
      * @return the decoded polynomial
      */
     static IntegerPolynomial fromBinary3(byte[] data, int N) {
-        IntegerPolynomial poly = new IntegerPolynomial(N);
-        int coeffIndex = 0;
-        for (int bitIndex=0; bitIndex<data.length*8; ) {
-            int bit1 = getBit(data, bitIndex++);
-            int bit2 = getBit(data, bitIndex++);
-            int bit3 = getBit(data, bitIndex++);
-            int coeffTableIndex = bit1*4 + bit2*2 + bit3;
-            poly.coeffs[coeffIndex++] = COEFF1_TABLE[coeffTableIndex];
-            poly.coeffs[coeffIndex++] = COEFF2_TABLE[coeffTableIndex];
-            // ignore bytes that can't fit
-            if (coeffIndex > N-2)
-                break;
-        }
-        return poly;
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3(data, N));
     }
     
     /**
@@ -209,17 +154,7 @@ class IntegerPolynomial {
      * @return the decoded polynomial
      */
     static IntegerPolynomial fromBinary(byte[] data, int N, int q) {
-        IntegerPolynomial poly = new IntegerPolynomial(N);
-        int bitsPerCoeff = 31 - Integer.numberOfLeadingZeros(q);
-        int numBits = N * bitsPerCoeff;
-        int coeffIndex = 0;
-        for (int bitIndex=0; bitIndex<numBits; bitIndex++) {
-            if (bitIndex>0 && bitIndex%bitsPerCoeff==0)
-                coeffIndex++;
-            int bit = getBit(data, bitIndex);
-            poly.coeffs[coeffIndex] += bit << (bitIndex%bitsPerCoeff);
-        }
-        return poly;
+        return new IntegerPolynomial(ArrayEncoder.decodeModQ(data, N, q));
     }
     
     /**
@@ -232,11 +167,7 @@ class IntegerPolynomial {
      * @return the decoded polynomial
      */
     static IntegerPolynomial fromBinary(ByteBuffer buf, int N, int q) {
-        int qBits = 31 - Integer.numberOfLeadingZeros(q);
-        int size = (N*qBits+7) / 8;
-        byte[] arr = new byte[size];
-        buf.get(arr);
-        return fromBinary(arr, N, q);
+        return new IntegerPolynomial(ArrayEncoder.decodeModQ(buf, N, q));
     }
     
     /**
@@ -249,17 +180,7 @@ class IntegerPolynomial {
      * @return the decoded polynomial
      */
     static IntegerPolynomial fromBinary(InputStream is, int N, int q) throws IOException {
-        int qBits = 31 - Integer.numberOfLeadingZeros(q);
-        int size = (N*qBits+7) / 8;
-        byte[] arr = new byte[size];
-        is.read(arr);
-        return fromBinary(arr, N, q);
-    }
-    
-    private static int getBit(byte[] arr, int bitIndex) {
-        int byteIndex = bitIndex / 8;
-        int arrElem = arr[byteIndex] & 0xFF;
-        return (arrElem >> (bitIndex%8)) & 1;
+        return new IntegerPolynomial(ArrayEncoder.decodeModQ(is, N, q));
     }
     
     /**
@@ -269,29 +190,7 @@ class IntegerPolynomial {
      * @return the encoded polynomial
      */
     byte[] toBinary3() {
-        int numBits = (coeffs.length*3+2) / 2;
-        int numBytes = (numBits+7) / 8;
-        byte[] data = new byte[numBytes];
-        int bitIndex = 0;
-        int byteIndex = 0;
-        for (int i=0; i<coeffs.length/2*2; ) {   // coeffs.length is an odd number, throw away the highest coeff
-            int coeff1 = coeffs[i++] + 1;
-            int coeff2 = coeffs[i++] + 1;
-            if (coeff1==0 && coeff2==0)
-                throw new NtruException("Illegal encoding!");
-            int bitTableIndex = coeff1*3 + coeff2;
-            int[] bits = new int[] {BIT1_TABLE[bitTableIndex], BIT2_TABLE[bitTableIndex], BIT3_TABLE[bitTableIndex]};
-            for (int j=0; j<3; j++) {
-                data[byteIndex] |= bits[j] << bitIndex;
-                if (bitIndex == 7) {
-                    bitIndex = 0;
-                    byteIndex++;
-                }
-                else
-                    bitIndex++;
-            }
-        }
-        return data;
+        return ArrayEncoder.encodeMod3(coeffs);
     }
     
     /**
@@ -328,15 +227,7 @@ class IntegerPolynomial {
      * @return the decoded polynomial
      */
     static IntegerPolynomial fromBinary3Arith(byte[] b, int N) {
-        BigInteger sum = new BigInteger(1, b);
-        IntegerPolynomial p = new IntegerPolynomial(N);
-        for (int i=0; i<N; i++) {
-            p.coeffs[i] = sum.mod(BigInteger.valueOf(3)).intValue() - 1;
-            if (p.coeffs[i] > 1)
-                p.coeffs[i] -= 3;
-            sum = sum.divide(BigInteger.valueOf(3));
-        }
-        return p;
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3Arith(b, N));
     }
     
     /**
@@ -346,10 +237,7 @@ class IntegerPolynomial {
      * @return the decoded polynomial
      */
     static IntegerPolynomial fromBinary3Arith(ByteBuffer buf, int N) {
-        int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
-        byte[] arr = new byte[size];
-        buf.get(arr);
-        return fromBinary3Arith(arr, N);
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3Arith(buf, N));
     }
     
     /**
@@ -359,10 +247,7 @@ class IntegerPolynomial {
      * @return the decoded polynomial
      */
     static IntegerPolynomial fromBinary3Arith(InputStream is, int N) throws IOException {
-        int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
-        byte[] arr = new byte[size];
-        is.read(arr);
-        return fromBinary3Arith(arr, N);
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3Arith(is, N));
     }
     
     /**
@@ -371,25 +256,7 @@ class IntegerPolynomial {
      * @return the encoded polynomial
      */
     byte[] toBinary(int q) {
-        int bitsPerCoeff = 31 - Integer.numberOfLeadingZeros(q);
-        int numBits = coeffs.length * bitsPerCoeff;
-        int numBytes = (numBits+7) / 8;
-        byte[] data = new byte[numBytes];
-        int bitIndex = 0;
-        int byteIndex = 0;
-        for (int i=0; i<coeffs.length; i++) {
-            for (int j=0; j<bitsPerCoeff; j++) {
-                int currentBit = (coeffs[i] >> j) & 1;
-                data[byteIndex] |= currentBit << bitIndex;
-                if (bitIndex == 7) {
-                    bitIndex = 0;
-                    byteIndex++;
-                }
-                else
-                    bitIndex++;
-            }
-        }
-        return data;
+        return ArrayEncoder.encodeModQ(coeffs, q);
     }
     
     /** Multiplies the polynomial with another, taking the values mod modulus and the indices mod N */

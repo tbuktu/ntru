@@ -18,7 +18,9 @@
 
 package net.sf.ntru;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertArrayEquals;
+
+import java.nio.ByteBuffer;
 
 import org.junit.Test;
 
@@ -38,5 +40,14 @@ public class SparseTernaryPolynomialTest {
         BigIntPolynomial p3 = new BigIntPolynomial(p2);
         BigIntPolynomial prod3 = p1.mult(p3);
         assertArrayEquals(new BigIntPolynomial(prod1).coeffs, prod3.coeffs);
+    }
+    
+    @Test
+    public void testFromToBinary() {
+        SparseTernaryPolynomial poly1 = SparseTernaryPolynomial.generateRandom(1000, 100, 101);
+        ByteBuffer poly1Buf = ByteBuffer.wrap(poly1.toBinary());
+        SparseTernaryPolynomial poly2 = SparseTernaryPolynomial.fromBinary(poly1Buf, 1000, 100, 101);
+        assertArrayEquals(poly1.getOnes(), poly2.getOnes());
+        assertArrayEquals(poly1.getNegOnes(), poly2.getNegOnes());
     }
 }

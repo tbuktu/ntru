@@ -43,7 +43,7 @@ public class Benchmark {
         long totTotalTime = 0;
         int iterations = 5;
         
-        NtruEncrypt ntruEncrypt = new NtruEncrypt(EncryptionParameters.APR2011_439);
+        NtruEncrypt ntruEncrypt = new NtruEncrypt(EncryptionParameters.APR2011_439_FAST);
         NtruSign ntruSign = new NtruSign(SignatureParameters.APR2011_439_FAST);
         for (int i=0; i<iterations; i++) {
             long encKeyGenTime = encKeyGenBench(ntruEncrypt);

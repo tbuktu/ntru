@@ -22,13 +22,15 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import net.sf.ntru.EncryptionParameters.TernaryPolynomialType;
+
 /**
  * A NtruEncrypt private key is essentially a polynomial named <code>f</code>.<br/>
  * The inverse of <code>f</code> modulo <code>p</code> is precomputed on initialization.
  */
 public class EncryptionPrivateKey {
     private EncryptionParameters params;
-    TernaryPolynomial t;
+    Polynomial t;
     IntegerPolynomial fp;
 
     /**
@@ -37,7 +39,7 @@ public class EncryptionPrivateKey {
      * @param fp the inverse of f
      * @param params the NtruEncrypt parameters to use
      */
-    EncryptionPrivateKey(TernaryPolynomial t, IntegerPolynomial fp, EncryptionParameters params) {
+    EncryptionPrivateKey(Polynomial t, IntegerPolynomial fp, EncryptionParameters params) {
         this.t = t;
         this.fp = fp;
         this.params = params;
@@ -50,9 +52,20 @@ public class EncryptionPrivateKey {
      */
     public EncryptionPrivateKey(byte[] b, EncryptionParameters params) {
         this.params = params;
-        IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(b, params.N);
-        t = new SparseTernaryPolynomial(fInt);
-        init(fInt);
+        if (params.polyType == TernaryPolynomialType.PRODUCT) {
+            int N = params.N;
+            int df1 = params.df1;
+            int df2 = params.df2;
+            int df3Ones = params.df3;
+            int df3NegOnes = params.fastFp ? params.df3 : params.df3-1;
+//            fInt = ProductFormPolynomial.fromBinary(b, N, df1, df2, df3Ones, df3NegOnes);
+            t = ProductFormPolynomial.fromBinary(b, N, df1, df2, df3Ones, df3NegOnes);
+        }
+        else {
+            IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(b, params.N);
+            t = new SparseTernaryPolynomial(fInt);
+        }
+        init();
     }
     
     /**
@@ -65,21 +78,19 @@ public class EncryptionPrivateKey {
         this.params = params;
         IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(is, params.N);
         t = new SparseTernaryPolynomial(fInt);
-        init(fInt);
+        init();
     }
     
     /**
-     * Initializes fp and t from fInt.
+     * Initializes fp from t.
      */
-    private void init(IntegerPolynomial fInt) {
-        fInt.modCenter(params.q);
-        t = new SparseTernaryPolynomial(fInt);
+    private void init() {
         if (params.fastFp) {
             fp = new IntegerPolynomial(params.N);
             fp.coeffs[0] = 1;
         }
         else
-            fp = fInt.invertF3();
+            fp = t.toIntegerPolynomial().invertF3();
     }
     
     /**
@@ -87,7 +98,10 @@ public class EncryptionPrivateKey {
      * @return the encoded key
      */
     public byte[] getEncoded() {
-        return t.toIntegerPolynomial().toBinary3Arith();
+        if (t instanceof ProductFormPolynomial)
+            return ((ProductFormPolynomial)t).toBinary();
+        else
+            return t.toIntegerPolynomial().toBinary3Arith();
     }
     
     /**
