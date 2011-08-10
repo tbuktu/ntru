@@ -124,7 +124,7 @@ public class NtruSign {
 
     /**
      * Adds data to sign or verify.
-     * @param kp
+     * @param m
      */
     public void update(byte[] m) {
         if (hashAlg == null)
@@ -136,7 +136,7 @@ public class NtruSign {
     /**
      * Adds data to sign and computes a signature over this data and any data previously added via {@link #update(byte[])}.
      * @param m
-     * @return
+     * @return a signature
      * @throws NtruException if <code>initSign</code> was not called
      */
     public byte[] sign(byte[] m) {
@@ -239,7 +239,7 @@ public class NtruSign {
     
     /**
      * Resets the engine for verifying a signature.
-     * @param pub the public key to use in the {@link #verify(byte[]) step
+     * @param pub the public key to use in the {@link #verify(byte[])} step
      */
     public void initVerify(SignaturePublicKey pub) {
         verificationKey = pub;

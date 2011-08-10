@@ -29,7 +29,7 @@ import java.util.List;
 import net.sf.ntru.SignatureParameters.BasisType;
 
 /**
- * A NtruSign private key comprises one or more {@link Basis} of three polynomials each.
+ * A NtruSign private key comprises one or more {@link SignaturePrivateKey.Basis} of three polynomials each.
  */
 public class SignaturePrivateKey {
     private List<Basis> bases;
@@ -49,7 +49,7 @@ public class SignaturePrivateKey {
     
     /**
      * Constructs a new private key from an input stream
-     * @param b an input stream
+     * @param is an input stream
      * @param params the NtruSign parameters to use
      */
     public SignaturePrivateKey(InputStream is, SignatureParameters params) throws IOException {

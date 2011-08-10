@@ -114,7 +114,7 @@ public class NtruEncrypt {
      * Encrypts a message.
      * @param m The message to encrypt
      * @param pubKey the public key to encrypt the message with
-     * @return
+     * @return the encrypted message
      * @throws NtruException if SHA-512 is not available, the message is longer than <code>maxLenBytes</code>, or <code>maxLenBytes</code> is greater than 255
      */
     public byte[] encrypt(byte[] m, EncryptionPublicKey pubKey) {
@@ -272,9 +272,9 @@ public class NtruEncrypt {
 
     /**
      * Decrypts a message.
-     * @param m The message to decrypt
+     * @param data The message to decrypt
      * @param kp a key pair that contains the public key the message was encrypted with, and the corresponding private key
-     * @return
+     * @return the decrypted message
      * @throws NtruException if SHA-512 is not available, the encrypted data is invalid, or <code>maxLenBytes</code> is greater than 255
      */
     public byte[] decrypt(byte[] data, EncryptionKeyPair kp) {

@@ -26,7 +26,7 @@ public class IntEuclidean {
     
     /**
      * Runs the EEA on two <code>int</code>s<br/>
-     * Implemented from pseudocode at {@link http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm}.
+     * Implemented from pseudocode on <a href="http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm">Wikipedia</a>.
      * @param a
      * @param b
      * @return a <code>IntEuclidean</code> object that contains the result in the variables <code>x</code>, <code>y</code>, and <code>gcd</code>
