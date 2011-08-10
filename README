@@ -103,13 +103,14 @@ Maven Artifact
   <dependency>
     <groupId>net.sf.ntru</groupId>
     <artifactId>ntru</artifactId>
-    <version>0.5</version>
+    <version>0.7</version>
   </dependency>
 
 
 Further reading
 
   Original NTRUEncrypt paper: http://www.ntru.com/cryptolab/pdf/ANTS97.pdf
+  Follow-up NTRUEncrypt paper: http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.64.6834&rep=rep1&type=pdf
   Original NTRUSign paper: http://www.math.brown.edu/~jpipher/NTRUSign_RSA.pdf
   Follow-up NTRUSign paper: http://grouper.ieee.org/groups/1363/WorkingGroup/presentations/NTRUSignParams-2005-08.pdf
   NTRU articles (technical and mathematical): http://www.securityinnovation.com/cryptolab/articles.shtml
