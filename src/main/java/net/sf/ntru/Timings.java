@@ -20,7 +20,7 @@ package net.sf.ntru;
 
 import java.util.Arrays;
 
-public class Benchmark {
+public class Timings {
     private static final int NUM_ENC_KEY_GEN = 20;
     private static final int NUM_ENCRYPT = 100;
     private static final int NUM_DECRYPT = 400;
@@ -170,6 +170,6 @@ public class Benchmark {
     }
     
     public static void main(String[] args) {
-        new Benchmark().run();
+        new Timings().run();
     }
 }
