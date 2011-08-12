@@ -31,7 +31,7 @@ import net.sf.ntru.polynomial.SparseTernaryPolynomial;
 /**
  * A set of parameters for NtruEncrypt. Several predefined parameter sets are available and new ones can be created as well.
  */
-public class EncryptionParameters {
+public class EncryptionParameters implements Cloneable {
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for key size. */
     public static final EncryptionParameters EES1087EP2 = new EncryptionParameters(1087, 2048, 120, 120, 256, 13, 25, 14, new byte[] {0, 6, 3}, true, false);
     
