@@ -115,6 +115,7 @@ public class NtruSignTest {
         params.sparse = !params.sparse;
         
         // decrease NormBound to force multiple signing attempts
+        params = params.clone();
         params.normBoundSq *= 4.0 / 9;
         params.signFailTolerance = 10000;
         s = ntru.sign(msg, kp);
@@ -122,6 +123,7 @@ public class NtruSignTest {
         assertTrue(valid);
         
         // test KeyGenAlg.FLOAT (default=RESULTANT)
+        params = SignatureParameters.TEST157;
         params.setKeyGenAlgorithm(KeyGenAlg.FLOAT);
         ntru = new NtruSign(params);
         kp = ntru.generateKeyPair();
