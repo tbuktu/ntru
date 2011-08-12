@@ -23,6 +23,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.text.DecimalFormat;
 import java.util.Arrays;
 
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
@@ -250,5 +251,13 @@ public class SignatureParameters implements Cloneable {
         if (sparse != other.sparse)
             return false;
         return true;
+    }
+    
+    @Override
+    public String toString() {
+        DecimalFormat format = new DecimalFormat("0.00");
+        return "SignatureParameters(N=" + N + " q=" + q + " d=" + d + " B=" + B + " basisType=" + basisType + " beta=" + format.format(beta) +
+                " normBound=" + format.format(normBound) + " keyNormBound=" + format.format(keyNormBound) +
+                " keyGenPlaces=" + keyGenerationDecimalPlaces + " prime=" + primeCheck + " sparse=" + sparse + " keyGenAlg=" + keyGenAlg + ")";
     }
 }

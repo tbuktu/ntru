@@ -300,4 +300,15 @@ public class EncryptionParameters {
             return false;
         return true;
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder output = new StringBuilder("EncryptionParameters(N=" + N +" q=" + q);
+        if (polyType == TernaryPolynomialType.SIMPLE)
+            output.append(" polyType=SIMPLE df=" + df);
+        else
+            output.append(" polyType=PRODUCT df1=" + df1 + " df2=" + df2 + " df3=" + df3);
+        output.append(" dm0=" + dm0 + " db=" + db + " c=" + c + " minCallsR=" + minCallsR + " minCallsMask=" + minCallsMask + " oid=" + Arrays.toString(oid) + " sparse=" + sparse + ")");
+        return output.toString();
+    }
 }
