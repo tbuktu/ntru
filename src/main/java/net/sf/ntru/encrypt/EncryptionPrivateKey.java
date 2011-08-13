@@ -29,7 +29,9 @@ import net.sf.ntru.polynomial.ProductFormPolynomial;
 import net.sf.ntru.polynomial.SparseTernaryPolynomial;
 
 /**
- * A NtruEncrypt private key is essentially a polynomial named <code>f</code>.<br/>
+ * A NtruEncrypt private key is essentially a polynomial named <code>f</code>
+ * which takes different forms depending on whether product-form polynomials are used,
+ * and on <code>fastP</code><br/>
  * The inverse of <code>f</code> modulo <code>p</code> is precomputed on initialization.
  */
 public class EncryptionPrivateKey {
@@ -40,7 +42,7 @@ public class EncryptionPrivateKey {
     /**
      * Constructs a new private key from a polynomial
      * @param t the polynomial which determines the key: if <code>fastFp=true</code>, <code>f=1+3t</code>; otherwise, <code>f=t</code>
-     * @param fp the inverse of f
+     * @param fp the inverse of <code>f</code>
      * @param params the NtruEncrypt parameters to use
      */
     EncryptionPrivateKey(Polynomial t, IntegerPolynomial fp, EncryptionParameters params) {
@@ -53,6 +55,7 @@ public class EncryptionPrivateKey {
      * Converts a byte array to a polynomial <code>f</code> and constructs a new private key
      * @param b an encoded polynomial
      * @param params the NtruEncrypt parameters to use
+     * @see #getEncoded()
      */
     public EncryptionPrivateKey(byte[] b, EncryptionParameters params) {
         this.params = params;
@@ -62,7 +65,6 @@ public class EncryptionPrivateKey {
             int df2 = params.df2;
             int df3Ones = params.df3;
             int df3NegOnes = params.fastFp ? params.df3 : params.df3-1;
-//            fInt = ProductFormPolynomial.fromBinary(b, N, df1, df2, df3Ones, df3NegOnes);
             t = ProductFormPolynomial.fromBinary(b, N, df1, df2, df3Ones, df3NegOnes);
         }
         else {
@@ -77,6 +79,7 @@ public class EncryptionPrivateKey {
      * @param is an input stream
      * @param params the NtruEncrypt parameters to use
      * @throws IOException
+     * @see #writeTo(OutputStream)
      */
     public EncryptionPrivateKey(InputStream is, EncryptionParameters params) throws IOException {
         this.params = params;
@@ -86,7 +89,7 @@ public class EncryptionPrivateKey {
     }
     
     /**
-     * Initializes fp from t.
+     * Initializes <code>fp</code> from t.
      */
     private void init() {
         if (params.fastFp) {
@@ -100,6 +103,7 @@ public class EncryptionPrivateKey {
     /**
      * Converts the key to a byte array
      * @return the encoded key
+     * @see #EncryptionPrivateKey(byte[], EncryptionParameters)
      */
     public byte[] getEncoded() {
         if (t instanceof ProductFormPolynomial)
@@ -112,6 +116,7 @@ public class EncryptionPrivateKey {
      * Writes the key to an output stream
      * @param os an output stream
      * @throws IOException
+     * @see #EncryptionPrivateKey(InputStream, EncryptionParameters)
      */
     public void writeTo(OutputStream os) throws IOException {
         os.write(getEncoded());

@@ -358,6 +358,7 @@ public class NtruSign {
         }
     }
     
+    /** Creates a NtruSign basis consisting of polynomials <code>f, g, F, G, h</code>. */
     FGBasis createBasis() {
         int N = params.N;
         int q = params.q;

@@ -45,6 +45,7 @@ public class EncryptionPublicKey {
      * Converts a byte array to a polynomial <code>h</code> and constructs a new public key
      * @param b an encoded polynomial
      * @param params the NtruEncrypt parameters to use
+     * @see #getEncoded()
      */
     public EncryptionPublicKey(byte[] b, EncryptionParameters params) {
         this.params = params;
@@ -55,6 +56,7 @@ public class EncryptionPublicKey {
      * Reads a polynomial <code>h</code> from an input stream and constructs a new public key
      * @param is an input stream
      * @param params the NtruEncrypt parameters to use
+     * @see #writeTo(OutputStream)
      */
     public EncryptionPublicKey(InputStream is, EncryptionParameters params) throws IOException {
         this.params = params;
@@ -64,6 +66,7 @@ public class EncryptionPublicKey {
     /**
      * Converts the key to a byte array
      * @return the encoded key
+     * @see #EncryptionPublicKey(byte[], EncryptionParameters)
      */
    public byte[] getEncoded() {
         return h.toBinary(params.q);
@@ -73,6 +76,7 @@ public class EncryptionPublicKey {
     * Writes the key to an output stream
     * @param os an output stream
     * @throws IOException
+    * @see #EncryptionPublicKey(InputStream, EncryptionParameters)
     */
     public void writeTo(OutputStream os) throws IOException {
         os.write(getEncoded());

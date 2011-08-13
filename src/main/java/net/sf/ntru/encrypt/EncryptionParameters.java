@@ -41,13 +41,13 @@ public class EncryptionParameters implements Cloneable {
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for encryption/decryption speed. */
     public static final EncryptionParameters EES1499EP1 = new EncryptionParameters(1499, 2048, 79, 79, 256, 13, 17, 19, new byte[] {0, 6, 5}, true, false);
     
-    /** A parameter set that gives 128 bits of security. */
+    /** A parameter set that gives 128 bits of security and uses simple ternary polynomials. */
     public static final EncryptionParameters APR2011_439 = new EncryptionParameters(439, 2048, 146, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true, false);
     
     /** Like <code>APR2011_439</code>, this parameter set gives 128 bits of security but uses product-form polynomials and <code>f=1+pF</code>. */
     public static final EncryptionParameters APR2011_439_FAST = new EncryptionParameters(439, 2048, 9, 8, 5, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true, true);
     
-    /** A parameter set that gives 256 bits of security. */
+    /** A parameter set that gives 256 bits of security and uses simple ternary polynomials. */
     public static final EncryptionParameters APR2011_743 = new EncryptionParameters(743, 2048, 248, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false, false);
     
     /** Like <code>APR2011_743</code>, this parameter set gives 256 bits of security but uses product-form polynomials and <code>f=1+pF</code>. */
