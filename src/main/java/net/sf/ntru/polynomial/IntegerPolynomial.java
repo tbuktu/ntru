@@ -542,13 +542,11 @@ public class IntegerPolynomial {
         BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
         BigInteger pProd2n = pProd2.negate();
         
-        res = res.mod(pProd);
         if (res.compareTo(pProd2) > 0)
             res = res.subtract(pProd);
         if (res.compareTo(pProd2n) < 0)
             res = res.add(pProd);
         
-        rhoP.mod(pProd);
         for (int i=0; i<N; i++) {
             BigInteger c = rhoP.coeffs[i];
             if (c.compareTo(pProd2) > 0)
