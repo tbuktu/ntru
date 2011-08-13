@@ -377,7 +377,9 @@ public class NtruSign {
         boolean primeCheck = params.primeCheck;
         
         do {
-            f = DenseTernaryPolynomial.generateRandom(N, d+1, d);
+            do {
+                f = DenseTernaryPolynomial.generateRandom(N, d+1, d);
+            } while (primeCheck && f.resultant(_2n1).res.equals(ZERO));
             fq = f.invertFq(q);
         } while (fq == null);
         rf = Util.is64BitJVM() ? new LongPolynomial(f).resultant() : f.resultant(); 
@@ -386,7 +388,7 @@ public class NtruSign {
             do {
                 do {
                     g = DenseTernaryPolynomial.generateRandom(N, d+1, d);
-                } while (primeCheck && f.resultant(_2n1).res.equals(ZERO) && g.resultant(_2n1).res.equals(ZERO));
+                } while (primeCheck && g.resultant(_2n1).res.equals(ZERO));
             } while (g.invertFq(q) == null);
             rg = Util.is64BitJVM() ? new LongPolynomial(g).resultant() : g.resultant();
             r = BigIntEuclidean.calculate(rf.res, rg.res);
