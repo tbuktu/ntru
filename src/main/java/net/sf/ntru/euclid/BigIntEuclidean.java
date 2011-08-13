@@ -40,11 +40,12 @@ public class BigIntEuclidean {
         BigInteger y = BigInteger.ONE;
         BigInteger lasty = BigInteger.ZERO;
         while (!b.equals(BigInteger.ZERO)) {
-            BigInteger quotient = a.divide(b);
+            BigInteger[] quotientAndRemainder = a.divideAndRemainder(b);
+            BigInteger quotient = quotientAndRemainder[0];
             
             BigInteger temp = a;
             a = b;
-            b = temp.mod(b);
+            b = quotientAndRemainder[1];
             
             temp = x;
             x = lastx.subtract(quotient.multiply(x));
