@@ -364,7 +364,6 @@ public class NtruSign {
         int q = params.q;
         int d = params.d;
         BasisType basisType = params.basisType;
-        int decimalPlaces = params.keyGenerationDecimalPlaces;
         
         DenseTernaryPolynomial f;
         IntegerPolynomial g;
@@ -421,8 +420,17 @@ public class NtruSign {
             C.div(rt.res);
         }
         else {   // KeyGenAlg.FLOAT
-            BigDecimalPolynomial fInv = rf.rho.div(new BigDecimal(rf.res), decimalPlaces);
-            BigDecimalPolynomial gInv = rg.rho.div(new BigDecimal(rg.res), decimalPlaces);
+            // calculate ceil(log10(N))
+            int log10N = 0;
+            for (int i=1; i<N; i*=10)
+                log10N++;
+            
+            // * Cdec needs to be accurate to 1 decimal place so it can be correctly rounded;
+            // * fInv loses up to (#digits of longest coeff of B) places in fInv.mult(B);
+            // * multiplying fInv by B also multiplies the rounding error by a factor of N;
+            // so make #decimal places of fInv the sum of the above.
+            BigDecimalPolynomial fInv = rf.rho.div(new BigDecimal(rf.res), B.getMaxCoeffLength()+1+log10N);
+            BigDecimalPolynomial gInv = rg.rho.div(new BigDecimal(rg.res), A.getMaxCoeffLength()+1+log10N);
             
             BigDecimalPolynomial Cdec = fInv.mult(B);
             Cdec.add(gInv.mult(A));

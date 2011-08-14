@@ -34,19 +34,19 @@ import net.sf.ntru.polynomial.SparseTernaryPolynomial;
  */
 public class SignatureParameters implements Cloneable {
     /** Gives 128 bits of security */
-    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, 1000, false, true, KeyGenAlg.RESULTANT);
+    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, false, true, KeyGenAlg.RESULTANT);
     
     /** Same as APR2011_439 but uses KeyGenAlg.FLOAT */
     public static final SignatureParameters APR2011_439_FAST = APR2011_439.clone().setKeyGenAlgorithm(KeyGenAlg.FLOAT);
     
     /** Gives 256 bits of security */
-    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, 1900, true, false, KeyGenAlg.RESULTANT);
+    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, true, false, KeyGenAlg.RESULTANT);
     
     /** Same as APR2011_743 but uses KeyGenAlg.FLOAT */
     public static final SignatureParameters APR2011_743_FAST = APR2011_743.clone().setKeyGenAlgorithm(KeyGenAlg.FLOAT);
     
     /** Generates key pairs quickly. Use for testing only. */
-    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, 300, false, false, KeyGenAlg.RESULTANT);
+    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, false, false, KeyGenAlg.RESULTANT);
     
     public enum BasisType {STANDARD, TRANSPOSE};
     public enum KeyGenAlg {RESULTANT, FLOAT};
@@ -57,7 +57,6 @@ public class SignatureParameters implements Cloneable {
     double beta, betaSq, normBound, normBoundSq;
     int signFailTolerance = 100;
     double keyNormBound, keyNormBoundSq;
-    int keyGenerationDecimalPlaces;
     boolean primeCheck;   // true if N and 2N+1 are prime
     BasisType basisType;
     int bitsF = 6;   // max #bits needed to encode one coefficient of the polynomial F
@@ -75,12 +74,11 @@ public class SignatureParameters implements Cloneable {
      * @param beta balancing factor for the transpose lattice
      * @param normBound maximum norm for valid signatures
      * @param keyNormBound maximum norm for the ploynomials <code>F</code> and <code>G</code>
-     * @param keyGenerationDecimalPlaces amount of precision required for generating a key pair
      * @param primeCheck whether <code>2N+1</code> is prime
      * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
      * @param keyGenAlg <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is faster
      */
-    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, int keyGenerationDecimalPlaces, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg) {
+    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg) {
         this.N = N;
         this.q = q;
         this.d = d;
@@ -89,7 +87,6 @@ public class SignatureParameters implements Cloneable {
         this.beta = beta;
         this.normBound = normBound;
         this.keyNormBound = keyNormBound;
-        this.keyGenerationDecimalPlaces = keyGenerationDecimalPlaces;
         this.primeCheck = primeCheck;
         this.sparse = sparse;
         this.keyGenAlg = keyGenAlg;
@@ -119,7 +116,6 @@ public class SignatureParameters implements Cloneable {
         normBound = dis.readDouble();
         keyNormBound = dis.readDouble();
         signFailTolerance = dis.readInt();
-        keyGenerationDecimalPlaces = dis.readInt();
         primeCheck = dis.readBoolean();
         sparse = dis.readBoolean();
         bitsF = dis.readInt();
@@ -154,7 +150,6 @@ public class SignatureParameters implements Cloneable {
         dos.writeDouble(normBound);
         dos.writeDouble(keyNormBound);
         dos.writeInt(signFailTolerance);
-        dos.writeInt(keyGenerationDecimalPlaces);
         dos.writeBoolean(primeCheck);
         dos.writeBoolean(sparse);
         dos.writeInt(bitsF);
@@ -164,7 +159,7 @@ public class SignatureParameters implements Cloneable {
 
     @Override
     public SignatureParameters clone() {
-        return new SignatureParameters(N, q, d, B, basisType, beta, normBound, keyNormBound, keyGenerationDecimalPlaces, primeCheck, sparse, keyGenAlg);
+        return new SignatureParameters(N, q, d, B, basisType, beta, normBound, keyNormBound, primeCheck, sparse, keyGenAlg);
     }
     
     @Override
@@ -182,7 +177,6 @@ public class SignatureParameters implements Cloneable {
         result = prime * result + bitsF;
         result = prime * result + d;
         result = prime * result + ((keyGenAlg == null) ? 0 : keyGenAlg.hashCode());
-        result = prime * result + keyGenerationDecimalPlaces;
         temp = Double.doubleToLongBits(keyNormBound);
         result = prime * result + (int) (temp ^ (temp >>> 32));
         temp = Double.doubleToLongBits(keyNormBoundSq);
@@ -230,8 +224,6 @@ public class SignatureParameters implements Cloneable {
                 return false;
         } else if (!keyGenAlg.equals(other.keyGenAlg))
             return false;
-        if (keyGenerationDecimalPlaces != other.keyGenerationDecimalPlaces)
-            return false;
         if (Double.doubleToLongBits(keyNormBound) != Double.doubleToLongBits(other.keyNormBound))
             return false;
         if (Double.doubleToLongBits(keyNormBoundSq) != Double.doubleToLongBits(other.keyNormBoundSq))
@@ -258,6 +250,6 @@ public class SignatureParameters implements Cloneable {
         DecimalFormat format = new DecimalFormat("0.00");
         return "SignatureParameters(N=" + N + " q=" + q + " d=" + d + " B=" + B + " basisType=" + basisType + " beta=" + format.format(beta) +
                 " normBound=" + format.format(normBound) + " keyNormBound=" + format.format(keyNormBound) +
-                " keyGenPlaces=" + keyGenerationDecimalPlaces + " prime=" + primeCheck + " sparse=" + sparse + " keyGenAlg=" + keyGenAlg + ")";
+                " prime=" + primeCheck + " sparse=" + sparse + " keyGenAlg=" + keyGenAlg + ")";
     }
 }

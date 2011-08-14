@@ -38,6 +38,8 @@ import net.sf.ntru.exception.NtruException;
  * not but return the result as a new polynomial.
  */
 public class BigIntPolynomial {
+    private final static double LOG_10_2 = Math.log10(2);
+    
     BigInteger[] coeffs;
     
     /**
@@ -274,6 +276,24 @@ public class BigIntPolynomial {
         for (int i=0; i<coeffs.length; i++)
             p.coeffs[i] = new BigDecimal(coeffs[i]).divide(divisor, decimalPlaces, RoundingMode.HALF_EVEN);
         return p;
+    }
+    
+    /**
+     * Returns the number of decimal digits in the largest coefficient.
+     * @return length of the longest coefficient
+     */
+    public int getMaxCoeffLength() {
+        return (int)(maxCoeffAbs().bitLength() * LOG_10_2) + 1;
+    }
+    
+    private BigInteger maxCoeffAbs() {
+        BigInteger max = coeffs[0].abs();
+        for (int i=1; i<coeffs.length; i++) {
+            BigInteger coeff = coeffs[i].abs();
+            if (coeff.compareTo(max) > 0)
+                max = coeff;
+        }
+        return max;
     }
     
     /**
