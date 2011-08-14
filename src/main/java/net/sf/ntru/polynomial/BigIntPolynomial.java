@@ -272,14 +272,22 @@ public class BigIntPolynomial {
      * @return a new <code>BigDecimalPolynomial</code>
      */
     public BigDecimalPolynomial div(BigDecimal divisor, int decimalPlaces) {
+        BigInteger max = maxCoeffAbs();
+        int coeffLength = (int)(max.bitLength() * LOG_10_2) + 1;
+        // factor = 1/divisor
+        BigDecimal factor = BigDecimal.ONE.divide(divisor, coeffLength+decimalPlaces+1, RoundingMode.HALF_EVEN);
+        
+        // multiply each coefficient by factor
         BigDecimalPolynomial p = new BigDecimalPolynomial(coeffs.length);
         for (int i=0; i<coeffs.length; i++)
-            p.coeffs[i] = new BigDecimal(coeffs[i]).divide(divisor, decimalPlaces, RoundingMode.HALF_EVEN);
+            // multiply, then truncate after decimalPlaces so subsequent operations aren't slowed down
+            p.coeffs[i] = new BigDecimal(coeffs[i]).multiply(factor).setScale(decimalPlaces, RoundingMode.HALF_EVEN);
+        
         return p;
     }
     
     /**
-     * Returns the number of decimal digits in the largest coefficient.
+     * Returns the base10 length of the largest coefficient.
      * @return length of the longest coefficient
      */
     public int getMaxCoeffLength() {
