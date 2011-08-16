@@ -62,7 +62,6 @@ public class SignatureParameters implements Cloneable {
     int bitsF = 6;   // max #bits needed to encode one coefficient of the polynomial F
     boolean sparse;   // whether to treat ternary polynomials as sparsely populated
     KeyGenAlg keyGenAlg;
-    byte[] reserved;
     
     /**
      * Constructs a new set of signature parameters.
@@ -90,7 +89,6 @@ public class SignatureParameters implements Cloneable {
         this.primeCheck = primeCheck;
         this.sparse = sparse;
         this.keyGenAlg = keyGenAlg;
-        reserved = new byte[15];
         init();
     }
 
@@ -120,7 +118,6 @@ public class SignatureParameters implements Cloneable {
         sparse = dis.readBoolean();
         bitsF = dis.readInt();
         keyGenAlg = KeyGenAlg.values()[dis.read()];
-        dis.read(reserved = new byte[15]);
         init();
     }
     
@@ -154,7 +151,6 @@ public class SignatureParameters implements Cloneable {
         dos.writeBoolean(sparse);
         dos.writeInt(bitsF);
         dos.write(keyGenAlg.ordinal());
-        dos.write(reserved);
     }
 
     @Override
@@ -187,7 +183,6 @@ public class SignatureParameters implements Cloneable {
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + (primeCheck ? 1231 : 1237);
         result = prime * result + q;
-        result = prime * result + Arrays.hashCode(reserved);
         result = prime * result + signFailTolerance;
         result = prime * result + (sparse ? 1231 : 1237);
         return result;
@@ -235,8 +230,6 @@ public class SignatureParameters implements Cloneable {
         if (primeCheck != other.primeCheck)
             return false;
         if (q != other.q)
-            return false;
-        if (!Arrays.equals(reserved, other.reserved))
             return false;
         if (signFailTolerance != other.signFailTolerance)
             return false;

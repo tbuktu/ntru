@@ -61,7 +61,6 @@ public class EncryptionParameters implements Cloneable {
     boolean sparse;
     boolean fastFp;
     TernaryPolynomialType polyType;
-    byte[] reserved;
     
     /**
      * Constructs a parameter set that uses ternary private keys (i.e. </code>polyType=SIMPLE</code>).
@@ -90,7 +89,6 @@ public class EncryptionParameters implements Cloneable {
         this.sparse = sparse;
         this.fastFp = fastFp;
         this.polyType = TernaryPolynomialType.SIMPLE;
-        reserved = new byte[16];
         init();
     }
 
@@ -125,7 +123,6 @@ public class EncryptionParameters implements Cloneable {
         this.sparse = sparse;
         this.fastFp = fastFp;
         this.polyType = TernaryPolynomialType.PRODUCT;
-        reserved = new byte[16];
         init();
     }
 
@@ -165,7 +162,6 @@ public class EncryptionParameters implements Cloneable {
         sparse = dis.readBoolean();
         fastFp = dis.readBoolean();
         polyType = TernaryPolynomialType.values()[dis.read()];
-        dis.read(reserved = new byte[16]);
         init();
     }
 
@@ -206,7 +202,6 @@ public class EncryptionParameters implements Cloneable {
         dos.writeBoolean(sparse);
         dos.writeBoolean(fastFp);
         dos.write(polyType.ordinal());
-        dos.write(reserved);
     }
 
     @Override
@@ -237,7 +232,6 @@ public class EncryptionParameters implements Cloneable {
         result = prime * result + pkLen;
         result = prime * result + ((polyType == null) ? 0 : polyType.hashCode());
         result = prime * result + q;
-        result = prime * result + Arrays.hashCode(reserved);
         result = prime * result + (sparse ? 1231 : 1237);
         return result;
     }
@@ -301,8 +295,6 @@ public class EncryptionParameters implements Cloneable {
         } else if (!polyType.equals(other.polyType))
             return false;
         if (q != other.q)
-            return false;
-        if (!Arrays.equals(reserved, other.reserved))
             return false;
         if (sparse != other.sparse)
             return false;
