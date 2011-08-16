@@ -177,6 +177,14 @@ public class EncryptionParameters implements Cloneable {
     }
     
     /**
+     * Returns the maximum length a plaintext message can be with this parameter set.
+     * @return the maximum length in bytes
+     */
+    public int getMaxMessageLength() {
+        return maxMsgLenBytes;
+    }
+    
+    /**
      * Writes the parameter set to an output stream
      * @param os an output stream
      * @throws IOException
