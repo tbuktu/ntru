@@ -28,6 +28,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 import net.sf.ntru.euclid.BigIntEuclidean;
@@ -510,34 +511,32 @@ public class IntegerPolynomial {
         BigInteger max = squareSum().pow((N+1)/2);
         max = max.multiply(BigInteger.valueOf(2).pow((degree()+1)/2));
         BigInteger max2 = max.multiply(BigInteger.valueOf(2));
-        BigInteger pProd = ONE;
         Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
         
-        BigInteger res = ONE;
-        BigIntPolynomial rhoP = new BigIntPolynomial(N);
-        rhoP.coeffs[0] = ONE;
+        // compute resultants modulo prime numbers
+        LinkedList<Subresultant> subresultants = new LinkedList<Subresultant>();
         BigInteger prime = BigInteger.valueOf(10000);
+        BigInteger pProd = ONE;
         while (pProd.compareTo(max2) < 0) {
             if (primes.hasNext())
                 prime = primes.next();
             else
                 prime = prime.nextProbablePrime();
-            Resultant crr = resultant(prime.intValue());
-            
-            BigInteger temp = pProd.multiply(prime);
-            BigIntEuclidean er = BigIntEuclidean.calculate(prime, pProd);
-            
-            res = res.multiply(er.x.multiply(prime));
-            BigInteger res2 = crr.res.multiply(er.y.multiply(pProd));
-            res = res.add(res2).mod(temp);
-            
-            rhoP.mult(er.x.multiply(prime));
-            BigIntPolynomial rho = crr.rho;
-            rho.mult(er.y.multiply(pProd));
-            rhoP.add(rho);
-            rhoP.mod(temp);
-            pProd = temp;
+            subresultants.add(resultant(prime.intValue()));
+            pProd = pProd.multiply(prime);
         }
+        
+        // combine subresultants to obtain the resultant.
+        // for efficiency, first combine all pairs of small subresultants to bigger subresultants,
+        // then combine pairs of those, etc. until only one is left.
+        while (subresultants.size() > 1) {
+            Subresultant subres1 = subresultants.removeFirst();
+            Subresultant subres2 = subresultants.removeFirst();
+            Subresultant subres3 = combine(subres1, subres2);
+            subresultants.addLast(subres3);
+        }
+        BigInteger res = subresultants.getFirst().res;
+        BigIntPolynomial rhoP = subresultants.getFirst().rho;
         
         BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
         BigInteger pProd2n = pProd2.negate();
@@ -557,12 +556,39 @@ public class IntegerPolynomial {
 
         return new Resultant(rhoP, res);
     }
+    
+    /**
+     * Calculates a resultant modulo <code>m1*m2</code> from
+     * two resultants modulo <code>m1</code> and <code>m2</code>.
+     * @param subres1
+     * @param subres2
+     * @return a resultant modulo <code>subres1.modulus * subres2.modulus</code>
+     */
+    private Subresultant combine(Subresultant subres1, Subresultant subres2) {
+        BigInteger mod1 = subres1.modulus;
+        BigInteger mod2 = subres2.modulus;
+        BigInteger prod = mod1.multiply(mod2);
+        BigIntEuclidean er = BigIntEuclidean.calculate(mod2, mod1);
         
+        BigInteger res = subres1.res.multiply(er.x.multiply(mod2));
+        BigInteger res2 = subres2.res.multiply(er.y.multiply(mod1));
+        res = res.add(res2).mod(prod);
+        
+        BigIntPolynomial rho1 = subres1.rho.clone();
+        rho1.mult(er.x.multiply(mod2));
+        BigIntPolynomial rho2 = subres2.rho.clone();
+        rho2.mult(er.y.multiply(mod1));
+        rho1.add(rho2);
+        rho1.mod(prod);
+
+        return new Subresultant(rho1, res, prod);
+    }
+    
     /**
      * Resultant of this polynomial with <code>x^n-1 mod p</code>.<br/>
      * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1) mod p</code> for some integer <code>t</code>.
      */
-    public Resultant resultant(int p) {
+    public Subresultant resultant(int p) {
         // Add a coefficient as the following operations involve polynomials of degree deg(f)+1
         int[] fcoeffs = Arrays.copyOf(coeffs, coeffs.length+1);
         IntegerPolynomial f = new IntegerPolynomial(fcoeffs);
@@ -614,7 +640,7 @@ public class IntegerPolynomial {
         
         // drop the highest coefficient so #coeffs matches the original input
         v2.coeffs = Arrays.copyOf(v2.coeffs, v2.coeffs.length-1);
-        return new Resultant(new BigIntPolynomial(v2), BigInteger.valueOf(r));
+        return new Subresultant(new BigIntPolynomial(v2), BigInteger.valueOf(r), BigInteger.valueOf(p));
     }
     
     /**
@@ -946,5 +972,15 @@ public class IntegerPolynomial {
             return Arrays.equals(coeffs, ((IntegerPolynomial)obj).coeffs);
         else
             return false;
+    }
+    
+    /** A resultant modulo a <code>BigInteger</code> */
+    public class Subresultant extends Resultant {
+        public BigInteger modulus;
+        
+        private Subresultant(BigIntPolynomial rho, BigInteger res, BigInteger modulus) {
+            super(rho, res);
+            this.modulus = modulus;
+        }
     }
 }
