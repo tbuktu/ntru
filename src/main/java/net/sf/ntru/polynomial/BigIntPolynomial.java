@@ -107,20 +107,6 @@ public class BigIntPolynomial {
     }
     
     /**
-     * Multiplies the polynomial by another, taking the coefficient values mod N. Does not change this polynomial
-     * but returns the result as a new polynomial.<br/>
-     * Both polynomials must have the same number of coefficients.
-     * @param poly2 the polynomial to multiply by
-     * @param modulus
-     * @return a new polynomial
-     */
-    BigIntPolynomial mult(BigIntPolynomial poly2, BigInteger modulus) {
-        BigIntPolynomial c = mult(poly2);
-        c.mod(modulus);
-        return c;
-    }
-    
-    /**
      * Multiplies the polynomial by a <code>IntegerPolynomial</code>, taking the indices mod N. Does not
      * change this polynomial but returns the result as a new polynomial.<br/>
      * Both polynomials must have the same number of coefficients.
