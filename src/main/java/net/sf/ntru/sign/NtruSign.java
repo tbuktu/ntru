@@ -414,7 +414,7 @@ public class NtruSign {
             IntegerPolynomial t = f.mult(fRev);
             t.add(g.mult(gRev));
             Resultant rt = Util.is64BitJVM() ? new LongPolynomial(t).resultant() : t.resultant();
-            C = B.mult(fRev);
+            C = B.mult(fRev);   // B.mult(fRev) is actually faster than new SparseTernaryPolynomial(fRev).mult(B)
             C.add(A.mult(gRev));
             C = C.mult(rt.rho);
             C.div(rt.res);
@@ -439,12 +439,9 @@ public class NtruSign {
         }
         
         BigIntPolynomial F = B.clone();
-        // always use sparse multiplication here
-        SparseTernaryPolynomial fTer = new SparseTernaryPolynomial(f);
-        F.sub(fTer.mult(C));
+        F.sub(C.mult(f));   // C.mult(f) is actually faster than new SparseTernaryPolynomial(f).mult(C)
         BigIntPolynomial G = A.clone();
-        SparseTernaryPolynomial gTer = new SparseTernaryPolynomial(g);
-        G.sub(gTer.mult(C));
+        G.sub(C.mult(g));
 
         IntegerPolynomial FInt = new IntegerPolynomial(F);
         IntegerPolynomial GInt = new IntegerPolynomial(G);
@@ -462,6 +459,7 @@ public class NtruSign {
         }
         h.modPositive(q);
         
+        SparseTernaryPolynomial fTer = new SparseTernaryPolynomial(f);
         return new FGBasis(fTer, fPrime, h, FInt, GInt, params);
     }
     
