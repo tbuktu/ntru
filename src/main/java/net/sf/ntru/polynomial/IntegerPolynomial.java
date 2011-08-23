@@ -30,6 +30,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import net.sf.ntru.euclid.BigIntEuclidean;
 import net.sf.ntru.exception.NtruException;
@@ -558,6 +563,77 @@ public class IntegerPolynomial {
     }
     
     /**
+     * Multithreaded version of {@link #resultant()}.
+     * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1)</code> for some integer <code>t</code>.
+     */
+    public Resultant resultantMultiThread() {
+        int N = coeffs.length;
+        
+        // upper bound for resultant(f, g) = ||f, 2||^deg(g) * ||g, 2||^deg(f) = squaresum(f)^(N/2) * 2^(deg(f)/2) because g(x)=x^N-1
+        // see http://jondalon.mathematik.uni-osnabrueck.de/staff/phpages/brunsw/CompAlg.pdf chapter 3
+        BigInteger max = squareSum().pow((N+1)/2);
+        max = max.multiply(BigInteger.valueOf(2).pow((degree()+1)/2));
+        BigInteger max2 = max.multiply(BigInteger.valueOf(2));
+        
+        // compute resultants modulo prime numbers
+        BigInteger prime = BigInteger.valueOf(10000);
+        BigInteger pProd = ONE;
+        LinkedBlockingQueue<Future<Subresultant>> resultantTasks = new LinkedBlockingQueue<Future<Subresultant>>();
+        Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        while (pProd.compareTo(max2) < 0) {
+            if (primes.hasNext())
+                prime = primes.next();
+            else
+                prime = prime.nextProbablePrime();
+            Future<Subresultant> task = executor.submit(new SubresultantTask(prime.intValue()));
+            resultantTasks.add(task);
+            pProd = pProd.multiply(prime);
+        }
+        
+        // combine subresultants to obtain the resultant.
+        // for efficiency, first combine all pairs of small subresultants to bigger subresultants,
+        // then combine pairs of those, etc. until only one is left.
+        Subresultant overallResultant = null;
+        while (!resultantTasks.isEmpty()) {
+            try {
+                Future<Subresultant> subres1 = resultantTasks.take();
+                Future<Subresultant> subres2 = resultantTasks.poll();
+                if (subres2 == null) {
+                    // subres1 is the only one left
+                    overallResultant = subres1.get();
+                    break;
+                }
+                Future<Subresultant> newTask = executor.submit(new CombineTask(subres1.get(), subres2.get()));
+                resultantTasks.add(newTask);
+            } catch (Exception e) {
+                throw new NtruException(e);
+            }
+        }
+        executor.shutdown();
+        BigInteger res = overallResultant.res;
+        BigIntPolynomial rhoP = overallResultant.rho;
+        
+        BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
+        BigInteger pProd2n = pProd2.negate();
+        
+        if (res.compareTo(pProd2) > 0)
+            res = res.subtract(pProd);
+        if (res.compareTo(pProd2n) < 0)
+            res = res.add(pProd);
+        
+        for (int i=0; i<N; i++) {
+            BigInteger c = rhoP.coeffs[i];
+            if (c.compareTo(pProd2) > 0)
+                rhoP.coeffs[i] = c.subtract(pProd);
+            if (c.compareTo(pProd2n) < 0)
+                rhoP.coeffs[i] = c.add(pProd);
+        }
+
+        return new Resultant(rhoP, res);
+    }
+    
+    /**
      * Calculates a resultant modulo <code>m1*m2</code> from
      * two resultants modulo <code>m1</code> and <code>m2</code>.
      * @param subres1
@@ -981,6 +1057,36 @@ public class IntegerPolynomial {
         private Subresultant(BigIntPolynomial rho, BigInteger res, BigInteger modulus) {
             super(rho, res);
             this.modulus = modulus;
+        }
+    }
+    
+    /** Calls {@link IntegerPolynomial#resultant(int) */
+    private class SubresultantTask implements Callable<Subresultant> {
+        private int modulus;
+        
+        private SubresultantTask(int modulus) {
+            this.modulus = modulus;
+        }
+
+        @Override
+        public Subresultant call() {
+            return resultant(modulus);
+        }
+    }
+    
+    /** Calls {@link IntegerPolynomial#combine(Subresultant, Subresultant) */
+    private class CombineTask implements Callable<Subresultant> {
+        private Subresultant subres1;
+        private Subresultant subres2;
+
+        private CombineTask(Subresultant subres1, Subresultant subres2) {
+            this.subres1 = subres1;
+            this.subres2 = subres2;
+        }
+        
+        @Override
+        public Subresultant call() {
+            return combine(subres1, subres2);
         }
     }
 }
