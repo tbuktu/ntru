@@ -159,7 +159,6 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         return c;
     }
 
-    @Override
     public BigIntPolynomial mult(BigIntPolynomial poly2) {
         BigInteger[] b = poly2.coeffs;
         if (b.length != N)

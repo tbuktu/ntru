@@ -101,11 +101,6 @@ public class DenseTernaryPolynomial extends IntegerPolynomial implements Ternary
     }
 
     @Override
-    public BigIntPolynomial mult(BigIntPolynomial poly2) {
-        return poly2.mult(this);
-    }
-
-    @Override
     public int[] getOnes() {
         int N = coeffs.length;
         int[] ones = new int[N];

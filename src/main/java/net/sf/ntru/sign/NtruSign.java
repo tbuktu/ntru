@@ -440,10 +440,10 @@ public class NtruSign {
         
         BigIntPolynomial F = B.clone();
         // always use sparse multiplication here
-        TernaryPolynomial fTer = new SparseTernaryPolynomial(f);
+        SparseTernaryPolynomial fTer = new SparseTernaryPolynomial(f);
         F.sub(fTer.mult(C));
         BigIntPolynomial G = A.clone();
-        TernaryPolynomial gTer = new SparseTernaryPolynomial(g);
+        SparseTernaryPolynomial gTer = new SparseTernaryPolynomial(g);
         G.sub(gTer.mult(C));
 
         IntegerPolynomial FInt = new IntegerPolynomial(F);

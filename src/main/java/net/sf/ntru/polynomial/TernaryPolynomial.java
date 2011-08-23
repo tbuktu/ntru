@@ -24,9 +24,6 @@ public interface TernaryPolynomial extends Polynomial {
     /** Multiplies the polynomial by an <code>IntegerPolynomial</code>, taking the indices mod N */
     IntegerPolynomial mult(IntegerPolynomial poly2);
     
-    /** Multiplies the polynomial by an <code>BigIntPolynomial</code>, taking the indices mod N */
-    BigIntPolynomial mult(BigIntPolynomial poly2);
-    
     int[] getOnes();
     
     int[] getNegOnes();
