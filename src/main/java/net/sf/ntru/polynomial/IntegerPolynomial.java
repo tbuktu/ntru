@@ -36,7 +36,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import net.sf.ntru.euclid.BigIntEuclidean;
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.util.ArrayEncoder;
 import net.sf.ntru.util.Util;
@@ -537,7 +536,7 @@ public class IntegerPolynomial {
         while (subresultants.size() > 1) {
             Subresultant subres1 = subresultants.removeFirst();
             Subresultant subres2 = subresultants.removeFirst();
-            Subresultant subres3 = combine(subres1, subres2);
+            Subresultant subres3 = Subresultant.combine(subres1, subres2);
             subresultants.addLast(subres3);
         }
         BigInteger res = subresultants.getFirst().res;
@@ -631,33 +630,6 @@ public class IntegerPolynomial {
         }
 
         return new Resultant(rhoP, res);
-    }
-    
-    /**
-     * Calculates a resultant modulo <code>m1*m2</code> from
-     * two resultants modulo <code>m1</code> and <code>m2</code>.
-     * @param subres1
-     * @param subres2
-     * @return a resultant modulo <code>subres1.modulus * subres2.modulus</code>
-     */
-    private Subresultant combine(Subresultant subres1, Subresultant subres2) {
-        BigInteger mod1 = subres1.modulus;
-        BigInteger mod2 = subres2.modulus;
-        BigInteger prod = mod1.multiply(mod2);
-        BigIntEuclidean er = BigIntEuclidean.calculate(mod2, mod1);
-        
-        BigInteger res = subres1.res.multiply(er.x.multiply(mod2));
-        BigInteger res2 = subres2.res.multiply(er.y.multiply(mod1));
-        res = res.add(res2).mod(prod);
-        
-        BigIntPolynomial rho1 = subres1.rho.clone();
-        rho1.mult(er.x.multiply(mod2));
-        BigIntPolynomial rho2 = subres2.rho.clone();
-        rho2.mult(er.y.multiply(mod1));
-        rho1.add(rho2);
-        rho1.mod(prod);
-
-        return new Subresultant(rho1, res, prod);
     }
     
     /**
@@ -1050,16 +1022,6 @@ public class IntegerPolynomial {
             return false;
     }
     
-    /** A resultant modulo a <code>BigInteger</code> */
-    public class Subresultant extends Resultant {
-        public BigInteger modulus;
-        
-        private Subresultant(BigIntPolynomial rho, BigInteger res, BigInteger modulus) {
-            super(rho, res);
-            this.modulus = modulus;
-        }
-    }
-    
     /** Calls {@link IntegerPolynomial#resultant(int) */
     private class SubresultantTask implements Callable<Subresultant> {
         private int modulus;
@@ -1086,7 +1048,7 @@ public class IntegerPolynomial {
         
         @Override
         public Subresultant call() {
-            return combine(subres1, subres2);
+            return Subresultant.combine(subres1, subres2);
         }
     }
 }

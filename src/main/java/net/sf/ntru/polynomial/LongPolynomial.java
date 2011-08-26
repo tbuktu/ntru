@@ -25,9 +25,9 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
-import net.sf.ntru.euclid.BigIntEuclidean;
 import net.sf.ntru.util.Util;
 
 public class LongPolynomial {
@@ -124,45 +124,41 @@ public class LongPolynomial {
         BigInteger max = squareSum().pow((N+1)/2);
         max = max.multiply(BigInteger.valueOf(2).pow((degree()+1)/2));
         BigInteger max2 = max.multiply(BigInteger.valueOf(2));
-        BigInteger pProd = ONE;
         Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
         
-        BigInteger res = ONE;
-        BigIntPolynomial rhoP = new BigIntPolynomial(N);
-        rhoP.coeffs[0] = ONE;
-        BigInteger prime = BigInteger.valueOf(3000000000L);
+        // compute resultants modulo prime numbers
+        LinkedList<Subresultant> subresultants = new LinkedList<Subresultant>();
+        BigInteger prime = BigInteger.valueOf(10000);
+        BigInteger pProd = ONE;
         while (pProd.compareTo(max2) < 0) {
             if (primes.hasNext())
                 prime = primes.next();
             else
                 prime = prime.nextProbablePrime();
-            Resultant crr = resultant(prime.longValue());
-            
-            BigInteger temp = pProd.multiply(prime);
-            BigIntEuclidean er = BigIntEuclidean.calculate(prime, pProd);
-            
-            res = res.multiply(er.x.multiply(prime));
-            BigInteger res2 = crr.res.multiply(er.y.multiply(pProd));
-            res = res.add(res2).mod(temp);
-            
-            rhoP.mult(er.x.multiply(prime));
-            BigIntPolynomial rho = crr.rho;
-            rho.mult(er.y.multiply(pProd));
-            rhoP.add(rho);
-            rhoP.mod(temp);
-            pProd = temp;
+            subresultants.add(resultant(prime.longValue()));
+            pProd = pProd.multiply(prime);
         }
+        
+        // combine subresultants to obtain the resultant.
+        // for efficiency, first combine all pairs of small subresultants to bigger subresultants,
+        // then combine pairs of those, etc. until only one is left.
+        while (subresultants.size() > 1) {
+            Subresultant subres1 = subresultants.removeFirst();
+            Subresultant subres2 = subresultants.removeFirst();
+            Subresultant subres3 = Subresultant.combine(subres1, subres2);
+            subresultants.addLast(subres3);
+        }
+        BigInteger res = subresultants.getFirst().res;
+        BigIntPolynomial rhoP = subresultants.getFirst().rho;
         
         BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
         BigInteger pProd2n = pProd2.negate();
         
-        res = res.mod(pProd);
         if (res.compareTo(pProd2) > 0)
             res = res.subtract(pProd);
         if (res.compareTo(pProd2n) < 0)
             res = res.add(pProd);
         
-        rhoP.mod(pProd);
         for (int i=0; i<N; i++) {
             BigInteger c = rhoP.coeffs[i];
             if (c.compareTo(pProd2) > 0)
@@ -173,12 +169,12 @@ public class LongPolynomial {
 
         return new Resultant(rhoP, res);
     }
-        
+    
     /**
      * Resultant of this polynomial with <code>x^n-1 mod p</code>.<br/>
      * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1) mod p</code> for some integer <code>t</code>.
      */
-    Resultant resultant(long p) {
+    Subresultant resultant(long p) {
         // Add a coefficient as the following operations involve polynomials of degree deg(f)+1
         long[] fcoeffs = Arrays.copyOf(coeffs, coeffs.length+1);
         LongPolynomial f = new LongPolynomial(fcoeffs);
@@ -230,7 +226,7 @@ public class LongPolynomial {
         
         // drop the highest coefficient so #coeffs matches the original input
         v2.coeffs = Arrays.copyOf(v2.coeffs, v2.coeffs.length-1);
-        return new Resultant(new BigIntPolynomial(v2), BigInteger.valueOf(r));
+        return new Subresultant(new BigIntPolynomial(v2), BigInteger.valueOf(r), BigInteger.valueOf(p));
     }
     
     /**
