@@ -35,14 +35,8 @@ public class SignatureParameters implements Cloneable {
     /** Gives 128 bits of security */
     public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, false, true, KeyGenAlg.RESULTANT, "SHA-256");
     
-    /** Same as APR2011_439 but uses KeyGenAlg.FLOAT */
-    public static final SignatureParameters APR2011_439_FAST = APR2011_439.clone().setKeyGenAlgorithm(KeyGenAlg.FLOAT);
-    
     /** Gives 256 bits of security */
     public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, true, false, KeyGenAlg.RESULTANT, "SHA-512");
-    
-    /** Same as APR2011_743 but uses KeyGenAlg.FLOAT */
-    public static final SignatureParameters APR2011_743_FAST = APR2011_743.clone().setKeyGenAlgorithm(KeyGenAlg.FLOAT);
     
     /** Generates key pairs quickly. Use for testing only. */
     public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, false, false, KeyGenAlg.RESULTANT, "SHA-256");
@@ -75,7 +69,7 @@ public class SignatureParameters implements Cloneable {
      * @param keyNormBound maximum norm for the ploynomials <code>F</code> and <code>G</code>
      * @param primeCheck whether <code>2N+1</code> is prime
      * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
-     * @param keyGenAlg <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is faster
+     * @param keyGenAlg <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster
      * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>
      */
     public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg, String hashAlg) {
@@ -122,16 +116,6 @@ public class SignatureParameters implements Cloneable {
         keyGenAlg = KeyGenAlg.values()[dis.read()];
         hashAlg = dis.readUTF();
         init();
-    }
-    
-    /**
-     * Sets the algorithm to use when generating a key pair. Modifies this object and returns it.
-     * @param alg KeyGenAlg.FLOAT or KeyGenAlg.RESULTANT
-     * @return the modified parameters
-     */
-    public SignatureParameters setKeyGenAlgorithm(KeyGenAlg alg) {
-        keyGenAlg = alg;
-        return this;
     }
     
     /**

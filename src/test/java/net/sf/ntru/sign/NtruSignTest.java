@@ -47,7 +47,7 @@ public class NtruSignTest {
         assertTrue(equalsQ(basis.f, basis.fPrime, basis.F, basis.G, params.q, params.N));
         
         // test KeyGenAlg.FLOAT (default=RESULTANT)
-        params.setKeyGenAlgorithm(KeyGenAlg.FLOAT);
+        params.keyGenAlg = KeyGenAlg.FLOAT;
         ntru = new NtruSign(params);
         basis = ntru.createBasis();
         assertTrue(equalsQ(basis.f, basis.fPrime, basis.F, basis.G, params.q, params.N));
@@ -124,7 +124,7 @@ public class NtruSignTest {
         
         // test KeyGenAlg.FLOAT (default=RESULTANT)
         params = SignatureParameters.TEST157;
-        params.setKeyGenAlgorithm(KeyGenAlg.FLOAT);
+        params.keyGenAlg = KeyGenAlg.FLOAT;
         ntru = new NtruSign(params);
         kp = ntru.generateKeyPair();
         s = ntru.sign(msg, kp);
