@@ -278,14 +278,12 @@ public class Benchmark {
     }
 
     private static class EcdhBenchmark {
-        private String curveName;
         private int keySize;
         private int warmupIterations;
         private int benchIterations;
         private KeyPairGenerator keyGen;
         
         private EcdhBenchmark(String curveName, int keySize, int warmupIterations, int benchIterations) throws Exception {
-            this.curveName = curveName;
             this.keySize = keySize;
             this.warmupIterations = warmupIterations;
             this.benchIterations = benchIterations;
