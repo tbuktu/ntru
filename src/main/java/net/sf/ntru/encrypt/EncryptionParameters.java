@@ -76,7 +76,7 @@ public class EncryptionParameters implements Cloneable {
      * @param oid three bytes that uniquely identify the parameter set
      * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
      * @param fastFp whether <code>f=1+p*F</code> for a ternary <code>F</code> (true) or <code>f</code> is ternary (false)
-     * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>
+     * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>. The <code>MessageDigest</code> must support the <code>getDigestLength()</code> method.
      */
     public EncryptionParameters(int N, int q, int df, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse, boolean fastFp, String hashAlg) {
         this.N = N;

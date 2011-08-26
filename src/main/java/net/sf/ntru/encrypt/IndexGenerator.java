@@ -61,7 +61,7 @@ class IndexGenerator {
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }
-        hLen = 64;   // hash length
+        hLen = hashAlg.getDigestLength();   // hash length
         initialized = false;
     }
     

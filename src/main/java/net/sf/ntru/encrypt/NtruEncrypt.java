@@ -257,14 +257,15 @@ public class NtruEncrypt {
      */
     private IntegerPolynomial MGF1(byte[] input, int N, int minCallsMask) {
         int numBytes = (N*3+2)/2;
-        int numCalls = (numBytes+63) / 64;   // calls to the hash function
-        ByteBuffer buf = ByteBuffer.allocate(numCalls*64);
         MessageDigest hashAlg;
         try {
             hashAlg = MessageDigest.getInstance(params.hashAlg);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }
+        int hashLen = hashAlg.getDigestLength();
+        int numCalls = (numBytes+hashLen-1) / hashLen;   // calls to the hash function
+        ByteBuffer buf = ByteBuffer.allocate(numCalls*hashLen);
         for (int counter=0; counter<numCalls; counter++) {
             ByteBuffer hashInput = ByteBuffer.allocate(input.length + 4);
             hashInput.put(input);
