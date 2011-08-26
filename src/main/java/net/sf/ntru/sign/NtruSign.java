@@ -110,7 +110,7 @@ public class NtruSign {
         SignaturePrivateKey priv = new SignaturePrivateKey();
         SignaturePublicKey pub = null;
         for (int k=params.B; k>=0; k--) {
-            Basis basis = createBoundedBasis();
+            Basis basis = generateBoundedBasis();
             priv.add(basis);
             if (k == 0)
                 pub = new SignaturePublicKey(basis.h, params);
@@ -347,19 +347,19 @@ public class NtruSign {
      * Creates a basis such that <code>|F| &lt; keyNormBound</code> and <code>|G| &lt; keyNormBound</code>
      * @return a NtruSign basis
      */
-    private Basis createBoundedBasis() {
+    private Basis generateBoundedBasis() {
         double keyNormBoundSq = params.keyNormBoundSq;
         int q = params.q;
         
         while (true) {
-            FGBasis basis = createBasis();
+            FGBasis basis = generateBasis();
             if (basis.F.centeredNormSq(q)<keyNormBoundSq && basis.G.centeredNormSq(q)<keyNormBoundSq)
                 return basis;
         }
     }
     
     /** Creates a NtruSign basis consisting of polynomials <code>f, g, F, G, h</code>. */
-    FGBasis createBasis() {
+    FGBasis generateBasis() {
         int N = params.N;
         int q = params.q;
         int d = params.d;
@@ -522,7 +522,7 @@ public class NtruSign {
 
         @Override
         public Basis call() throws Exception {
-            return createBoundedBasis();
+            return generateBoundedBasis();
         }
     }
     

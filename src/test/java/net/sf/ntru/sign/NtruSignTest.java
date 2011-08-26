@@ -43,13 +43,13 @@ public class NtruSignTest {
     public void testCreateBasis() {
         SignatureParameters params = SignatureParameters.TEST157;
         NtruSign ntru = new NtruSign(params);
-        FGBasis basis = ntru.createBasis();
+        FGBasis basis = ntru.generateBasis();
         assertTrue(equalsQ(basis.f, basis.fPrime, basis.F, basis.G, params.q, params.N));
         
         // test KeyGenAlg.FLOAT (default=RESULTANT)
         params.keyGenAlg = KeyGenAlg.FLOAT;
         ntru = new NtruSign(params);
-        basis = ntru.createBasis();
+        basis = ntru.generateBasis();
         assertTrue(equalsQ(basis.f, basis.fPrime, basis.F, basis.G, params.q, params.N));
     }
     
