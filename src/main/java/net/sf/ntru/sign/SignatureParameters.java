@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.DecimalFormat;
-import java.util.Arrays;
 
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
 import net.sf.ntru.polynomial.SparseTernaryPolynomial;
@@ -34,19 +33,19 @@ import net.sf.ntru.polynomial.SparseTernaryPolynomial;
  */
 public class SignatureParameters implements Cloneable {
     /** Gives 128 bits of security */
-    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, false, true, KeyGenAlg.RESULTANT);
+    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, false, true, KeyGenAlg.RESULTANT, "SHA-256");
     
     /** Same as APR2011_439 but uses KeyGenAlg.FLOAT */
     public static final SignatureParameters APR2011_439_FAST = APR2011_439.clone().setKeyGenAlgorithm(KeyGenAlg.FLOAT);
     
     /** Gives 256 bits of security */
-    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, true, false, KeyGenAlg.RESULTANT);
+    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, true, false, KeyGenAlg.RESULTANT, "SHA-512");
     
     /** Same as APR2011_743 but uses KeyGenAlg.FLOAT */
     public static final SignatureParameters APR2011_743_FAST = APR2011_743.clone().setKeyGenAlgorithm(KeyGenAlg.FLOAT);
     
     /** Generates key pairs quickly. Use for testing only. */
-    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, false, false, KeyGenAlg.RESULTANT);
+    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, false, false, KeyGenAlg.RESULTANT, "SHA-256");
     
     public enum BasisType {STANDARD, TRANSPOSE};
     public enum KeyGenAlg {RESULTANT, FLOAT};
@@ -62,6 +61,7 @@ public class SignatureParameters implements Cloneable {
     int bitsF = 6;   // max #bits needed to encode one coefficient of the polynomial F
     boolean sparse;   // whether to treat ternary polynomials as sparsely populated
     KeyGenAlg keyGenAlg;
+    String hashAlg;
     
     /**
      * Constructs a new set of signature parameters.
@@ -76,8 +76,9 @@ public class SignatureParameters implements Cloneable {
      * @param primeCheck whether <code>2N+1</code> is prime
      * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
      * @param keyGenAlg <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is faster
+     * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>
      */
-    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg) {
+    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg, String hashAlg) {
         this.N = N;
         this.q = q;
         this.d = d;
@@ -89,6 +90,7 @@ public class SignatureParameters implements Cloneable {
         this.primeCheck = primeCheck;
         this.sparse = sparse;
         this.keyGenAlg = keyGenAlg;
+        this.hashAlg = hashAlg;
         init();
     }
 
@@ -118,6 +120,7 @@ public class SignatureParameters implements Cloneable {
         sparse = dis.readBoolean();
         bitsF = dis.readInt();
         keyGenAlg = KeyGenAlg.values()[dis.read()];
+        hashAlg = dis.readUTF();
         init();
     }
     
@@ -151,11 +154,12 @@ public class SignatureParameters implements Cloneable {
         dos.writeBoolean(sparse);
         dos.writeInt(bitsF);
         dos.write(keyGenAlg.ordinal());
+        dos.writeUTF(hashAlg);
     }
 
     @Override
     public SignatureParameters clone() {
-        return new SignatureParameters(N, q, d, B, basisType, beta, normBound, keyNormBound, primeCheck, sparse, keyGenAlg);
+        return new SignatureParameters(N, q, d, B, basisType, beta, normBound, keyNormBound, primeCheck, sparse, keyGenAlg, hashAlg);
     }
     
     @Override
@@ -172,6 +176,7 @@ public class SignatureParameters implements Cloneable {
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + bitsF;
         result = prime * result + d;
+        result = prime * result + ((hashAlg == null) ? 0 : hashAlg.hashCode());
         result = prime * result + ((keyGenAlg == null) ? 0 : keyGenAlg.hashCode());
         temp = Double.doubleToLongBits(keyNormBound);
         result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -214,6 +219,11 @@ public class SignatureParameters implements Cloneable {
             return false;
         if (d != other.d)
             return false;
+        if (hashAlg == null) {
+            if (other.hashAlg != null)
+                return false;
+        } else if (!hashAlg.equals(other.hashAlg))
+            return false;
         if (keyGenAlg == null) {
             if (other.keyGenAlg != null)
                 return false;
@@ -237,12 +247,12 @@ public class SignatureParameters implements Cloneable {
             return false;
         return true;
     }
-    
+
     @Override
     public String toString() {
         DecimalFormat format = new DecimalFormat("0.00");
         return "SignatureParameters(N=" + N + " q=" + q + " d=" + d + " B=" + B + " basisType=" + basisType + " beta=" + format.format(beta) +
                 " normBound=" + format.format(normBound) + " keyNormBound=" + format.format(keyNormBound) +
-                " prime=" + primeCheck + " sparse=" + sparse + " keyGenAlg=" + keyGenAlg + ")";
+                " prime=" + primeCheck + " sparse=" + sparse + " keyGenAlg=" + keyGenAlg + " hashAlg=" + hashAlg + ")";
     }
 }

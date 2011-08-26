@@ -45,7 +45,7 @@ class IndexGenerator {
      * Constructs a new index generator.
      * @param seed a seed of arbitrary length to initialize the index generator with
      * @param params NtruEncrypt parameters
-     * @throws NtruException if SHA-512 is not available
+     * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
     IndexGenerator(byte[] seed, EncryptionParameters params) {
         this.seed = seed;
@@ -57,7 +57,7 @@ class IndexGenerator {
         remLen = 0;
         counter = 0;
         try {
-            hashAlg = MessageDigest.getInstance("SHA-512");
+            hashAlg = MessageDigest.getInstance(params.hashAlg);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }

@@ -35,13 +35,14 @@ public class Prng {
     /**
      * Constructs a new PRNG and seeds it with a byte array.
      * @param seed a seed
-     * @throws NtruException if the JRE doesn't implement SHA-512
+     * @param hashAlg the hash algorithm to use
+     * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
-    Prng(byte[] seed) {
+    Prng(byte[] seed, String hashAlg) {
         counter = 0;
         this.seed = seed;
         try {
-            hashAlg = MessageDigest.getInstance("SHA-512");
+            this.hashAlg = MessageDigest.getInstance(hashAlg);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }

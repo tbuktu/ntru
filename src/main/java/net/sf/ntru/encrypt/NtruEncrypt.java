@@ -122,7 +122,7 @@ public class NtruEncrypt {
      * @param m The message to encrypt
      * @param pubKey the public key to encrypt the message with
      * @return the encrypted message
-     * @throws NtruException if SHA-512 is not available, the message is longer than <code>maxLenBytes</code>, or <code>maxLenBytes</code> is greater than 255
+     * @throws NtruException if the JRE doesn't implement the specified hash algorithm, the message is longer than <code>maxLenBytes</code>, or <code>maxLenBytes</code> is greater than 255
      */
     public byte[] encrypt(byte[] m, EncryptionPublicKey pubKey) {
         IntegerPolynomial pub = pubKey.h;
@@ -253,15 +253,15 @@ public class NtruEncrypt {
      * @param N
      * @param minCallsMask
      * @return
-     * @throws NtruException if SHA-512 is not available
+     * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
     private IntegerPolynomial MGF1(byte[] input, int N, int minCallsMask) {
         int numBytes = (N*3+2)/2;
-        int numCalls = (numBytes+63) / 64;   // calls to SHA-512
+        int numCalls = (numBytes+63) / 64;   // calls to the hash function
         ByteBuffer buf = ByteBuffer.allocate(numCalls*64);
         MessageDigest hashAlg;
         try {
-            hashAlg = MessageDigest.getInstance("SHA-512");
+            hashAlg = MessageDigest.getInstance(params.hashAlg);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }
@@ -282,7 +282,7 @@ public class NtruEncrypt {
      * @param data The message to decrypt
      * @param kp a key pair that contains the public key the message was encrypted with, and the corresponding private key
      * @return the decrypted message
-     * @throws NtruException if SHA-512 is not available, the encrypted data is invalid, or <code>maxLenBytes</code> is greater than 255
+     * @throws NtruException if the JRE doesn't implement the specified hash algorithm, the encrypted data is invalid, or <code>maxLenBytes</code> is greater than 255
      */
     public byte[] decrypt(byte[] data, EncryptionKeyPair kp) {
         Polynomial priv_t = kp.priv.t;

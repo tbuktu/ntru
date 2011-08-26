@@ -33,25 +33,25 @@ import net.sf.ntru.polynomial.SparseTernaryPolynomial;
  */
 public class EncryptionParameters implements Cloneable {
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for key size. */
-    public static final EncryptionParameters EES1087EP2 = new EncryptionParameters(1087, 2048, 120, 120, 256, 13, 25, 14, new byte[] {0, 6, 3}, true, false);
+    public static final EncryptionParameters EES1087EP2 = new EncryptionParameters(1087, 2048, 120, 120, 256, 13, 25, 14, new byte[] {0, 6, 3}, true, false, "SHA-512");
     
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is a tradeoff between key size and encryption/decryption speed. */
-    public static final EncryptionParameters EES1171EP1 = new EncryptionParameters(1171, 2048, 106, 106, 256, 13, 20, 15, new byte[] {0, 6, 4}, true, false);
+    public static final EncryptionParameters EES1171EP1 = new EncryptionParameters(1171, 2048, 106, 106, 256, 13, 20, 15, new byte[] {0, 6, 4}, true, false, "SHA-512");
     
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for encryption/decryption speed. */
-    public static final EncryptionParameters EES1499EP1 = new EncryptionParameters(1499, 2048, 79, 79, 256, 13, 17, 19, new byte[] {0, 6, 5}, true, false);
+    public static final EncryptionParameters EES1499EP1 = new EncryptionParameters(1499, 2048, 79, 79, 256, 13, 17, 19, new byte[] {0, 6, 5}, true, false, "SHA-512");
     
     /** A parameter set that gives 128 bits of security and uses simple ternary polynomials. */
-    public static final EncryptionParameters APR2011_439 = new EncryptionParameters(439, 2048, 146, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true, false);
+    public static final EncryptionParameters APR2011_439 = new EncryptionParameters(439, 2048, 146, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true, false, "SHA-256");
     
     /** Like <code>APR2011_439</code>, this parameter set gives 128 bits of security but uses product-form polynomials and <code>f=1+pF</code>. */
-    public static final EncryptionParameters APR2011_439_FAST = new EncryptionParameters(439, 2048, 9, 8, 5, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true, true);
+    public static final EncryptionParameters APR2011_439_FAST = new EncryptionParameters(439, 2048, 9, 8, 5, 130, 128, 9, 32, 9, new byte[] {0, 7, 101}, true, true, "SHA-256");
     
     /** A parameter set that gives 256 bits of security and uses simple ternary polynomials. */
-    public static final EncryptionParameters APR2011_743 = new EncryptionParameters(743, 2048, 248, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false, false);
+    public static final EncryptionParameters APR2011_743 = new EncryptionParameters(743, 2048, 248, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false, false, "SHA-512");
     
     /** Like <code>APR2011_743</code>, this parameter set gives 256 bits of security but uses product-form polynomials and <code>f=1+pF</code>. */
-    public static final EncryptionParameters APR2011_743_FAST = new EncryptionParameters(743, 2048, 11, 11, 15, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false, true);
+    public static final EncryptionParameters APR2011_743_FAST = new EncryptionParameters(743, 2048, 11, 11, 15, 220, 256, 10, 27, 14, new byte[] {0, 7, 105}, false, true, "SHA-512");
     
     public enum TernaryPolynomialType {SIMPLE, PRODUCT};
     
@@ -61,6 +61,7 @@ public class EncryptionParameters implements Cloneable {
     boolean sparse;
     boolean fastFp;
     TernaryPolynomialType polyType;
+    public String hashAlg;
     
     /**
      * Constructs a parameter set that uses ternary private keys (i.e. </code>polyType=SIMPLE</code>).
@@ -75,8 +76,9 @@ public class EncryptionParameters implements Cloneable {
      * @param oid three bytes that uniquely identify the parameter set
      * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
      * @param fastFp whether <code>f=1+p*F</code> for a ternary <code>F</code> (true) or <code>f</code> is ternary (false)
+     * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>
      */
-    public EncryptionParameters(int N, int q, int df, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse, boolean fastFp) {
+    public EncryptionParameters(int N, int q, int df, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse, boolean fastFp, String hashAlg) {
         this.N = N;
         this.q = q;
         this.df = df;
@@ -89,6 +91,7 @@ public class EncryptionParameters implements Cloneable {
         this.sparse = sparse;
         this.fastFp = fastFp;
         this.polyType = TernaryPolynomialType.SIMPLE;
+        this.hashAlg = hashAlg;
         init();
     }
 
@@ -107,8 +110,9 @@ public class EncryptionParameters implements Cloneable {
      * @param oid three bytes that uniquely identify the parameter set
      * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
      * @param fastFp whether <code>f=1+p*F</code> for a ternary <code>F</code> (true) or <code>f</code> is ternary (false)
+     * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>
      */
-    public EncryptionParameters(int N, int q, int df1, int df2, int df3, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse, boolean fastFp) {
+    public EncryptionParameters(int N, int q, int df1, int df2, int df3, int dm0, int db, int c, int minCallsR, int minCallsMask, byte[] oid, boolean sparse, boolean fastFp, String hashAlg) {
         this.N = N;
         this.q = q;
         this.df1 = df1;
@@ -123,6 +127,7 @@ public class EncryptionParameters implements Cloneable {
         this.sparse = sparse;
         this.fastFp = fastFp;
         this.polyType = TernaryPolynomialType.PRODUCT;
+        this.hashAlg = hashAlg;
         init();
     }
 
@@ -167,9 +172,9 @@ public class EncryptionParameters implements Cloneable {
 
     public EncryptionParameters clone() {
         if (polyType == TernaryPolynomialType.SIMPLE)
-            return new EncryptionParameters(N, q, df, dm0, db, c, minCallsR, minCallsMask, oid, sparse, fastFp);
+            return new EncryptionParameters(N, q, df, dm0, db, c, minCallsR, minCallsMask, oid, sparse, fastFp, hashAlg);
         else
-            return new EncryptionParameters(N, q, df1, df2, df3, dm0, db, c, minCallsR, minCallsMask, oid, sparse, fastFp);
+            return new EncryptionParameters(N, q, df1, df2, df3, dm0, db, c, minCallsR, minCallsMask, oid, sparse, fastFp, hashAlg);
     }
     
     /**

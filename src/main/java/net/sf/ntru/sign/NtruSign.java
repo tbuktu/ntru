@@ -126,7 +126,7 @@ public class NtruSign {
     public void initSign(SignatureKeyPair kp) {
         this.signingKeyPair = kp;
         try {
-            hashAlg = MessageDigest.getInstance("SHA-512");
+            hashAlg = MessageDigest.getInstance(params.hashAlg);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }
@@ -172,7 +172,7 @@ public class NtruSign {
             // EESS directly passes the message into the MRGM (message representative
             // generation method). Since that is inefficient for long messages, we work
             // with the hash of the message.
-            byte[] msgHash = MessageDigest.getInstance("SHA-512").digest(m);
+            byte[] msgHash = MessageDigest.getInstance(params.hashAlg).digest(m);
             return signHash(msgHash, kp);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
@@ -255,7 +255,7 @@ public class NtruSign {
     public void initVerify(SignaturePublicKey pub) {
         verificationKey = pub;
         try {
-            hashAlg = MessageDigest.getInstance("SHA-512");
+            hashAlg = MessageDigest.getInstance(params.hashAlg);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }
@@ -287,7 +287,7 @@ public class NtruSign {
      */
     public boolean verify(byte[] m, byte[] sig, SignaturePublicKey pub) {
         try {
-            byte[] msgHash = MessageDigest.getInstance("SHA-512").digest(m);
+            byte[] msgHash = MessageDigest.getInstance(params.hashAlg).digest(m);
             return verifyHash(msgHash, sig, pub);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
@@ -325,7 +325,7 @@ public class NtruSign {
         ByteBuffer cbuf = ByteBuffer.allocate(msgHash.length + 4);
         cbuf.put(msgHash);
         cbuf.putInt(r);
-        Prng prng = new Prng(cbuf.array());
+        Prng prng = new Prng(cbuf.array(), params.hashAlg);
         
         for (int t=0; t<N; t++) {
             byte[] o = prng.nextBytes(B);
