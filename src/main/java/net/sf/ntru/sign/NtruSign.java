@@ -58,20 +58,10 @@ public class NtruSign {
     private SignaturePublicKey verificationKey;
     
     /**
-     * Constructs a new instance with a set of signature parameters and takes an educated guess
-     * as to whether 64 bits are supported by the JVM.
+     * Constructs a new instance with a set of signature parameters.
      * @param params signature parameters
      */
     public NtruSign(SignatureParameters params) {
-        this.params = params;
-    }
-    
-    /**
-     * Constructs a new instance with a set of signature parameters.
-     * @param params signature parameters
-     * @param use64Bits whether to prefer <code>long</code>s over <code>int</code>s for certain calculations
-     */
-    public NtruSign(SignatureParameters params, boolean use64Bits) {
         this.params = params;
     }
     

@@ -105,6 +105,10 @@ public class Util {
         return arr;
     }
     
+    /**
+     * Takes an educated guess as to whether 64 bits are supported by the JVM.
+     * @return <code>true</code> if 64-bit support detected, <code>false</code> otherwise
+     */
     public static boolean is64BitJVM() {
         if (!IS_64_BITNESS_KNOWN) {
             String arch = System.getProperty("os.arch");
