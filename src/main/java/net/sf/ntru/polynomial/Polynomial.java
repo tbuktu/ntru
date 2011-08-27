@@ -29,5 +29,10 @@ public interface Polynomial {
      */
     IntegerPolynomial mult(IntegerPolynomial poly2, int modulus);
     
+    /**
+     * Returns a polynomial that is equal to this polynomial (in the sense that {@link #mult(IntegerPolynomial, int)}
+     * returns equal <code>IntegerPolynomial</code>s). The new polynomial is guaranteed to be independent of the original.
+     * @return a new <code>IntegerPolynomial</code>.
+     */
     IntegerPolynomial toIntegerPolynomial();
 }

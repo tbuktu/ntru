@@ -26,6 +26,7 @@ import net.sf.ntru.encrypt.EncryptionParameters;
 import net.sf.ntru.encrypt.EncryptionPrivateKey;
 import net.sf.ntru.encrypt.EncryptionPublicKey;
 import net.sf.ntru.encrypt.NtruEncrypt;
+import net.sf.ntru.encrypt.EncryptionParameters.TernaryPolynomialType;
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
 import net.sf.ntru.polynomial.IntegerPolynomial;
@@ -37,21 +38,30 @@ public class NtruEncryptTest {
     
     @Test
     public void testEncryptDecrypt() {
-        for (EncryptionParameters params: new EncryptionParameters[] {EncryptionParameters.APR2011_743, EncryptionParameters.APR2011_743_FAST}) {
-            NtruEncrypt ntru = new NtruEncrypt(params);
-            EncryptionKeyPair kp = ntru.generateKeyPair();
-            
-            testPolynomial(ntru, kp, params);
-            
-            testText(ntru, kp, params);
-            // sparse/dense
-            params.sparse = !params.sparse;
-            testText(ntru, kp, params);
-            params.sparse = !params.sparse;
-            
-            testEmpty(ntru, kp, params);
-            testMaxLength(ntru, kp, params);
-            testTooLong(ntru, kp, params);
+        EncryptionParameters params = EncryptionParameters.APR2011_743.clone();
+        params.df1 = EncryptionParameters.APR2011_743_FAST.df1;
+        params.df2 = EncryptionParameters.APR2011_743_FAST.df2;
+        params.df3 = EncryptionParameters.APR2011_743_FAST.df3;
+        
+        for (TernaryPolynomialType polyType: TernaryPolynomialType.values())
+            for (boolean fastP: new boolean[] {true, false}) {
+                params.polyType = polyType;
+                params.fastFp = fastP;
+                
+                NtruEncrypt ntru = new NtruEncrypt(params);
+                EncryptionKeyPair kp = ntru.generateKeyPair();
+                
+                testPolynomial(ntru, kp, params);
+                
+                testText(ntru, kp, params);
+                // sparse/dense
+                params.sparse = !params.sparse;
+                testText(ntru, kp, params);
+                params.sparse = !params.sparse;
+                
+                testEmpty(ntru, kp, params);
+                testMaxLength(ntru, kp, params);
+                testTooLong(ntru, kp, params);
         }
     }
     
