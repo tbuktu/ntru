@@ -69,8 +69,8 @@ public class SignatureParameters implements Cloneable {
      * @param keyNormBound maximum norm for the ploynomials <code>F</code> and <code>G</code>
      * @param primeCheck whether <code>2N+1</code> is prime
      * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
-     * @param keyGenAlg <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster
-     * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>
+     * @param keyGenAlg <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster. <code>RESULTANT</code> follows the EESS standard while <code>FLOAT</code> is described in Hoffstein et al: An Introduction to Mathematical Cryptography.
+     * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>. The <code>MessageDigest</code> must support the <code>getDigestLength()</code> method.
      */
     public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg, String hashAlg) {
         this.N = N;
