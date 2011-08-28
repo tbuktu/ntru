@@ -105,6 +105,14 @@ Key Import / Export
   Keys can also be converted to and from byte arrays.
 
 
+Parameter Sets
+
+  It is generally recommended to use the APR2011_439_FAST or APR2011_743_FAST
+  parameter set for encryption, and APR2011_439_PROD or APR2011_743_PROD for
+  signatures. The security levels are 128 bits for the "439" parameters and
+  256 bits for the "743" parameters.
+
+
 Sample Programs
 
   The net.sf.ntru.demo package contains several small console programs:

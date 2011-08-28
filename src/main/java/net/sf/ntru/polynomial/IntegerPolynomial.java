@@ -45,7 +45,7 @@ import net.sf.ntru.util.Util;
  * Some methods (like <code>add</code>) change the polynomial, others (like <code>mult</code>) do
  * not but return the result as a new polynomial.
  */
-public class IntegerPolynomial {
+public class IntegerPolynomial implements Polynomial {
     /** prime numbers &gt; <code>10^4</code> */
     private static final int[] PRIMES = new int[] {
         10007, 10009, 10037, 10039, 10061, 10067, 10069, 10079, 10091, 10093, 
@@ -290,6 +290,11 @@ public class IntegerPolynomial {
             c.coeffs = Arrays.copyOf(c.coeffs, N);
         }
         return c;
+    }
+    
+    @Override
+    public BigIntPolynomial mult(BigIntPolynomial poly2) {
+        return new BigIntPolynomial(this).mult(poly2);
     }
     
     /** Karazuba multiplication */
@@ -1009,6 +1014,11 @@ public class IntegerPolynomial {
             coeffs[i] = 0;
     }
     
+    @Override
+    public IntegerPolynomial toIntegerPolynomial() {
+        return clone();
+    }
+   
     @Override
     public IntegerPolynomial clone() {
         return new IntegerPolynomial(coeffs.clone());

@@ -40,11 +40,12 @@ import net.sf.ntru.polynomial.BigIntPolynomial;
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
 import net.sf.ntru.polynomial.IntegerPolynomial;
 import net.sf.ntru.polynomial.LongPolynomial;
+import net.sf.ntru.polynomial.Polynomial;
+import net.sf.ntru.polynomial.ProductFormPolynomial;
 import net.sf.ntru.polynomial.Resultant;
-import net.sf.ntru.polynomial.SparseTernaryPolynomial;
-import net.sf.ntru.polynomial.TernaryPolynomial;
 import net.sf.ntru.sign.SignatureParameters.BasisType;
 import net.sf.ntru.sign.SignatureParameters.KeyGenAlg;
+import net.sf.ntru.sign.SignatureParameters.TernaryPolynomialType;
 import net.sf.ntru.sign.SignaturePrivateKey.Basis;
 import net.sf.ntru.util.Util;
 
@@ -196,14 +197,14 @@ public class NtruSign {
         IntegerPolynomial s = new IntegerPolynomial(N);
         int iLoop = perturbationBases;
         while (iLoop >= 1) {
-            TernaryPolynomial f = kp.priv.getBasis(iLoop).f;
-            IntegerPolynomial fPrime = kp.priv.getBasis(iLoop).fPrime;
+            Polynomial f = kp.priv.getBasis(iLoop).f;
+            Polynomial fPrime = kp.priv.getBasis(iLoop).fPrime;
             
             IntegerPolynomial y = f.mult(i);
             y.div(q);
-            y = y.mult(fPrime);
+            y = fPrime.mult(y);
             
-            IntegerPolynomial x = i.mult(fPrime);
+            IntegerPolynomial x = fPrime.mult(i);
             x.div(q);
             x = f.mult(x);
 
@@ -221,14 +222,14 @@ public class NtruSign {
             iLoop--;
         }
         
-        TernaryPolynomial f = kp.priv.getBasis(0).f;
-        IntegerPolynomial fPrime = kp.priv.getBasis(0).fPrime;
+        Polynomial f = kp.priv.getBasis(0).f;
+        Polynomial fPrime = kp.priv.getBasis(0).fPrime;
         
         IntegerPolynomial y = f.mult(i);
         y.div(q);
-        y = y.mult(fPrime);
+        y = fPrime.mult(y);
         
-        IntegerPolynomial x = i.mult(fPrime);
+        IntegerPolynomial x = fPrime.mult(i);
         x.div(q);
         x = f.mult(x);
 
@@ -353,10 +354,15 @@ public class NtruSign {
         int N = params.N;
         int q = params.q;
         int d = params.d;
+        int d1 = params.d1;
+        int d2 = params.d2;
+        int d3 = params.d3;
         BasisType basisType = params.basisType;
         
-        DenseTernaryPolynomial f;
-        IntegerPolynomial g;
+        Polynomial f;
+        IntegerPolynomial fInt;
+        Polynomial g;
+        IntegerPolynomial gInt;
         IntegerPolynomial fq;
         Resultant rf;
         Resultant rg;
@@ -367,19 +373,21 @@ public class NtruSign {
         
         do {
             do {
-                f = DenseTernaryPolynomial.generateRandom(N, d+1, d);
-            } while (primeCheck && f.resultant(_2n1).res.equals(ZERO));
-            fq = f.invertFq(q);
+                f = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, d+1, d) : ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3);
+                fInt = f.toIntegerPolynomial();
+            } while (primeCheck && fInt.resultant(_2n1).res.equals(ZERO));
+            fq = fInt.invertFq(q);
         } while (fq == null);
-        rf = Util.is64BitJVM() ? new LongPolynomial(f).resultant() : f.resultant(); 
+        rf = Util.is64BitJVM() ? new LongPolynomial(fInt).resultant() : fInt.resultant(); 
         
         do {
             do {
                 do {
-                    g = DenseTernaryPolynomial.generateRandom(N, d+1, d);
-                } while (primeCheck && g.resultant(_2n1).res.equals(ZERO));
-            } while (g.invertFq(q) == null);
-            rg = Util.is64BitJVM() ? new LongPolynomial(g).resultant() : g.resultant();
+                    g = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, d+1, d) : ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3);
+                    gInt = g.toIntegerPolynomial();
+                } while (primeCheck && gInt.resultant(_2n1).res.equals(ZERO));
+            } while (gInt.invertFq(q) == null);
+            rg = Util.is64BitJVM() ? new LongPolynomial(gInt).resultant() : gInt.resultant();
             r = BigIntEuclidean.calculate(rf.res, rg.res);
         } while (!r.gcd.equals(ONE));
         
@@ -392,11 +400,11 @@ public class NtruSign {
         if (params.keyGenAlg == KeyGenAlg.RESULTANT) {
             int[] fRevCoeffs = new int[N];
             int[] gRevCoeffs = new int[N];
-            fRevCoeffs[0] = f.coeffs[0];
-            gRevCoeffs[0] = g.coeffs[0];
+            fRevCoeffs[0] = fInt.coeffs[0];
+            gRevCoeffs[0] = gInt.coeffs[0];
             for (int i=1; i<N; i++) {
-                fRevCoeffs[i] = f.coeffs[N-i];
-                gRevCoeffs[i] = g.coeffs[N-i];
+                fRevCoeffs[i] = fInt.coeffs[N-i];
+                gRevCoeffs[i] = gInt.coeffs[N-i];
             }
             IntegerPolynomial fRev = new IntegerPolynomial(fRevCoeffs);
             IntegerPolynomial gRev = new IntegerPolynomial(gRevCoeffs);
@@ -404,8 +412,8 @@ public class NtruSign {
             IntegerPolynomial t = f.mult(fRev);
             t.add(g.mult(gRev));
             Resultant rt = Util.is64BitJVM() ? new LongPolynomial(t).resultant() : t.resultant();
-            C = B.mult(fRev);   // B.mult(fRev) is actually faster than new SparseTernaryPolynomial(fRev).mult(B)
-            C.add(A.mult(gRev));
+            C = fRev.mult(B);   // fRev.mult(B) is actually faster than new SparseTernaryPolynomial(fRev).mult(B), possibly due to cache locality?
+            C.add(gRev.mult(A));
             C = C.mult(rt.rho);
             C.div(rt.res);
         }
@@ -429,15 +437,15 @@ public class NtruSign {
         }
         
         BigIntPolynomial F = B.clone();
-        F.sub(C.mult(f));   // C.mult(f) is actually faster than new SparseTernaryPolynomial(f).mult(C)
+        F.sub(f.mult(C));
         BigIntPolynomial G = A.clone();
-        G.sub(C.mult(g));
+        G.sub(g.mult(C));
 
         IntegerPolynomial FInt = new IntegerPolynomial(F);
         IntegerPolynomial GInt = new IntegerPolynomial(G);
-        minimizeFG(f, g, FInt, GInt, N);
+        minimizeFG(fInt, gInt, FInt, GInt, N);
         
-        IntegerPolynomial fPrime;
+        Polynomial fPrime;
         IntegerPolynomial h;
         if (basisType == BasisType.STANDARD) {
             fPrime = FInt;
@@ -449,14 +457,15 @@ public class NtruSign {
         }
         h.modPositive(q);
         
-        SparseTernaryPolynomial fTer = new SparseTernaryPolynomial(f);
-        return new FGBasis(fTer, fPrime, h, FInt, GInt, params);
+        return new FGBasis(f, fPrime, h, FInt, GInt, params);
     }
     
     /**
      * Implementation of the optional steps 20 through 26 in EESS1v2.pdf, section 3.5.1.1.
      * This doesn't seem to have much of an effect and sometimes actually increases the
-     * norm of F, but on average it slightly reduces the norm.
+     * norm of F, but on average it slightly reduces the norm.<br/>
+     * This method changes <code>F</code> and <code>g</code> but leaves <code>f</code> and
+     * <code>g</code> unchanged.
      * @param f
      * @param g
      * @param F
@@ -522,7 +531,7 @@ public class NtruSign {
     class FGBasis extends Basis {
         IntegerPolynomial F, G;
         
-        FGBasis(TernaryPolynomial f, IntegerPolynomial fPrime, IntegerPolynomial h, IntegerPolynomial F, IntegerPolynomial G, SignatureParameters params) {
+        FGBasis(Polynomial f, Polynomial fPrime, IntegerPolynomial h, IntegerPolynomial F, IntegerPolynomial G, SignatureParameters params) {
             super(f, fPrime, h, params);
             this.F = F;
             this.G = G;

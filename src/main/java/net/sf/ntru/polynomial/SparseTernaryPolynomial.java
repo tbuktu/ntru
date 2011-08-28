@@ -18,6 +18,8 @@
 
 package net.sf.ntru.polynomial;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
@@ -105,6 +107,32 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         int data2Len = (numNegOnes*bitsPerIndex+7) / 8;
         byte[] data2 = new byte[data2Len];
         data.get(data2);
+        int[] negOnes = ArrayEncoder.decodeModQ(data2, numNegOnes, maxIndex);
+        
+        return new SparseTernaryPolynomial(N, ones, negOnes);
+    }
+    
+    /**
+     * Decodes a byte array encoded with {@link #toBinary()} to a ploynomial.
+     * @param is an input stream containing an encoded polynomial
+     * @param N number of coefficients including zeros
+     * @param numOnes number of coefficients equal to 1
+     * @param numNegOnes number of coefficients equal to -1
+     * @return the decoded polynomial
+     * @throws IOException 
+     */
+    static SparseTernaryPolynomial fromBinary(InputStream is, int N, int numOnes, int numNegOnes) throws IOException {
+        int maxIndex = 1 << BITS_PER_INDEX;
+        int bitsPerIndex = 32 - Integer.numberOfLeadingZeros(maxIndex-1);
+        
+        int data1Len = (numOnes*bitsPerIndex+7) / 8;
+        byte[] data1 = new byte[data1Len];
+        is.read(data1);
+        int[] ones = ArrayEncoder.decodeModQ(data1, numOnes, maxIndex);
+        
+        int data2Len = (numNegOnes*bitsPerIndex+7) / 8;
+        byte[] data2 = new byte[data2Len];
+        is.read(data2);
         int[] negOnes = ArrayEncoder.decodeModQ(data2, numNegOnes, maxIndex);
         
         return new SparseTernaryPolynomial(N, ones, negOnes);
@@ -236,5 +264,33 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
             ones[i] = 0;
         for (int i=0; i<negOnes.length; i++)
             negOnes[i] = 0;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + N;
+        result = prime * result + Arrays.hashCode(negOnes);
+        result = prime * result + Arrays.hashCode(ones);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SparseTernaryPolynomial other = (SparseTernaryPolynomial) obj;
+        if (N != other.N)
+            return false;
+        if (!Arrays.equals(negOnes, other.negOnes))
+            return false;
+        if (!Arrays.equals(ones, other.ones))
+            return false;
+        return true;
     }
 }

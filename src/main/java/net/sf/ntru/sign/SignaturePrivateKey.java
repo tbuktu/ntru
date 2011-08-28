@@ -29,12 +29,15 @@ import java.util.List;
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
 import net.sf.ntru.polynomial.IntegerPolynomial;
+import net.sf.ntru.polynomial.Polynomial;
+import net.sf.ntru.polynomial.ProductFormPolynomial;
 import net.sf.ntru.polynomial.SparseTernaryPolynomial;
-import net.sf.ntru.polynomial.TernaryPolynomial;
 import net.sf.ntru.sign.SignatureParameters.BasisType;
+import net.sf.ntru.sign.SignatureParameters.TernaryPolynomialType;
 
 /**
- * A NtruSign private key comprises one or more {@link SignaturePrivateKey.Basis} of three polynomials each.
+ * A NtruSign private key comprises one or more {@link SignaturePrivateKey.Basis} of three polynomials each,
+ * except the zeroth basis for which <code>h</code> is undefined.
  */
 public class SignaturePrivateKey {
     private List<Basis> bases;
@@ -113,10 +116,50 @@ public class SignaturePrivateKey {
         os.write(getEncoded());
     }
     
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((bases == null) ? 0 : bases.hashCode());
+        for (Basis basis: bases)
+            result += basis.hashCode();
+        return result;
+    }
+    
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SignaturePrivateKey other = (SignaturePrivateKey) obj;
+        if (bases == null) {
+            if (other.bases != null)
+                return false;
+        }
+        if (bases.size() != other.bases.size())
+            return false;
+        for (int i=0; i<bases.size(); i++) {
+            Basis basis1 = bases.get(i);
+            Basis basis2 = other.bases.get(i);
+            if (!basis1.f.equals(basis2.f))
+                return false;
+            if (!basis1.fPrime.equals(basis2.fPrime))
+                return false;
+            if (i!=0 && !basis1.h.equals(basis2.h))   // don't compare h for the 0th basis
+                return false;
+            if (!basis1.params.equals(basis2.params))
+                return false;
+        }
+        return true;
+    }
+
     /** A NtruSign basis. Contains three polynomials <code>f, f', h</code>. */
     static class Basis {
-        TernaryPolynomial f;
-        IntegerPolynomial fPrime;
+        Polynomial f;
+        Polynomial fPrime;
         IntegerPolynomial h;
         SignatureParameters params;
         
@@ -127,7 +170,7 @@ public class SignaturePrivateKey {
          * @param h
          * @param params NtruSign parameters
          */
-        Basis(TernaryPolynomial f, IntegerPolynomial fPrime, IntegerPolynomial h, SignatureParameters params) {
+        Basis(Polynomial f, Polynomial fPrime, IntegerPolynomial h, SignatureParameters params) {
             this.f = f;
             this.fPrime = fPrime;
             this.h = h;
@@ -143,18 +186,31 @@ public class SignaturePrivateKey {
         Basis(ByteBuffer buf, SignatureParameters params, boolean include_h) {
             int N = params.N;
             int q = params.q;
+            int d1 = params.d1;
+            int d2 = params.d2;
+            int d3 = params.d3;
             boolean sparse = params.sparse;
             this.params = params;
             
-            IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(buf, N);
-            f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
+            if (params.polyType == TernaryPolynomialType.PRODUCT)
+                f = ProductFormPolynomial.fromBinary(buf, N, d1, d2, d3+1, d3);
+            else {
+                IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(buf, N);
+                f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
+            }
+            
             if (params.basisType == BasisType.STANDARD) {
-                fPrime = IntegerPolynomial.fromBinary(buf, N, q);
-                for (int i=0; i<fPrime.coeffs.length; i++)
-                    fPrime.coeffs[i] -= q/2;
+                IntegerPolynomial fPrimeInt = IntegerPolynomial.fromBinary(buf, N, q);
+                for (int i=0; i<fPrimeInt.coeffs.length; i++)
+                    fPrimeInt.coeffs[i] -= q/2;
+                fPrime = fPrimeInt;
             }
             else
-                fPrime = IntegerPolynomial.fromBinary3Arith(buf, N);
+                if (params.polyType == TernaryPolynomialType.PRODUCT)
+                    fPrime = ProductFormPolynomial.fromBinary(buf, N, d1, d2, d3+1, d3);
+                else
+                    fPrime = IntegerPolynomial.fromBinary3Arith(buf, N);
+            
             if (include_h)
                 h = IntegerPolynomial.fromBinary(buf, N, q);
         }
@@ -168,18 +224,31 @@ public class SignaturePrivateKey {
         Basis(InputStream is, SignatureParameters params, boolean include_h) throws IOException {
             int N = params.N;
             int q = params.q;
+            int d1 = params.d1;
+            int d2 = params.d2;
+            int d3 = params.d3;
             boolean sparse = params.sparse;
             this.params = params;
             
-            IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(is, N);
-            f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
+            if (params.polyType == TernaryPolynomialType.PRODUCT)
+                f = ProductFormPolynomial.fromBinary(is, N, d1, d2, d3+1, d3);
+            else {
+                IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(is, N);
+                f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
+            }
+            
             if (params.basisType == BasisType.STANDARD) {
-                fPrime = IntegerPolynomial.fromBinary(is, N, q);
-                for (int i=0; i<fPrime.coeffs.length; i++)
-                    fPrime.coeffs[i] -= q/2;
+                IntegerPolynomial fPrimeInt = IntegerPolynomial.fromBinary(is, N, q);
+                for (int i=0; i<fPrimeInt.coeffs.length; i++)
+                    fPrimeInt.coeffs[i] -= q/2;
+                fPrime = fPrimeInt;
             }
             else
-                fPrime = IntegerPolynomial.fromBinary3Arith(is, N);
+                if (params.polyType == TernaryPolynomialType.PRODUCT)
+                    fPrime = ProductFormPolynomial.fromBinary(is, N, d1, d2, d3+1, d3);
+                else
+                    fPrime = IntegerPolynomial.fromBinary3Arith(is, N);
+            
             if (include_h)
                 h = IntegerPolynomial.fromBinary(is, N, q);
         }
@@ -193,16 +262,67 @@ public class SignaturePrivateKey {
         void encode(OutputStream os, boolean include_h) throws IOException {
             int q = params.q;
             
-            os.write(f.toIntegerPolynomial().toBinary3Arith());
+            os.write(getEncoded(f));
             if (params.basisType == BasisType.STANDARD) {
-                for (int i=0; i<fPrime.coeffs.length; i++)
-                    fPrime.coeffs[i] += q/2;
-                os.write(fPrime.toBinary(q));
+                IntegerPolynomial fPrimeInt = fPrime.toIntegerPolynomial();
+                for (int i=0; i<fPrimeInt.coeffs.length; i++)
+                    fPrimeInt.coeffs[i] += q/2;
+                os.write(fPrimeInt.toBinary(q));
             }
             else
-                os.write(fPrime.toBinary3Arith());
+                os.write(getEncoded(fPrime));
             if (include_h)
                 os.write(h.toBinary(q));
+        }
+
+        private byte[] getEncoded(Polynomial p) {
+            if (p instanceof ProductFormPolynomial)
+                return ((ProductFormPolynomial)p).toBinary();
+            else
+                return p.toIntegerPolynomial().toBinary3Arith();
+        }
+        
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((f == null) ? 0 : f.hashCode());
+            result = prime * result + ((fPrime == null) ? 0 : fPrime.hashCode());
+            result = prime * result + ((h == null) ? 0 : h.hashCode());
+            result = prime * result + ((params == null) ? 0 : params.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (!(obj instanceof Basis))
+                return false;
+            Basis other = (Basis) obj;
+            if (f == null) {
+                if (other.f != null)
+                    return false;
+            } else if (!f.equals(other.f))
+                return false;
+            if (fPrime == null) {
+                if (other.fPrime != null)
+                    return false;
+            } else if (!fPrime.equals(other.fPrime))
+                return false;
+            if (h == null) {
+                if (other.h != null)
+                    return false;
+            } else if (!h.equals(other.h))
+                return false;
+            if (params == null) {
+                if (other.params != null)
+                    return false;
+            } else if (!params.equals(other.params))
+                return false;
+            return true;
         }
     }
 }

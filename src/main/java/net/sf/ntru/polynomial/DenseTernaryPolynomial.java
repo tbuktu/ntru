@@ -127,11 +127,6 @@ public class DenseTernaryPolynomial extends IntegerPolynomial implements Ternary
     }
 
     @Override
-    public IntegerPolynomial toIntegerPolynomial() {
-        return clone();
-    }
-    
-    @Override
     public int size() {
         return coeffs.length;
     }

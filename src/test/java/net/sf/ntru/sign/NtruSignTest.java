@@ -26,12 +26,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import net.sf.ntru.polynomial.IntegerPolynomial;
-import net.sf.ntru.polynomial.TernaryPolynomial;
-import net.sf.ntru.sign.NtruSign;
-import net.sf.ntru.sign.SignatureKeyPair;
-import net.sf.ntru.sign.SignatureParameters;
-import net.sf.ntru.sign.SignaturePrivateKey;
-import net.sf.ntru.sign.SignaturePublicKey;
+import net.sf.ntru.polynomial.Polynomial;
 import net.sf.ntru.sign.NtruSign.FGBasis;
 import net.sf.ntru.sign.SignatureParameters.KeyGenAlg;
 
@@ -41,7 +36,11 @@ public class NtruSignTest {
     
     @Test
     public void testCreateBasis() {
-        SignatureParameters params = SignatureParameters.TEST157;
+        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157.clone(), SignatureParameters.TEST157_PROD.clone()})
+            testCreateBasis(params);
+    }
+    
+    private void testCreateBasis(SignatureParameters params) {
         NtruSign ntru = new NtruSign(params);
         FGBasis basis = ntru.generateBasis();
         assertTrue(equalsQ(basis.f, basis.fPrime, basis.F, basis.G, params.q, params.N));
@@ -54,7 +53,7 @@ public class NtruSignTest {
     }
     
     // verifies that f*G-g*F=q
-    private boolean equalsQ(TernaryPolynomial f, IntegerPolynomial g, IntegerPolynomial F, IntegerPolynomial G, int q, int N) {
+    private boolean equalsQ(Polynomial f, Polynomial g, IntegerPolynomial F, IntegerPolynomial G, int q, int N) {
         IntegerPolynomial x = f.mult(G);
         x.sub(g.mult(F));
         boolean equalsQ=true;
@@ -64,10 +63,14 @@ public class NtruSignTest {
         return equalsQ;
     }
     
-    /** test for the one-method-call variants: sign(byte, SignatureKeyPair) and verify(byte[], byte[], SignatureKeyPair) */
+    /** a test for the one-method-call variants: sign(byte, SignatureKeyPair) and verify(byte[], byte[], SignatureKeyPair) */
     @Test
     public void testSignVerify() {
-        SignatureParameters params = SignatureParameters.TEST157;
+        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157.clone(), SignatureParameters.TEST157_PROD.clone()})
+            testSignVerify(params);
+    }
+    
+    private void testSignVerify(SignatureParameters params) {
         NtruSign ntru = new NtruSign(params);
         
         SignatureKeyPair kp = ntru.generateKeyPair();
@@ -115,15 +118,16 @@ public class NtruSignTest {
         params.sparse = !params.sparse;
         
         // decrease NormBound to force multiple signing attempts
-        params = params.clone();
-        params.normBoundSq *= 4.0 / 9;
-        params.signFailTolerance = 10000;
+        SignatureParameters params2 = params.clone();
+        params2.normBoundSq *= 4.0 / 9;
+        params2.signFailTolerance = 10000;
+        ntru = new NtruSign(params2);
         s = ntru.sign(msg, kp);
         valid = ntru.verify(msg, s, kp.pub);
         assertTrue(valid);
         
         // test KeyGenAlg.FLOAT (default=RESULTANT)
-        params = SignatureParameters.TEST157;
+        params2 = params.clone();
         params.keyGenAlg = KeyGenAlg.FLOAT;
         ntru = new NtruSign(params);
         kp = ntru.generateKeyPair();
@@ -138,7 +142,12 @@ public class NtruSignTest {
     /** test for the initSign/update/sign and initVerify/update/verify variant */
     @Test
     public void testInitUpdateSign() {
-        NtruSign ntru = new NtruSign(SignatureParameters.TEST157);
+        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157.clone(), SignatureParameters.TEST157_PROD.clone()})
+            testInitUpdateSign(params);
+    }
+    
+    private void testInitUpdateSign(SignatureParameters params) {
+        NtruSign ntru = new NtruSign(params);
         
         SignatureKeyPair kp = ntru.generateKeyPair();
         
@@ -173,7 +182,12 @@ public class NtruSignTest {
     
     @Test
     public void testCreateMsgRep() {
-        NtruSign ntru = new NtruSign(SignatureParameters.TEST157);
+        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157.clone(), SignatureParameters.TEST157_PROD.clone()})
+            testCreateMsgRep(params);
+    }
+    
+    private void testCreateMsgRep(SignatureParameters params) {
+        NtruSign ntru = new NtruSign(params);
         byte[] msgHash = "adfsadfsdfs23234234".getBytes();
         
         // verify that the message representative is reproducible

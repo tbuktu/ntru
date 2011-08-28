@@ -18,6 +18,8 @@
 
 package net.sf.ntru.polynomial;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
@@ -44,10 +46,20 @@ public class ProductFormPolynomial implements Polynomial {
     }
     
     public static ProductFormPolynomial fromBinary(byte[] data, int N, int df1, int df2, int df3Ones, int df3NegOnes) {
-        ByteBuffer buf = ByteBuffer.wrap(data);
+        return fromBinary(ByteBuffer.wrap(data), N, df1, df2, df3Ones, df3NegOnes);
+    }
+    
+    public static ProductFormPolynomial fromBinary(ByteBuffer buf, int N, int df1, int df2, int df3Ones, int df3NegOnes) {
         SparseTernaryPolynomial f1 = SparseTernaryPolynomial.fromBinary(buf, N, df1, df1);
         SparseTernaryPolynomial f2 = SparseTernaryPolynomial.fromBinary(buf, N, df2, df2);
         SparseTernaryPolynomial f3 = SparseTernaryPolynomial.fromBinary(buf, N, df3Ones, df3NegOnes);
+        return new ProductFormPolynomial(f1, f2, f3);
+    }
+    
+    public static ProductFormPolynomial fromBinary(InputStream is, int N, int df1, int df2, int df3Ones, int df3NegOnes) throws IOException {
+        SparseTernaryPolynomial f1 = SparseTernaryPolynomial.fromBinary(is, N, df1, df1);
+        SparseTernaryPolynomial f2 = SparseTernaryPolynomial.fromBinary(is, N, df2, df2);
+        SparseTernaryPolynomial f3 = SparseTernaryPolynomial.fromBinary(is, N, df3Ones, df3NegOnes);
         return new ProductFormPolynomial(f1, f2, f3);
     }
     
@@ -62,8 +74,17 @@ public class ProductFormPolynomial implements Polynomial {
         return all;
     }
     
-    IntegerPolynomial mult(IntegerPolynomial b) {
+    @Override
+    public IntegerPolynomial mult(IntegerPolynomial b) {
         IntegerPolynomial c = f1.mult(b);
+        c = f2.mult(c);
+        c.add(f3.mult(b));
+        return c;
+    }
+
+    @Override
+    public BigIntPolynomial mult(BigIntPolynomial b) {
+        BigIntPolynomial c = f1.mult(b);
         c = f2.mult(c);
         c.add(f3.mult(b));
         return c;
@@ -81,5 +102,42 @@ public class ProductFormPolynomial implements Polynomial {
         IntegerPolynomial c = mult(poly2);
         c.mod(modulus);
         return c;
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((f1 == null) ? 0 : f1.hashCode());
+        result = prime * result + ((f2 == null) ? 0 : f2.hashCode());
+        result = prime * result + ((f3 == null) ? 0 : f3.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        ProductFormPolynomial other = (ProductFormPolynomial) obj;
+        if (f1 == null) {
+            if (other.f1 != null)
+                return false;
+        } else if (!f1.equals(other.f1))
+            return false;
+        if (f2 == null) {
+            if (other.f2 != null)
+                return false;
+        } else if (!f2.equals(other.f2))
+            return false;
+        if (f3 == null) {
+            if (other.f3 != null)
+                return false;
+        } else if (!f3.equals(other.f3))
+            return false;
+        return true;
     }
 }

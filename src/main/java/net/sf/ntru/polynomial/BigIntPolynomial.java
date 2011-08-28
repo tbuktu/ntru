@@ -65,7 +65,7 @@ public class BigIntPolynomial {
      * independent of each other.
      * @param p the original polynomial
      */
-    BigIntPolynomial(IntegerPolynomial p) {
+    public BigIntPolynomial(IntegerPolynomial p) {
         coeffs = new BigInteger[p.coeffs.length];
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] = BigInteger.valueOf(p.coeffs[i]);
@@ -104,17 +104,6 @@ public class BigIntPolynomial {
         for (int i=0; i<coeffs.size(); i++)
             poly.coeffs[i] = coeffs.get(i);
         return poly;
-    }
-    
-    /**
-     * Multiplies the polynomial by a <code>IntegerPolynomial</code>, taking the indices mod N. Does not
-     * change this polynomial but returns the result as a new polynomial.<br/>
-     * Both polynomials must have the same number of coefficients.
-     * @param poly2 the polynomial to multiply by
-     * @return a new polynomial
-     */
-    public BigIntPolynomial mult(IntegerPolynomial poly2) {
-        return mult(new BigIntPolynomial(poly2));
     }
     
     /**

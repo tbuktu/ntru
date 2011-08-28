@@ -33,7 +33,11 @@ public class SignatureParametersTest {
     
     @Test
     public void testLoadSave() throws IOException {
-        SignatureParameters params = SignatureParameters.TEST157;
+        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157, SignatureParameters.TEST157_PROD})
+            testLoadSave(params);
+    }
+        
+    private void testLoadSave(SignatureParameters params) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         params.writeTo(os);
         ByteArrayInputStream is = new ByteArrayInputStream(os.toByteArray());
@@ -42,23 +46,28 @@ public class SignatureParametersTest {
 
     @Test
     public void testEqualsHashCode() throws IOException {
+        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157, SignatureParameters.TEST157_PROD})
+            testEqualsHashCode(params);
+    }
+    
+    private void testEqualsHashCode(SignatureParameters params) throws IOException {
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        SignatureParameters.TEST157.writeTo(os);
+        params.writeTo(os);
         ByteArrayInputStream is = new ByteArrayInputStream(os.toByteArray());
-        SignatureParameters params = new SignatureParameters(is);
+        SignatureParameters params2 = new SignatureParameters(is);
         
-        assertEquals(params, SignatureParameters.TEST157);
-        assertEquals(params.hashCode(), SignatureParameters.TEST157.hashCode());
+        assertEquals(params, params2);
+        assertEquals(params.hashCode(), params2.hashCode());
         
         params.N += 1;
-        assertFalse(params.equals(SignatureParameters.TEST157));
-        assertFalse(SignatureParameters.TEST157.equals(params));
-        assertFalse(params.hashCode() == SignatureParameters.TEST157.hashCode());
+        assertFalse(params.equals(params2));
+        assertFalse(params.equals(params2));
+        assertFalse(params.hashCode() == params2.hashCode());
     }
     
     @Test
     public void testClone() {
-        SignatureParameters params = SignatureParameters.TEST157;
-        assertEquals(params, params.clone());
+        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157, SignatureParameters.TEST157_PROD})
+            assertEquals(params, params.clone());
     }
 }

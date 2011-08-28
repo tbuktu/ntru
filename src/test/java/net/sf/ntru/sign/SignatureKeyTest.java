@@ -18,34 +18,34 @@
 
 package net.sf.ntru.sign;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import net.sf.ntru.sign.NtruSign;
-import net.sf.ntru.sign.SignatureKeyPair;
-import net.sf.ntru.sign.SignatureParameters;
-import net.sf.ntru.sign.SignaturePrivateKey;
-import net.sf.ntru.sign.SignaturePublicKey;
-
 import org.junit.Test;
-import static org.junit.Assert.assertArrayEquals;
 
 public class SignatureKeyTest {
     
     @Test
     public void testEncode() throws IOException {
-        SignatureParameters params = SignatureParameters.TEST157;
+        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157, SignatureParameters.TEST157_PROD})
+            testEncode(params);
+    }
+    
+    private void testEncode(SignatureParameters params) throws IOException {
         NtruSign ntru = new NtruSign(params);
         SignatureKeyPair kp = ntru.generateKeyPair();
+        
+        // encode to byte[] and reconstruct
         byte[] priv = kp.priv.getEncoded();
         byte[] pub = kp.pub.getEncoded();
         SignatureKeyPair kp2 = new SignatureKeyPair(new SignaturePrivateKey(priv, params), new SignaturePublicKey(pub, params));
-        byte[] priv2 = kp2.priv.getEncoded();
-        assertArrayEquals(priv, priv2);
-        byte[] pub2 = kp2.pub.getEncoded();
-        assertArrayEquals(pub, pub2);
+        assertEquals(kp.pub, kp2.pub);
+        assertEquals(kp.priv, kp2.priv);
         
+        // encode to OutputStream and reconstruct
         ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
         ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
         kp.priv.writeTo(bos1);
@@ -53,9 +53,7 @@ public class SignatureKeyTest {
         ByteArrayInputStream bis1 = new ByteArrayInputStream(bos1.toByteArray());
         ByteArrayInputStream bis2 = new ByteArrayInputStream(bos2.toByteArray());
         SignatureKeyPair kp3 = new SignatureKeyPair(new SignaturePrivateKey(bis1, params), new SignaturePublicKey(bis2, params));
-        byte[] priv3 = kp3.priv.getEncoded();
-        assertArrayEquals(priv, priv3);
-        byte[] pub3 = kp3.pub.getEncoded();
-        assertArrayEquals(pub, pub3);
+        assertEquals(kp.pub, kp3.pub);
+        assertEquals(kp.priv, kp3.priv);
     }
 }

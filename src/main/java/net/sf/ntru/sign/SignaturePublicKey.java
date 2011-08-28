@@ -77,4 +77,35 @@ public class SignaturePublicKey {
     public void writeTo(OutputStream os) throws IOException {
         os.write(getEncoded());
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((h == null) ? 0 : h.hashCode());
+        result = prime * result + ((params == null) ? 0 : params.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        SignaturePublicKey other = (SignaturePublicKey) obj;
+        if (h == null) {
+            if (other.h != null)
+                return false;
+        } else if (!h.equals(other.h))
+            return false;
+        if (params == null) {
+            if (other.params != null)
+                return false;
+        } else if (!params.equals(other.params))
+            return false;
+        return true;
+    }
 }
