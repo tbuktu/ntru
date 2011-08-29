@@ -30,8 +30,8 @@ import net.sf.ntru.polynomial.SparseTernaryPolynomial;
 import net.sf.ntru.polynomial.TernaryPolynomial;
 
 public class Util {
-    private static boolean IS_64_BITNESS_KNOWN;
-    private static boolean IS_64_BIT_JVM;
+    private static volatile boolean IS_64_BITNESS_KNOWN;
+    private static volatile boolean IS_64_BIT_JVM;
 
     /** Calculates the inverse of n mod modulus */
     public static int invert(int n, int modulus) {
@@ -114,6 +114,7 @@ public class Util {
             String arch = System.getProperty("os.arch");
             String sunModel = System.getProperty("sun.arch.data.model");
             IS_64_BIT_JVM = "amd64".equals(arch) || "x86_64".equals(arch) || "ppc64".equals(arch) || "64".equals(sunModel);
+            IS_64_BITNESS_KNOWN = true;
         }
         return IS_64_BIT_JVM;
     }
