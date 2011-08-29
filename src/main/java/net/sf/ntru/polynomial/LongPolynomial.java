@@ -128,7 +128,7 @@ public class LongPolynomial {
         
         // compute resultants modulo prime numbers
         LinkedList<Subresultant> subresultants = new LinkedList<Subresultant>();
-        BigInteger prime = BigInteger.valueOf(10000);
+        BigInteger prime = BigInteger.valueOf(3000000000L);
         BigInteger pProd = ONE;
         while (pProd.compareTo(max2) < 0) {
             if (primes.hasNext())
