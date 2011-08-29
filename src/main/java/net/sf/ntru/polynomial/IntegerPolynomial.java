@@ -532,7 +532,7 @@ public class IntegerPolynomial implements Polynomial {
         Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
         
         // compute resultants modulo prime numbers
-        LinkedList<Subresultant> subresultants = new LinkedList<Subresultant>();
+        LinkedList<ModularResultant> modResultants = new LinkedList<ModularResultant>();
         BigInteger prime = BigInteger.valueOf(4000);
         BigInteger pProd = ONE;
         while (pProd.compareTo(max2) < 0) {
@@ -540,21 +540,21 @@ public class IntegerPolynomial implements Polynomial {
                 prime = primes.next();
             else
                 prime = prime.nextProbablePrime();
-            subresultants.add(resultant(prime.intValue()));
+            modResultants.add(resultant(prime.intValue()));
             pProd = pProd.multiply(prime);
         }
         
-        // combine subresultants to obtain the resultant.
-        // for efficiency, first combine all pairs of small subresultants to bigger subresultants,
+        // Combine modular resultants to obtain the resultant.
+        // For efficiency, first combine all pairs of small resultants to bigger resultants,
         // then combine pairs of those, etc. until only one is left.
-        while (subresultants.size() > 1) {
-            Subresultant subres1 = subresultants.removeFirst();
-            Subresultant subres2 = subresultants.removeFirst();
-            Subresultant subres3 = Subresultant.combine(subres1, subres2);
-            subresultants.addLast(subres3);
+        while (modResultants.size() > 1) {
+            ModularResultant modRes1 = modResultants.removeFirst();
+            ModularResultant modRes2 = modResultants.removeFirst();
+            ModularResultant modRes3 = ModularResultant.combine(modRes1, modRes2);
+            modResultants.addLast(modRes3);
         }
-        BigInteger res = subresultants.getFirst().res;
-        BigIntPolynomial rhoP = subresultants.getFirst().rho;
+        BigInteger res = modResultants.getFirst().res;
+        BigIntPolynomial rhoP = modResultants.getFirst().rho;
         
         BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
         BigInteger pProd2n = pProd2.negate();
@@ -591,7 +591,7 @@ public class IntegerPolynomial implements Polynomial {
         // compute resultants modulo prime numbers
         BigInteger prime = BigInteger.valueOf(10000);
         BigInteger pProd = ONE;
-        LinkedBlockingQueue<Future<Subresultant>> resultantTasks = new LinkedBlockingQueue<Future<Subresultant>>();
+        LinkedBlockingQueue<Future<ModularResultant>> resultantTasks = new LinkedBlockingQueue<Future<ModularResultant>>();
         Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
         while (pProd.compareTo(max2) < 0) {
@@ -599,25 +599,25 @@ public class IntegerPolynomial implements Polynomial {
                 prime = primes.next();
             else
                 prime = prime.nextProbablePrime();
-            Future<Subresultant> task = executor.submit(new SubresultantTask(prime.intValue()));
+            Future<ModularResultant> task = executor.submit(new ModResultantTask(prime.intValue()));
             resultantTasks.add(task);
             pProd = pProd.multiply(prime);
         }
         
-        // combine subresultants to obtain the resultant.
-        // for efficiency, first combine all pairs of small subresultants to bigger subresultants,
+        // Combine modular resultants to obtain the resultant.
+        // For efficiency, first combine all pairs of small resultants to bigger resultants,
         // then combine pairs of those, etc. until only one is left.
-        Subresultant overallResultant = null;
+        ModularResultant overallResultant = null;
         while (!resultantTasks.isEmpty()) {
             try {
-                Future<Subresultant> subres1 = resultantTasks.take();
-                Future<Subresultant> subres2 = resultantTasks.poll();
-                if (subres2 == null) {
-                    // subres1 is the only one left
-                    overallResultant = subres1.get();
+                Future<ModularResultant> modRes1 = resultantTasks.take();
+                Future<ModularResultant> modRes2 = resultantTasks.poll();
+                if (modRes2 == null) {
+                    // modRes1 is the only one left
+                    overallResultant = modRes1.get();
                     break;
                 }
-                Future<Subresultant> newTask = executor.submit(new CombineTask(subres1.get(), subres2.get()));
+                Future<ModularResultant> newTask = executor.submit(new CombineTask(modRes1.get(), modRes2.get()));
                 resultantTasks.add(newTask);
             } catch (Exception e) {
                 throw new NtruException(e);
@@ -650,7 +650,7 @@ public class IntegerPolynomial implements Polynomial {
      * Resultant of this polynomial with <code>x^n-1 mod p</code>.<br/>
      * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1) mod p</code> for some integer <code>t</code>.
      */
-    public Subresultant resultant(int p) {
+    public ModularResultant resultant(int p) {
         // Add a coefficient as the following operations involve polynomials of degree deg(f)+1
         int[] fcoeffs = Arrays.copyOf(coeffs, coeffs.length+1);
         IntegerPolynomial f = new IntegerPolynomial(fcoeffs);
@@ -702,7 +702,7 @@ public class IntegerPolynomial implements Polynomial {
         
         // drop the highest coefficient so #coeffs matches the original input
         v2.coeffs = Arrays.copyOf(v2.coeffs, v2.coeffs.length-1);
-        return new Subresultant(new BigIntPolynomial(v2), BigInteger.valueOf(r), BigInteger.valueOf(p));
+        return new ModularResultant(new BigIntPolynomial(v2), BigInteger.valueOf(r), BigInteger.valueOf(p));
     }
     
     /**
@@ -1042,32 +1042,32 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /** Calls {@link IntegerPolynomial#resultant(int) */
-    private class SubresultantTask implements Callable<Subresultant> {
+    private class ModResultantTask implements Callable<ModularResultant> {
         private int modulus;
         
-        private SubresultantTask(int modulus) {
+        private ModResultantTask(int modulus) {
             this.modulus = modulus;
         }
 
         @Override
-        public Subresultant call() {
+        public ModularResultant call() {
             return resultant(modulus);
         }
     }
     
-    /** Calls {@link IntegerPolynomial#combine(Subresultant, Subresultant) */
-    private class CombineTask implements Callable<Subresultant> {
-        private Subresultant subres1;
-        private Subresultant subres2;
+    /** Calls {@link IntegerPolynomial#combine(ModularResultant, ModularResultant) */
+    private class CombineTask implements Callable<ModularResultant> {
+        private ModularResultant modRes1;
+        private ModularResultant modRes2;
 
-        private CombineTask(Subresultant subres1, Subresultant subres2) {
-            this.subres1 = subres1;
-            this.subres2 = subres2;
+        private CombineTask(ModularResultant modRes1, ModularResultant modRes2) {
+            this.modRes1 = modRes1;
+            this.modRes2 = modRes2;
         }
         
         @Override
-        public Subresultant call() {
-            return Subresultant.combine(subres1, subres2);
+        public ModularResultant call() {
+            return ModularResultant.combine(modRes1, modRes2);
         }
     }
 }

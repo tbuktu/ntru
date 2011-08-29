@@ -23,10 +23,10 @@ import java.math.BigInteger;
 import net.sf.ntru.euclid.BigIntEuclidean;
 
 /** A resultant modulo a <code>BigInteger</code> */
-public class Subresultant extends Resultant {
+public class ModularResultant extends Resultant {
     BigInteger modulus;
     
-    Subresultant(BigIntPolynomial rho, BigInteger res, BigInteger modulus) {
+    ModularResultant(BigIntPolynomial rho, BigInteger res, BigInteger modulus) {
         super(rho, res);
         this.modulus = modulus;
     }
@@ -34,27 +34,27 @@ public class Subresultant extends Resultant {
     /**
      * Calculates a resultant modulo <code>m1*m2</code> from
      * two resultants modulo <code>m1</code> and <code>m2</code>.
-     * @param subres1
-     * @param subres2
-     * @return a resultant modulo <code>subres1.modulus * subres2.modulus</code>
+     * @param modRes1
+     * @param modR2
+     * @return a resultant modulo <code>modRes1.modulus * modRes2.modulus</code>
      */
-    static Subresultant combine(Subresultant subres1, Subresultant subres2) {
-        BigInteger mod1 = subres1.modulus;
-        BigInteger mod2 = subres2.modulus;
+    static ModularResultant combine(ModularResultant modRes1, ModularResultant modR2) {
+        BigInteger mod1 = modRes1.modulus;
+        BigInteger mod2 = modR2.modulus;
         BigInteger prod = mod1.multiply(mod2);
         BigIntEuclidean er = BigIntEuclidean.calculate(mod2, mod1);
         
-        BigInteger res = subres1.res.multiply(er.x.multiply(mod2));
-        BigInteger res2 = subres2.res.multiply(er.y.multiply(mod1));
+        BigInteger res = modRes1.res.multiply(er.x.multiply(mod2));
+        BigInteger res2 = modR2.res.multiply(er.y.multiply(mod1));
         res = res.add(res2).mod(prod);
         
-        BigIntPolynomial rho1 = subres1.rho.clone();
+        BigIntPolynomial rho1 = modRes1.rho.clone();
         rho1.mult(er.x.multiply(mod2));
-        BigIntPolynomial rho2 = subres2.rho.clone();
+        BigIntPolynomial rho2 = modR2.rho.clone();
         rho2.mult(er.y.multiply(mod1));
         rho1.add(rho2);
         rho1.mod(prod);
 
-        return new Subresultant(rho1, res, prod);
+        return new ModularResultant(rho1, res, prod);
     }
 }
