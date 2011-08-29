@@ -39,7 +39,6 @@ import net.sf.ntru.polynomial.BigDecimalPolynomial;
 import net.sf.ntru.polynomial.BigIntPolynomial;
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
 import net.sf.ntru.polynomial.IntegerPolynomial;
-import net.sf.ntru.polynomial.LongPolynomial;
 import net.sf.ntru.polynomial.Polynomial;
 import net.sf.ntru.polynomial.ProductFormPolynomial;
 import net.sf.ntru.polynomial.Resultant;
@@ -47,7 +46,6 @@ import net.sf.ntru.sign.SignatureParameters.BasisType;
 import net.sf.ntru.sign.SignatureParameters.KeyGenAlg;
 import net.sf.ntru.sign.SignatureParameters.TernaryPolynomialType;
 import net.sf.ntru.sign.SignaturePrivateKey.Basis;
-import net.sf.ntru.util.Util;
 
 /**
  * Signs, verifies data and generates key pairs.
@@ -378,7 +376,7 @@ public class NtruSign {
             } while (primeCheck && fInt.resultant(_2n1).res.equals(ZERO));
             fq = fInt.invertFq(q);
         } while (fq == null);
-        rf = Util.is64BitJVM() ? new LongPolynomial(fInt).resultant() : fInt.resultant(); 
+        rf = fInt.resultant(); 
         
         do {
             do {
@@ -387,7 +385,7 @@ public class NtruSign {
                     gInt = g.toIntegerPolynomial();
                 } while (primeCheck && gInt.resultant(_2n1).res.equals(ZERO));
             } while (gInt.invertFq(q) == null);
-            rg = Util.is64BitJVM() ? new LongPolynomial(gInt).resultant() : gInt.resultant();
+            rg = gInt.resultant();
             r = BigIntEuclidean.calculate(rf.res, rg.res);
         } while (!r.gcd.equals(ONE));
         
@@ -411,7 +409,7 @@ public class NtruSign {
             
             IntegerPolynomial t = f.mult(fRev);
             t.add(g.mult(gRev));
-            Resultant rt = Util.is64BitJVM() ? new LongPolynomial(t).resultant() : t.resultant();
+            Resultant rt = t.resultant();
             C = fRev.mult(B);   // fRev.mult(B) is actually faster than new SparseTernaryPolynomial(fRev).mult(B), possibly due to cache locality?
             C.add(gRev.mult(A));
             C = C.mult(rt.rho);

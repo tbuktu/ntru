@@ -72,17 +72,6 @@ public class BigIntPolynomial {
     }
     
     /**
-     * Constructs a <code>BigIntPolynomial</code> from a <code>LongPolynomial</code>. The two polynomials are
-     * independent of each other.
-     * @param p the original polynomial
-     */
-    BigIntPolynomial(LongPolynomial p) {
-        coeffs = new BigInteger[p.coeffs.length];
-        for (int i=0; i<coeffs.length; i++)
-            coeffs[i] = BigInteger.valueOf(p.coeffs[i]);
-    }
-    
-    /**
      * Generates a random polynomial with <code>numOnes</code> coefficients equal to 1,
      * <code>numNegOnes</code> coefficients equal to -1, and the rest equal to 0.
      * @param N number of coefficients

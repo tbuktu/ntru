@@ -25,8 +25,6 @@ import java.math.BigInteger;
  * <code>res = rho*this + t*(x^n-1) for some integer t</code>.
  * @see IntegerPolynomial#resultant()
  * @see IntegerPolynomial#resultant(int)
- * @see LongPolynomial#resultant()
- * @see LongPolynomial#resultant(int)
  */
 public class Resultant {
     /** A polynomial such that <code>res = rho*this + t*(x^n-1) for some integer t</code> */
