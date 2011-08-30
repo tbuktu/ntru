@@ -48,4 +48,35 @@ public class EncryptionKeyPair {
     public EncryptionPublicKey getPublic() {
         return pub;
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((priv == null) ? 0 : priv.hashCode());
+        result = prime * result + ((pub == null) ? 0 : pub.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        EncryptionKeyPair other = (EncryptionKeyPair) obj;
+        if (priv == null) {
+            if (other.priv != null)
+                return false;
+        } else if (!priv.equals(other.priv))
+            return false;
+        if (pub == null) {
+            if (other.pub != null)
+                return false;
+        } else if (!pub.equals(other.pub))
+            return false;
+        return true;
+    }
 }
