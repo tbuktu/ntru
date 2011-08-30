@@ -86,13 +86,16 @@ public class Timings {
             minSignTime = Math.min(signTime, minSignTime);
             minVerifyTime = Math.min(verifyTime, minVerifyTime);
             minTotalTime = Math.min(totalTime, minTotalTime);
-            totEncKeyGenTime += encKeyGenTime;
-            totEncryptTime += encryptTime;
-            totDecryptTime += decryptTime;
-            totSigKeyGenTime += sigKeyGenTime;
-            totSignTime += signTime;
-            totVerifyTime += verifyTime;
-            totTotalTime += totalTime;
+            // first round is warmup
+            if (i > 0) {
+                totEncKeyGenTime += encKeyGenTime;
+                totEncryptTime += encryptTime;
+                totDecryptTime += decryptTime;
+                totSigKeyGenTime += sigKeyGenTime;
+                totSignTime += signTime;
+                totVerifyTime += verifyTime;
+                totTotalTime += totalTime;
+            }
         }
         System.out.println();
         System.out.println("Min" + formatDuration(minEncKeyGenTime) + "  " + formatDuration(minEncryptTime) + "  " + formatDuration(minDecryptTime) + "  " + 
