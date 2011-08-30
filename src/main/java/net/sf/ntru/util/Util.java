@@ -18,6 +18,8 @@
 
 package net.sf.ntru.util;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -117,5 +119,21 @@ public class Util {
             IS_64_BITNESS_KNOWN = true;
         }
         return IS_64_BIT_JVM;
+    }
+    
+    /**
+     * Reads a given number of bytes from an <code>InputStream</code>.
+     * If there are not enough bytes in the stream, an <code>IOException</code>
+     * is thrown.
+     * @param is
+     * @param length
+     * @return
+     * @throws IOException
+     */
+    public static byte[] readFullLength(InputStream is, int length) throws IOException {
+        byte[] arr = new byte[length];
+        if (is.read(arr) != arr.length)
+            throw new IOException("Not enough bytes to read.");
+        return arr;
     }
 }

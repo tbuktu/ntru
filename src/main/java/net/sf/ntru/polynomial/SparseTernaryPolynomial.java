@@ -126,13 +126,11 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         int bitsPerIndex = 32 - Integer.numberOfLeadingZeros(maxIndex-1);
         
         int data1Len = (numOnes*bitsPerIndex+7) / 8;
-        byte[] data1 = new byte[data1Len];
-        is.read(data1);
+        byte[] data1 = Util.readFullLength(is, data1Len);
         int[] ones = ArrayEncoder.decodeModQ(data1, numOnes, maxIndex);
         
         int data2Len = (numNegOnes*bitsPerIndex+7) / 8;
-        byte[] data2 = new byte[data2Len];
-        is.read(data2);
+        byte[] data2 = Util.readFullLength(is, data2Len);
         int[] negOnes = ArrayEncoder.decodeModQ(data2, numNegOnes, maxIndex);
         
         return new SparseTernaryPolynomial(N, ones, negOnes);

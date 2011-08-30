@@ -155,8 +155,7 @@ public class ArrayEncoder {
     public static int[] decodeModQ(InputStream is, int N, int q) throws IOException {
         int qBits = 31 - Integer.numberOfLeadingZeros(q);
         int size = (N*qBits+7) / 8;
-        byte[] arr = new byte[size];
-        is.read(arr);
+        byte[] arr = Util.readFullLength(is, size);
         return decodeModQ(arr, N, q);
     }
     
@@ -284,8 +283,7 @@ public class ArrayEncoder {
      */
     public static int[] decodeMod3Arith(InputStream is, int N) throws IOException {
         int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
-        byte[] arr = new byte[size];
-        is.read(arr);
+        byte[] arr = Util.readFullLength(is, size);
         return decodeMod3Arith(arr, N);
     }
     
