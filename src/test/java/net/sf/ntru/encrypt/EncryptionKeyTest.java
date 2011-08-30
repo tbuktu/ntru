@@ -18,33 +18,30 @@
 
 package net.sf.ntru.encrypt;
 
+import static org.junit.Assert.assertEquals;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-import net.sf.ntru.encrypt.EncryptionKeyPair;
-import net.sf.ntru.encrypt.EncryptionParameters;
-import net.sf.ntru.encrypt.EncryptionPrivateKey;
-import net.sf.ntru.encrypt.EncryptionPublicKey;
-import net.sf.ntru.encrypt.NtruEncrypt;
-
 import org.junit.Test;
-import static org.junit.Assert.assertArrayEquals;
 
 public class EncryptionKeyTest {
     
     @Test
     public void testEncode() throws IOException {
-        EncryptionParameters params = EncryptionParameters.EES1499EP1;
+        for (EncryptionParameters params: new EncryptionParameters[] {EncryptionParameters.APR2011_743, EncryptionParameters.APR2011_743_FAST, EncryptionParameters.EES1499EP1})
+            testEncode(params);
+    }
+    
+    private void testEncode(EncryptionParameters params) throws IOException {
         NtruEncrypt ntru = new NtruEncrypt(params);
         EncryptionKeyPair kp = ntru.generateKeyPair();
         byte[] priv = kp.priv.getEncoded();
         byte[] pub = kp.pub.getEncoded();
         EncryptionKeyPair kp2 = new EncryptionKeyPair(new EncryptionPrivateKey(priv, params), new EncryptionPublicKey(pub, params));
-        byte[] priv2 = kp2.priv.getEncoded();
-        assertArrayEquals(priv, priv2);
-        byte[] pub2 = kp2.pub.getEncoded();
-        assertArrayEquals(pub, pub2);
+        assertEquals(kp.pub, kp2.pub);
+        assertEquals(kp.priv, kp2.priv);
         
         ByteArrayOutputStream bos1 = new ByteArrayOutputStream();
         ByteArrayOutputStream bos2 = new ByteArrayOutputStream();
@@ -53,9 +50,7 @@ public class EncryptionKeyTest {
         ByteArrayInputStream bis1 = new ByteArrayInputStream(bos1.toByteArray());
         ByteArrayInputStream bis2 = new ByteArrayInputStream(bos2.toByteArray());
         EncryptionKeyPair kp3 = new EncryptionKeyPair(new EncryptionPrivateKey(bis1, params), new EncryptionPublicKey(bis2, params));
-        byte[] priv3 = kp3.priv.getEncoded();
-        assertArrayEquals(priv, priv3);
-        byte[] pub3 = kp3.pub.getEncoded();
-        assertArrayEquals(pub, pub3);
+        assertEquals(kp.pub, kp3.pub);
+        assertEquals(kp.priv, kp3.priv);
     }
 }
