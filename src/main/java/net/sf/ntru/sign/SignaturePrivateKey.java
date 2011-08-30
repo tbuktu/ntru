@@ -18,11 +18,11 @@
 
 package net.sf.ntru.sign;
 
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,10 +49,13 @@ public class SignaturePrivateKey {
      */
     public SignaturePrivateKey(byte[] b, SignatureParameters params) {
         bases = new ArrayList<Basis>();
-        ByteBuffer buf = ByteBuffer.wrap(b);
+        ByteArrayInputStream is = new ByteArrayInputStream(b);
         for (int i=0; i<=params.B; i++)
-            // include a public key h[i] in all bases except for the first one
-            add(new Basis(buf, params, i!=0));
+            try {
+                add(new Basis(is, params, i!=0));
+            } catch (IOException e) {
+                throw new NtruException(e);
+            }
     }
     
     /**
@@ -175,44 +178,6 @@ public class SignaturePrivateKey {
             this.fPrime = fPrime;
             this.h = h;
             this.params = params;
-        }
-        
-        /**
-         * Reads a basis from a byte buffer and constructs a new basis.
-         * @param buf a byte buffer
-         * @param params NtruSign parameters
-         * @param include_h whether to read the polynomial <code>h</code> (<code>true</code>) or only <code>f</code> and <code>f'</code> (<code>false</code>)
-         */
-        Basis(ByteBuffer buf, SignatureParameters params, boolean include_h) {
-            int N = params.N;
-            int q = params.q;
-            int d1 = params.d1;
-            int d2 = params.d2;
-            int d3 = params.d3;
-            boolean sparse = params.sparse;
-            this.params = params;
-            
-            if (params.polyType == TernaryPolynomialType.PRODUCT)
-                f = ProductFormPolynomial.fromBinary(buf, N, d1, d2, d3+1, d3);
-            else {
-                IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(buf, N);
-                f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
-            }
-            
-            if (params.basisType == BasisType.STANDARD) {
-                IntegerPolynomial fPrimeInt = IntegerPolynomial.fromBinary(buf, N, q);
-                for (int i=0; i<fPrimeInt.coeffs.length; i++)
-                    fPrimeInt.coeffs[i] -= q/2;
-                fPrime = fPrimeInt;
-            }
-            else
-                if (params.polyType == TernaryPolynomialType.PRODUCT)
-                    fPrime = ProductFormPolynomial.fromBinary(buf, N, d1, d2, d3+1, d3);
-                else
-                    fPrime = IntegerPolynomial.fromBinary3Arith(buf, N);
-            
-            if (include_h)
-                h = IntegerPolynomial.fromBinary(buf, N, q);
         }
         
         /**
