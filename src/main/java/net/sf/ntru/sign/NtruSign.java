@@ -336,19 +336,20 @@ public class NtruSign {
      * Creates a basis such that <code>|F| &lt; keyNormBound</code> and <code>|G| &lt; keyNormBound</code>
      * @return a NtruSign basis
      */
-    private Basis generateBoundedBasis() {
-        double keyNormBoundSq = params.keyNormBoundSq;
-        int q = params.q;
-        
+    Basis generateBoundedBasis() {
         while (true) {
             FGBasis basis = generateBasis();
-            if (basis.F.centeredNormSq(q)<keyNormBoundSq && basis.G.centeredNormSq(q)<keyNormBoundSq)
+            if (basis.isNormOk())
                 return basis;
         }
     }
     
-    /** Creates a NtruSign basis consisting of polynomials <code>f, g, F, G, h</code>. */
-    FGBasis generateBasis() {
+    /**
+     * Creates a NtruSign basis consisting of polynomials <code>f, g, F, G, h</code>.<br/>
+     * If <code>KeyGenAlg=FLOAT</code>, the basis may not be valid and this method must be rerun if that is the case.<br/>
+     * @see #generateBoundedBasis()
+     */
+    private FGBasis generateBasis() {
         int N = params.N;
         int q = params.q;
         int d = params.d;
@@ -533,6 +534,17 @@ public class NtruSign {
             super(f, fPrime, h, params);
             this.F = F;
             this.G = G;
+        }
+        
+        /**
+         * Returns <code>true</code> if the norms of the polynomials <code>F</code> and <code>G</code>
+         * are within {@link SignatureParameters#keyNormBound}.
+         * @return
+         */
+        boolean isNormOk() {
+            double keyNormBoundSq = params.keyNormBoundSq;
+            int q = params.q;
+            return (F.centeredNormSq(q)<keyNormBoundSq && G.centeredNormSq(q)<keyNormBoundSq);
         }
     }
 }
