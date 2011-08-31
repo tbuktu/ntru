@@ -18,11 +18,8 @@
 
 package net.sf.ntru.polynomial;
 
-import static org.junit.Assert.assertArrayEquals;
-
+import static org.junit.Assert.assertEquals;
 import net.sf.ntru.encrypt.EncryptionParameters;
-import net.sf.ntru.polynomial.IntegerPolynomial;
-import net.sf.ntru.polynomial.ProductFormPolynomial;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -50,8 +47,7 @@ public class ProductFormPolynomialTest {
         ProductFormPolynomial p1 = ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1);
         byte[] bin1 = p1.toBinary();
         ProductFormPolynomial p2 = ProductFormPolynomial.fromBinary(bin1, N, df1, df2, df3, df3-1);
-        byte[] bin2 = p2.toBinary();
-        assertArrayEquals(bin1, bin2);
+        assertEquals(p1, p2);
     }
     
     @Test
@@ -60,6 +56,6 @@ public class ProductFormPolynomialTest {
         IntegerPolynomial p2 = PolynomialGenerator.generateRandom(N, q);
         IntegerPolynomial p3 = p1.mult(p2);
         IntegerPolynomial p4 = p1.toIntegerPolynomial().mult(p2);
-        assertArrayEquals(p3.coeffs, p4.coeffs);
+        assertEquals(p3, p4);
     }
 }

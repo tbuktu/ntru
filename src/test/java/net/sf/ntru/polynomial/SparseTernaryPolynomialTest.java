@@ -18,14 +18,10 @@
 
 package net.sf.ntru.polynomial;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
-import java.nio.ByteBuffer;
-
-import net.sf.ntru.polynomial.BigIntPolynomial;
-import net.sf.ntru.polynomial.DenseTernaryPolynomial;
-import net.sf.ntru.polynomial.IntegerPolynomial;
-import net.sf.ntru.polynomial.SparseTernaryPolynomial;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 
 import org.junit.Test;
 
@@ -40,19 +36,18 @@ public class SparseTernaryPolynomialTest {
         IntegerPolynomial prod1 = p1.mult(p2);
         prod1 = p1.mult(p2);
         IntegerPolynomial prod2 = p1.mult(p2);
-        assertArrayEquals(prod1.coeffs, prod2.coeffs);
+        assertEquals(prod1, prod2);
         
         BigIntPolynomial p3 = new BigIntPolynomial(p2);
         BigIntPolynomial prod3 = p1.mult(p3);
-        assertArrayEquals(new BigIntPolynomial(prod1).coeffs, prod3.coeffs);
+        assertEquals(new BigIntPolynomial(prod1), prod3);
     }
     
     @Test
-    public void testFromToBinary() {
+    public void testFromToBinary() throws IOException {
         SparseTernaryPolynomial poly1 = SparseTernaryPolynomial.generateRandom(1000, 100, 101);
-        ByteBuffer poly1Buf = ByteBuffer.wrap(poly1.toBinary());
-        SparseTernaryPolynomial poly2 = SparseTernaryPolynomial.fromBinary(poly1Buf, 1000, 100, 101);
-        assertArrayEquals(poly1.getOnes(), poly2.getOnes());
-        assertArrayEquals(poly1.getNegOnes(), poly2.getNegOnes());
+        ByteArrayInputStream poly1Stream = new ByteArrayInputStream(poly1.toBinary());
+        SparseTernaryPolynomial poly2 = SparseTernaryPolynomial.fromBinary(poly1Stream, 1000, 100, 101);
+        assertEquals(poly1, poly2);
     }
 }

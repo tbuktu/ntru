@@ -21,7 +21,6 @@ package net.sf.ntru.util;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import net.sf.ntru.exception.NtruException;
@@ -124,23 +123,6 @@ public class ArrayEncoder {
             coeffs[coeffIndex] += bit << (bitIndex%bitsPerCoeff);
         }
         return coeffs;
-    }
-    
-    /**
-     * Decodes data encoded with {@link #encodeModQ(int[], int)} back to an <code>int</code> array.<br/>
-     * <code>N</code> is the number of coefficients. <code>q</code> must be a power of <code>2</code>.<br/>
-     * Ignores any excess bytes.
-     * @param buf an encoded ternary polynomial
-     * @param N number of coefficients
-     * @param q
-     * @return the decoded polynomial
-     */
-    public static int[] decodeModQ(ByteBuffer buf, int N, int q) {
-        int qBits = 31 - Integer.numberOfLeadingZeros(q);
-        int size = (N*qBits+7) / 8;
-        byte[] arr = new byte[size];
-        buf.get(arr);
-        return decodeModQ(arr, N, q);
     }
     
     /**
@@ -260,19 +242,6 @@ public class ArrayEncoder {
             sum = sum.divide(BigInteger.valueOf(3));
         }
         return coeffs;
-    }
-    
-    /**
-     * Converts data produced by {@link #encodeMod3Arith(int[])} back to an <code>int</code> array.
-     * @param b a byte buffer containing the data to decode
-     * @param N number of coefficients
-     * @return the decoded array
-     */
-    public static int[] decodeMod3Arith(ByteBuffer buf, int N) {
-        int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
-        byte[] arr = new byte[size];
-        buf.get(arr);
-        return decodeMod3Arith(arr, N);
     }
     
     /**

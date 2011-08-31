@@ -24,7 +24,6 @@ import static java.math.BigInteger.ZERO;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -180,19 +179,6 @@ public class IntegerPolynomial implements Polynomial {
      * Returns a polynomial with N coefficients between <code>0</code> and <code>q-1</code>.<br/>
      * <code>q</code> must be a power of 2.<br/>
      * Ignores any excess bytes.
-     * @param buf an encoded ternary polynomial
-     * @param N number of coefficients
-     * @param q
-     * @return the decoded polynomial
-     */
-    public static IntegerPolynomial fromBinary(ByteBuffer buf, int N, int q) {
-        return new IntegerPolynomial(ArrayEncoder.decodeModQ(buf, N, q));
-    }
-    
-    /**
-     * Returns a polynomial with N coefficients between <code>0</code> and <code>q-1</code>.<br/>
-     * <code>q</code> must be a power of 2.<br/>
-     * Ignores any excess bytes.
      * @param is an encoded ternary polynomial
      * @param N number of coefficients
      * @param q
@@ -247,16 +233,6 @@ public class IntegerPolynomial implements Polynomial {
      */
     public static IntegerPolynomial fromBinary3Arith(byte[] b, int N) {
         return new IntegerPolynomial(ArrayEncoder.decodeMod3Arith(b, N));
-    }
-    
-    /**
-     * Reads data produced by toBinary3Arith() from a byte buffer and converts it to a polynomial.
-     * @param b a byte buffer
-     * @param N number of coefficients
-     * @return the decoded polynomial
-     */
-    public static IntegerPolynomial fromBinary3Arith(ByteBuffer buf, int N) {
-        return new IntegerPolynomial(ArrayEncoder.decodeMod3Arith(buf, N));
     }
     
     /**

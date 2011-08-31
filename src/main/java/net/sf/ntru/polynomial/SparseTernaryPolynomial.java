@@ -21,7 +21,6 @@ package net.sf.ntru.polynomial;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import net.sf.ntru.exception.NtruException;
@@ -85,31 +84,6 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         }
         ones = Arrays.copyOf(ones, onesIdx);
         negOnes = Arrays.copyOf(negOnes, negOnesIdx);
-    }
-    
-    /**
-     * Decodes a byte array encoded with {@link #toBinary()} to a ploynomial.
-     * @param data an encoded polynomial
-     * @param N number of coefficients including zeros
-     * @param numOnes number of coefficients equal to 1
-     * @param numNegOnes number of coefficients equal to -1
-     * @return the decoded polynomial
-     */
-    static SparseTernaryPolynomial fromBinary(ByteBuffer data, int N, int numOnes, int numNegOnes) {
-        int maxIndex = 1 << BITS_PER_INDEX;
-        int bitsPerIndex = 32 - Integer.numberOfLeadingZeros(maxIndex-1);
-        
-        int data1Len = (numOnes*bitsPerIndex+7) / 8;
-        byte[] data1 = new byte[data1Len];
-        data.get(data1);
-        int[] ones = ArrayEncoder.decodeModQ(data1, numOnes, maxIndex);
-        
-        int data2Len = (numNegOnes*bitsPerIndex+7) / 8;
-        byte[] data2 = new byte[data2Len];
-        data.get(data2);
-        int[] negOnes = ArrayEncoder.decodeModQ(data2, numNegOnes, maxIndex);
-        
-        return new SparseTernaryPolynomial(N, ones, negOnes);
     }
     
     /**

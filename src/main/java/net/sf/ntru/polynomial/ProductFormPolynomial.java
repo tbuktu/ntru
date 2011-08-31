@@ -18,9 +18,9 @@
 
 package net.sf.ntru.polynomial;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 import net.sf.ntru.exception.NtruException;
@@ -46,21 +46,19 @@ public class ProductFormPolynomial implements Polynomial {
     }
     
     public static ProductFormPolynomial fromBinary(byte[] data, int N, int df1, int df2, int df3Ones, int df3NegOnes) {
-        return fromBinary(ByteBuffer.wrap(data), N, df1, df2, df3Ones, df3NegOnes);
+        return fromBinary(new ByteArrayInputStream(data), N, df1, df2, df3Ones, df3NegOnes);
     }
     
-    public static ProductFormPolynomial fromBinary(ByteBuffer buf, int N, int df1, int df2, int df3Ones, int df3NegOnes) {
-        SparseTernaryPolynomial f1 = SparseTernaryPolynomial.fromBinary(buf, N, df1, df1);
-        SparseTernaryPolynomial f2 = SparseTernaryPolynomial.fromBinary(buf, N, df2, df2);
-        SparseTernaryPolynomial f3 = SparseTernaryPolynomial.fromBinary(buf, N, df3Ones, df3NegOnes);
-        return new ProductFormPolynomial(f1, f2, f3);
-    }
-    
-    public static ProductFormPolynomial fromBinary(InputStream is, int N, int df1, int df2, int df3Ones, int df3NegOnes) throws IOException {
-        SparseTernaryPolynomial f1 = SparseTernaryPolynomial.fromBinary(is, N, df1, df1);
-        SparseTernaryPolynomial f2 = SparseTernaryPolynomial.fromBinary(is, N, df2, df2);
-        SparseTernaryPolynomial f3 = SparseTernaryPolynomial.fromBinary(is, N, df3Ones, df3NegOnes);
-        return new ProductFormPolynomial(f1, f2, f3);
+    public static ProductFormPolynomial fromBinary(InputStream is, int N, int df1, int df2, int df3Ones, int df3NegOnes) {
+        SparseTernaryPolynomial f1;
+        try {
+            f1 = SparseTernaryPolynomial.fromBinary(is, N, df1, df1);
+            SparseTernaryPolynomial f2 = SparseTernaryPolynomial.fromBinary(is, N, df2, df2);
+            SparseTernaryPolynomial f3 = SparseTernaryPolynomial.fromBinary(is, N, df3Ones, df3NegOnes);
+            return new ProductFormPolynomial(f1, f2, f3);
+        } catch (IOException e) {
+            throw new NtruException(e);
+        }
     }
     
     public byte[] toBinary() {

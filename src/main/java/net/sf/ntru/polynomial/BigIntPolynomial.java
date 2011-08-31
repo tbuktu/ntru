@@ -295,4 +295,26 @@ public class BigIntPolynomial {
     public BigIntPolynomial clone() {
         return new BigIntPolynomial(coeffs.clone());
     }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + Arrays.hashCode(coeffs);
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        BigIntPolynomial other = (BigIntPolynomial) obj;
+        if (!Arrays.equals(coeffs, other.coeffs))
+            return false;
+        return true;
+    }
 }
