@@ -100,6 +100,7 @@ public class Timings {
         System.out.println();
         System.out.println("Min" + formatDuration(minEncKeyGenTime) + "  " + formatDuration(minEncryptTime) + "  " + formatDuration(minDecryptTime) + "  " + 
                 formatDuration(minSigKeyGenTime) + "  " + formatDuration(minSignTime) + "  " + formatDuration(minVerifyTime) + "  " + formatDuration(minTotalTime));
+        iterations--;   // don't count warmup round
         System.out.println("Avg" + formatDuration(totEncKeyGenTime/iterations) + "  " + formatDuration(totEncryptTime/iterations) + "  " + formatDuration(totDecryptTime/iterations) + "  " +
                 formatDuration(totSigKeyGenTime/iterations) + "  " + formatDuration(totSignTime/iterations) + "  " + formatDuration(totVerifyTime/iterations) + "  " + formatDuration(totTotalTime/iterations));
         System.out.println("Ops" + formatOpsPerSecond(minEncKeyGenTime, NUM_ENC_KEY_GEN) + "  " + formatOpsPerSecond(minEncryptTime, NUM_ENCRYPT) + "  " + formatOpsPerSecond(minDecryptTime, NUM_DECRYPT) + "  " +
