@@ -26,7 +26,6 @@ import java.util.Collections;
 import java.util.List;
 
 import net.sf.ntru.euclid.IntEuclidean;
-import net.sf.ntru.euclid.LongEuclidean;
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
 import net.sf.ntru.polynomial.SparseTernaryPolynomial;
 import net.sf.ntru.polynomial.TernaryPolynomial;
@@ -41,14 +40,6 @@ public class Util {
         if (n < 0)
             n += modulus;
         return IntEuclidean.calculate(n, modulus).x;
-    }
-    
-    /** Calculates the inverse of n mod modulus */
-    public static long invert(long n, long modulus) {
-        n %= modulus;
-        if (n < 0)
-            n += modulus;
-        return LongEuclidean.calculate(n, modulus).x;
     }
     
     /** Calculates a^b mod modulus */
