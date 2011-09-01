@@ -18,15 +18,13 @@
 
 package net.sf.ntru.euclid;
 
+import static org.junit.Assert.assertEquals;
+
 import java.math.BigInteger;
-
-import junit.framework.TestCase;
-
-import net.sf.ntru.euclid.BigIntEuclidean;
 
 import org.junit.Test;
 
-public class BigIntEuclideanTest extends TestCase {
+public class BigIntEuclideanTest {
     
     @Test
     public void testCalculate() {
