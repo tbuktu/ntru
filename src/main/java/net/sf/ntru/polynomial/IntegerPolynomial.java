@@ -45,7 +45,9 @@ import net.sf.ntru.util.Util;
  * not but return the result as a new polynomial.
  */
 public class IntegerPolynomial implements Polynomial {
-    /** prime numbers &gt; <code>4000</code> */
+    /** primes greater than this number are used for computing resultants */
+    private static final int PRIME_START = 4000;
+    /** prime numbers &gt; <code>PRIME_START</code> */
     private static final int[] PRIMES = new int[] {
         4001, 4003, 4007, 4013, 4019, 4021, 4027, 4049, 4051, 4057,
         4073, 4079, 4091, 4093, 4099, 4111, 4127, 4129, 4133, 4139,
@@ -495,46 +497,63 @@ public class IntegerPolynomial implements Polynomial {
     
     /**
      * Resultant of this polynomial with <code>x^n-1</code>.<br/>
+     * There is a low probability that the return value may be incorrect, so the caller
+     * must verify <code>rho</code> and <code>res</code>, and try a different polynomial
+     * if necessary.
      * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1)</code> for some integer <code>t</code>.
      */
     public Resultant resultant() {
         int N = coeffs.length;
         
-        // upper bound for resultant(f, g) = ||f, 2||^deg(g) * ||g, 2||^deg(f) = squaresum(f)^(N/2) * 2^(deg(f)/2) because g(x)=x^N-1
-        // see http://jondalon.mathematik.uni-osnabrueck.de/staff/phpages/brunsw/CompAlg.pdf chapter 3
-        BigInteger max = squareSum().pow((N+1)/2);
-        max = max.multiply(BigInteger.valueOf(2).pow((degree()+1)/2));
-        BigInteger max2 = max.multiply(BigInteger.valueOf(2));
-        Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
-        
-        // compute resultants modulo prime numbers
+        // Compute resultants modulo prime numbers. Start at PRIME_START and continue
+        // until two consecutive modular resultants are equal. There is a small probability
+        // that the real resultant is different from those two, in which case this method
+        // will return a wrong value.
         LinkedList<ModularResultant> modResultants = new LinkedList<ModularResultant>();
-        BigInteger prime = BigInteger.valueOf(4000);
+        BigInteger prime = BigInteger.valueOf(PRIME_START);
         BigInteger pProd = ONE;
-        while (pProd.compareTo(max2) < 0) {
+        BigInteger res = ONE;
+        Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
+        while (true) {
             if (primes.hasNext())
                 prime = primes.next();
             else
                 prime = prime.nextProbablePrime();
-            modResultants.add(resultant(prime.intValue()));
-            pProd = pProd.multiply(prime);
+            ModularResultant crr = resultant(prime.intValue());
+            modResultants.add(crr);
+            
+            BigInteger temp = pProd.multiply(prime);
+            net.sf.ntru.euclid.BigIntEuclidean er = net.sf.ntru.euclid.BigIntEuclidean.calculate(prime, pProd);
+            BigInteger resPrev = res;
+            res = res.multiply(er.x.multiply(prime));
+            BigInteger res2 = crr.res.multiply(er.y.multiply(pProd));
+            res = res.add(res2).mod(temp);
+            pProd = temp;
+            
+            BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
+            BigInteger pProd2n = pProd2.negate();
+            if (res.compareTo(pProd2) > 0)
+                res = res.subtract(pProd);
+            else if (res.compareTo(pProd2n) < 0)
+                res = res.add(pProd);
+            
+            if (res.equals(resPrev))
+                break;
         }
         
-        // Combine modular resultants to obtain the resultant.
+        // Combine modular rho's to obtain the final rho.
         // For efficiency, first combine all pairs of small resultants to bigger resultants,
         // then combine pairs of those, etc. until only one is left.
         while (modResultants.size() > 1) {
             ModularResultant modRes1 = modResultants.removeFirst();
             ModularResultant modRes2 = modResultants.removeFirst();
-            ModularResultant modRes3 = ModularResultant.combine(modRes1, modRes2);
+            ModularResultant modRes3 = ModularResultant.combineRho(modRes1, modRes2);
             modResultants.addLast(modRes3);
         }
-        BigInteger res = modResultants.getFirst().res;
         BigIntPolynomial rhoP = modResultants.getFirst().rho;
         
         BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
         BigInteger pProd2n = pProd2.negate();
-        
         if (res.compareTo(pProd2) > 0)
             res = res.subtract(pProd);
         if (res.compareTo(pProd2n) < 0)
@@ -1043,7 +1062,7 @@ public class IntegerPolynomial implements Polynomial {
         
         @Override
         public ModularResultant call() {
-            return ModularResultant.combine(modRes1, modRes2);
+            return ModularResultant.combineRho(modRes1, modRes2);
         }
     }
 }
