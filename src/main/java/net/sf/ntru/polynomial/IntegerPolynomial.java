@@ -45,6 +45,7 @@ import net.sf.ntru.util.Util;
  * not but return the result as a new polynomial.
  */
 public class IntegerPolynomial implements Polynomial {
+    private static final int NUM_EQUAL_RESULTANTS = 3;
     /** primes greater than this number are used for computing resultants */
     private static final int PRIME_START = 4000;
     /** prime numbers &gt; <code>PRIME_START</code> */
@@ -496,23 +497,28 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Resultant of this polynomial with <code>x^n-1</code>.<br/>
-     * There is a low probability that the return value may be incorrect, so the caller
-     * must verify <code>rho</code> and <code>res</code>, and try a different polynomial
-     * if necessary.
+     * Resultant of this polynomial with <code>x^n-1</code> using a probabilistic algorithm.
+     * <p/>
+     * Unlike EESS, this implementation does not compute all resultants modulo primes
+     * such that their product exceeds the maximum possible resultant, but rather stops
+     * when <code>NUM_EQUAL_RESULTANTS</code> consecutive modular resultants are equal.<br/>
+     * This means the return value may be incorrect. Experiments show this happens in
+     * about 1 out of 100 cases when <code>N=439</code> and <code>NUM_EQUAL_RESULTANTS=2</code>,
+     * so the likelyhood of leaving the loop too early is <code>(1/100)^(NUM_EQUAL_RESULTANTS-1)</code>.
+     * <p/>
+     * Because of the above, callers must verify the output and try a different polynomial if necessary.
      * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1)</code> for some integer <code>t</code>.
      */
     public Resultant resultant() {
         int N = coeffs.length;
         
         // Compute resultants modulo prime numbers. Start at PRIME_START and continue
-        // until two consecutive modular resultants are equal. There is a small probability
-        // that the real resultant is different from those two, in which case this method
-        // will return a wrong value.
+        // until NUM_EQUAL_RESULTANTS consecutive modular resultants are equal.
         LinkedList<ModularResultant> modResultants = new LinkedList<ModularResultant>();
         BigInteger prime = BigInteger.valueOf(PRIME_START);
         BigInteger pProd = ONE;
         BigInteger res = ONE;
+        int numEqual = 1;   // number of consecutive modular resultants equal to each other
         Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
         while (true) {
             if (primes.hasNext())
@@ -537,8 +543,13 @@ public class IntegerPolynomial implements Polynomial {
             else if (res.compareTo(pProd2n) < 0)
                 res = res.add(pProd);
             
-            if (res.equals(resPrev))
-                break;
+            if (res.equals(resPrev)) {
+                numEqual++;
+                if (numEqual >= NUM_EQUAL_RESULTANTS)
+                    break;
+            }
+            else
+                numEqual = 1;
         }
         
         // Combine modular rho's to obtain the final rho.
