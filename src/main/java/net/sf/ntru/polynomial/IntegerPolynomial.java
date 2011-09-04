@@ -706,7 +706,8 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Computes <code>b*c*(x^k) mod p</code> and stores the result in this polynomial.
+     * Computes <code>this-b*c*(x^k) mod p</code> and stores the result in this polynomial.<br/>
+     * See steps 4a,4b in EESS algorithm 2.2.7.1.
      * @param b
      * @param c
      * @param k
