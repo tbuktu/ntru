@@ -46,9 +46,7 @@ import net.sf.ntru.util.Util;
  */
 public class IntegerPolynomial implements Polynomial {
     private static final int NUM_EQUAL_RESULTANTS = 3;
-    /** primes greater than this number are used for computing resultants */
-    private static final int PRIME_START = 4000;
-    /** prime numbers &gt; <code>PRIME_START</code> */
+    /** prime numbers &gt; 4000 */
     private static final int[] PRIMES = new int[] {
         4001, 4003, 4007, 4013, 4019, 4021, 4027, 4049, 4051, 4057,
         4073, 4079, 4091, 4093, 4099, 4111, 4127, 4129, 4133, 4139,
@@ -512,19 +510,15 @@ public class IntegerPolynomial implements Polynomial {
     public Resultant resultant() {
         int N = coeffs.length;
         
-        // Compute resultants modulo prime numbers. Start at PRIME_START and continue
-        // until NUM_EQUAL_RESULTANTS consecutive modular resultants are equal.
+        // Compute resultants modulo prime numbers. Continue until NUM_EQUAL_RESULTANTS consecutive modular resultants are equal.
         LinkedList<ModularResultant> modResultants = new LinkedList<ModularResultant>();
-        BigInteger prime = BigInteger.valueOf(PRIME_START);
+        BigInteger prime = null;
         BigInteger pProd = ONE;
         BigInteger res = ONE;
         int numEqual = 1;   // number of consecutive modular resultants equal to each other
         Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
         while (true) {
-            if (primes.hasNext())
-                prime = primes.next();
-            else
-                prime = prime.nextProbablePrime();
+            prime = primes.hasNext() ? primes.next() : prime.nextProbablePrime();
             ModularResultant crr = resultant(prime.intValue());
             modResultants.add(crr);
             
