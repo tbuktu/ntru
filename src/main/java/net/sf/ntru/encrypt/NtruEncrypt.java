@@ -317,8 +317,10 @@ public class NtruEncrypt {
         if (ci.count(1) < dm0)
             throw new NtruException("More than dm0 coefficients equal 1");
         
-        IntegerPolynomial cR4 = e.clone();
-        cR4.sub(ci, q);
+        IntegerPolynomial cR = e.clone();
+        cR.sub(ci);
+        cR.modPositive(q);
+        IntegerPolynomial cR4 = cR.clone();
         cR4.modPositive(4);
         byte[] coR4 = cR4.toBinary(4);
         IntegerPolynomial mask = MGF1(coR4, N, minCallsMask);
@@ -351,8 +353,9 @@ public class NtruEncrypt {
         byte[] sData = sDataBuffer.array();
         
         Polynomial cr = generateBlindingPoly(sData, cm);
-        IntegerPolynomial cRPrime = cr.mult(pub, q);
-        if (cRPrime.equals(cr))
+        IntegerPolynomial cRPrime = cr.mult(pub);
+        cRPrime.modPositive(q);
+        if (!cRPrime.equals(cR))
             throw new NtruException("Invalid message encoding");
        
         return cm;
