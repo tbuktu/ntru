@@ -144,7 +144,8 @@ public class ArrayEncoder {
     /**
      * Decodes a <code>byte</code> array encoded with {@link #encodeMod3(int[])} back to an <code>int</code> array
      * with <code>N</code> coefficients between <code>-1</code> and <code>1</code>.<br/>
-     * Ignores any excess bytes.
+     * Ignores any excess bytes.<br/>
+     * See P1363.1 section 9.2.2.
      * @param data an encoded ternary polynomial
      * @param N number of coefficients
      * @return the decoded coefficients
@@ -169,7 +170,8 @@ public class ArrayEncoder {
     /**
      * Encodes an <code>int</code> array whose elements are between <code>-1</code> and <code>1</code>, to a byte array.
      * <code>coeffs[2*i]</code> and <code>coeffs[2*i+1]</code> must not both equal -1 for any integer </code>i<code>,
-     * so this method is only safe to use with arrays produced by {@link #decodeMod3(byte[], int)}.
+     * so this method is only safe to use with arrays produced by {@link #decodeMod3(byte[], int)}.<br/>
+     * See P1363.1 section 9.2.3.
      * @param arr
      * @return the encoded array
      */
