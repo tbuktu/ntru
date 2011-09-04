@@ -159,8 +159,8 @@ public class IntegerPolynomial implements Polynomial {
      * @param N number of coefficients
      * @return the decoded polynomial
      */
-    public static IntegerPolynomial fromBinary3(byte[] data, int N) {
-        return new IntegerPolynomial(ArrayEncoder.decodeMod3(data, N));
+    public static IntegerPolynomial fromBinary3Sves(byte[] data, int N) {
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3Sves(data, N));
     }
     
     /**
@@ -192,18 +192,18 @@ public class IntegerPolynomial implements Polynomial {
     /**
      * Encodes a polynomial whose coefficients are between -1 and 1, to binary.
      * <code>coeffs[2*i]</code> and <code>coeffs[2*i+1]</code> must not both equal -1 for any integer </code>i<code>,
-     * so this method is only safe to use with polynomials produced by <code>fromBinary3()</code>.
+     * so this method is only safe to use with polynomials produced by <code>fromBinary3Sves()</code>.
      * @return the encoded polynomial
      */
-    public byte[] toBinary3() {
-        return ArrayEncoder.encodeMod3(coeffs);
+    public byte[] toBinary3Sves() {
+        return ArrayEncoder.encodeMod3Sves(coeffs);
     }
     
     /**
      * Converts a polynomial whose coefficients are between -1 and 1, to binary.
      * @return the encoded polynomial
      */
-    public byte[] toBinary3Arith() {
+    public byte[] toBinary3Tight() {
         BigInteger sum = ZERO;
         for (int i=coeffs.length-1; i>=0; i--) {
             sum = sum.multiply(BigInteger.valueOf(3));
@@ -227,23 +227,23 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Converts a byte array produced by toBinary3Arith() to a polynomial.
+     * Converts a byte array produced by {@link #toBinary3Tight()} to a polynomial.
      * @param b a byte array
      * @param N number of coefficients
      * @return the decoded polynomial
      */
-    public static IntegerPolynomial fromBinary3Arith(byte[] b, int N) {
-        return new IntegerPolynomial(ArrayEncoder.decodeMod3Arith(b, N));
+    public static IntegerPolynomial fromBinary3Tight(byte[] b, int N) {
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3Tight(b, N));
     }
     
     /**
-     * Reads data produced by toBinary3Arith() from an input stream and converts it to a polynomial.
+     * Reads data produced by {@link #toBinary3Tight()} from an input stream and converts it to a polynomial.
      * @param is an input stream
      * @param N number of coefficients
      * @return the decoded polynomial
      */
-    public static IntegerPolynomial fromBinary3Arith(InputStream is, int N) throws IOException {
-        return new IntegerPolynomial(ArrayEncoder.decodeMod3Arith(is, N));
+    public static IntegerPolynomial fromBinary3Tight(InputStream is, int N) throws IOException {
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3Tight(is, N));
     }
     
     /**

@@ -142,7 +142,7 @@ public class ArrayEncoder {
     }
     
     /**
-     * Decodes a <code>byte</code> array encoded with {@link #encodeMod3(int[])} back to an <code>int</code> array
+     * Decodes a <code>byte</code> array encoded with {@link #encodeMod3Sves(int[])} back to an <code>int</code> array
      * with <code>N</code> coefficients between <code>-1</code> and <code>1</code>.<br/>
      * Ignores any excess bytes.<br/>
      * See P1363.1 section 9.2.2.
@@ -150,7 +150,7 @@ public class ArrayEncoder {
      * @param N number of coefficients
      * @return the decoded coefficients
      */
-    public static int[] decodeMod3(byte[] data, int N) {
+    public static int[] decodeMod3Sves(byte[] data, int N) {
         int[] coeffs = new int[N];
         int coeffIndex = 0;
         for (int bitIndex=0; bitIndex<data.length*8; ) {
@@ -170,12 +170,12 @@ public class ArrayEncoder {
     /**
      * Encodes an <code>int</code> array whose elements are between <code>-1</code> and <code>1</code>, to a byte array.
      * <code>coeffs[2*i]</code> and <code>coeffs[2*i+1]</code> must not both equal -1 for any integer </code>i<code>,
-     * so this method is only safe to use with arrays produced by {@link #decodeMod3(byte[], int)}.<br/>
+     * so this method is only safe to use with arrays produced by {@link #decodeMod3Sves(byte[], int)}.<br/>
      * See P1363.1 section 9.2.3.
      * @param arr
      * @return the encoded array
      */
-    public static byte[] encodeMod3(int[] arr) {
+    public static byte[] encodeMod3Sves(int[] arr) {
         int numBits = (arr.length*3+1) / 2;
         int numBytes = (numBits+7) / 8;
         byte[] data = new byte[numBytes];
@@ -205,7 +205,7 @@ public class ArrayEncoder {
      * Encodes an <code>int</code> array whose elements are between <code>-1</code> and <code>1</code>, to a byte array.
      * @return the encoded array
      */
-    public static byte[] encodeMod3Arith(int[] intArray) {
+    public static byte[] encodeMod3Tight(int[] intArray) {
         BigInteger sum = BigInteger.ZERO;
         for (int i=intArray.length-1; i>=0; i--) {
             sum = sum.multiply(BigInteger.valueOf(3));
@@ -229,12 +229,12 @@ public class ArrayEncoder {
     }
     
     /**
-     * Converts a byte array produced by {@link #encodeMod3Arith(int[])} back to an <code>int</code> array.
+     * Converts a byte array produced by {@link #encodeMod3Tight(int[])} back to an <code>int</code> array.
      * @param b a byte array
      * @param N number of coefficients
      * @return the decoded array
      */
-    public static int[] decodeMod3Arith(byte[] b, int N) {
+    public static int[] decodeMod3Tight(byte[] b, int N) {
         BigInteger sum = new BigInteger(1, b);
         int[] coeffs = new int[N];
         for (int i=0; i<N; i++) {
@@ -247,15 +247,15 @@ public class ArrayEncoder {
     }
     
     /**
-     * Converts data produced by {@link #encodeMod3Arith(int[])} back to an <code>int</code> array.
+     * Converts data produced by {@link #encodeMod3Tight(int[])} back to an <code>int</code> array.
      * @param is an input stream containing the data to decode
      * @param N number of coefficients
      * @return the decoded array
      */
-    public static int[] decodeMod3Arith(InputStream is, int N) throws IOException {
+    public static int[] decodeMod3Tight(InputStream is, int N) throws IOException {
         int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
         byte[] arr = Util.readFullLength(is, size);
-        return decodeMod3Arith(arr, N);
+        return decodeMod3Tight(arr, N);
     }
     
     private static int getBit(byte[] arr, int bitIndex) {

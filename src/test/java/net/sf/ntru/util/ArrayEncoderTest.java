@@ -39,20 +39,20 @@ public class ArrayEncoderTest {
     }
     
     @Test
-    public void testEncodeDecodeMod3() {
+    public void testEncodeDecodeMod3Sves() {
         Random rng = new Random();
         byte[] data = new byte[180];
         rng.nextBytes(data);
-        int[] coeffs = ArrayEncoder.decodeMod3(data, 960);
-        byte[] data2 = ArrayEncoder.encodeMod3(coeffs);
+        int[] coeffs = ArrayEncoder.decodeMod3Sves(data, 960);
+        byte[] data2 = ArrayEncoder.encodeMod3Sves(coeffs);
         assertArrayEquals(data, data2);
     }
     
     @Test
-    public void testEncodeDecodeMod3Arith() {
+    public void testEncodeDecodeMod3Tight() {
         int[] coeffs = DenseTernaryPolynomial.generateRandom(1000).coeffs;
-        byte[] data = ArrayEncoder.encodeMod3Arith(coeffs);
-        int[] coeffs2 = ArrayEncoder.decodeMod3Arith(data, 1000);
+        byte[] data = ArrayEncoder.encodeMod3Tight(coeffs);
+        int[] coeffs2 = ArrayEncoder.decodeMod3Tight(data, 1000);
         assertArrayEquals(coeffs, coeffs2);
     }
 }

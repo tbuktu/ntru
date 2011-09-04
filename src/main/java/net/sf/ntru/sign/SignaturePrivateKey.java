@@ -198,7 +198,7 @@ public class SignaturePrivateKey {
             if (params.polyType == TernaryPolynomialType.PRODUCT)
                 f = ProductFormPolynomial.fromBinary(is, N, d1, d2, d3+1, d3);
             else {
-                IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(is, N);
+                IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Tight(is, N);
                 f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
             }
             
@@ -212,7 +212,7 @@ public class SignaturePrivateKey {
                 if (params.polyType == TernaryPolynomialType.PRODUCT)
                     fPrime = ProductFormPolynomial.fromBinary(is, N, d1, d2, d3+1, d3);
                 else
-                    fPrime = IntegerPolynomial.fromBinary3Arith(is, N);
+                    fPrime = IntegerPolynomial.fromBinary3Tight(is, N);
             
             if (include_h)
                 h = IntegerPolynomial.fromBinary(is, N, q);
@@ -244,7 +244,7 @@ public class SignaturePrivateKey {
             if (p instanceof ProductFormPolynomial)
                 return ((ProductFormPolynomial)p).toBinary();
             else
-                return p.toIntegerPolynomial().toBinary3Arith();
+                return p.toIntegerPolynomial().toBinary3Tight();
         }
         
         @Override

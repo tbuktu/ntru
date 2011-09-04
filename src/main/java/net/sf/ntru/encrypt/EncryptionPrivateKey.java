@@ -83,7 +83,7 @@ public class EncryptionPrivateKey {
                 t = ProductFormPolynomial.fromBinary(is, N, df1, df2, df3Ones, df3NegOnes);
             }
             else {
-                IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Arith(is, params.N);
+                IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Tight(is, params.N);
                 t = params.sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
             }
         }
@@ -114,7 +114,7 @@ public class EncryptionPrivateKey {
         if (t instanceof ProductFormPolynomial)
             return ((ProductFormPolynomial)t).toBinary();
         else
-            return t.toIntegerPolynomial().toBinary3Arith();
+            return t.toIntegerPolynomial().toBinary3Tight();
     }
     
     /**

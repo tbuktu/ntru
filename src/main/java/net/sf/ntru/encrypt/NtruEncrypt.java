@@ -158,7 +158,7 @@ public class NtruEncrypt {
             mBuf.put(p0);
             byte[] M = mBuf.array();
             
-            IntegerPolynomial mTrin = IntegerPolynomial.fromBinary3(M, N);
+            IntegerPolynomial mTrin = IntegerPolynomial.fromBinary3Sves(M, N);
             
             // sData = OID|m|b|hTrunc
             byte[] bh = pub.toBinary(q);
@@ -278,7 +278,7 @@ public class NtruEncrypt {
         }
         byte [] output = buf.array();
         output = Arrays.copyOf(output, numBytes);
-        return IntegerPolynomial.fromBinary3(buf.array(), N);
+        return IntegerPolynomial.fromBinary3Sves(buf.array(), N);
     }
 
     /**
@@ -327,7 +327,7 @@ public class NtruEncrypt {
         IntegerPolynomial cMTrin = ci;
         cMTrin.sub(mask);
         cMTrin.mod3();
-        byte[] cM = cMTrin.toBinary3();
+        byte[] cM = cMTrin.toBinary3Sves();
         
         ByteBuffer buf = ByteBuffer.wrap(cM);
         byte[] cb = new byte[bLen];
