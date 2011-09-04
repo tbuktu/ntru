@@ -311,11 +311,11 @@ public class NtruEncrypt {
         IntegerPolynomial ci = decrypt(e, priv_t, priv_fp);
         
         if (ci.count(-1) < dm0)
-            throw new NtruException("More than dm0 coefficients equal -1");
+            throw new NtruException("Less than dm0 coefficients equal -1");
         if (ci.count(0) < dm0)
-            throw new NtruException("More than dm0 coefficients equal 0");
+            throw new NtruException("Less than dm0 coefficients equal 0");
         if (ci.count(1) < dm0)
-            throw new NtruException("More than dm0 coefficients equal 1");
+            throw new NtruException("Less than dm0 coefficients equal 1");
         
         IntegerPolynomial cR = e.clone();
         cR.sub(ci);
