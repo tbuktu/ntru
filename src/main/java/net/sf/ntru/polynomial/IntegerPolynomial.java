@@ -35,6 +35,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import net.sf.ntru.euclid.BigIntEuclidean;
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.sign.SignatureParameters;
 import net.sf.ntru.util.ArrayEncoder;
@@ -522,7 +523,7 @@ public class IntegerPolynomial implements Polynomial {
             modResultants.add(crr);
             
             BigInteger temp = pProd.multiply(prime);
-            net.sf.ntru.euclid.BigIntEuclidean er = net.sf.ntru.euclid.BigIntEuclidean.calculate(prime, pProd);
+            BigIntEuclidean er = BigIntEuclidean.calculate(prime, pProd);
             BigInteger resPrev = res;
             res = res.multiply(er.x.multiply(prime));
             BigInteger res2 = crr.res.multiply(er.y.multiply(pProd));
