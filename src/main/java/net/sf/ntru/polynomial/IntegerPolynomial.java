@@ -36,6 +36,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
 import net.sf.ntru.exception.NtruException;
+import net.sf.ntru.sign.SignatureParameters;
 import net.sf.ntru.util.ArrayEncoder;
 import net.sf.ntru.util.Util;
 
@@ -46,14 +47,12 @@ import net.sf.ntru.util.Util;
  */
 public class IntegerPolynomial implements Polynomial {
     private static final int NUM_EQUAL_RESULTANTS = 3;
-    /** prime numbers &gt; 4000 */
+    /**
+     * Prime numbers &gt; 4500 for resultant computation. Starting them below ~4400 causes incorrect results occasionally.
+     * Fortunately, 4500 is about the optimum number for performance.<br/>
+     * This array contains enough prime numbers so primes never have to be computed on-line for any standard {@link SignatureParameters}.
+     */
     private static final int[] PRIMES = new int[] {
-        4001, 4003, 4007, 4013, 4019, 4021, 4027, 4049, 4051, 4057,
-        4073, 4079, 4091, 4093, 4099, 4111, 4127, 4129, 4133, 4139,
-        4153, 4157, 4159, 4177, 4201, 4211, 4217, 4219, 4229, 4231,
-        4241, 4243, 4253, 4259, 4261, 4271, 4273, 4283, 4289, 4297,
-        4327, 4337, 4339, 4349, 4357, 4363, 4373, 4391, 4397, 4409,
-        4421, 4423, 4441, 4447, 4451, 4457, 4463, 4481, 4483, 4493,
         4507, 4513, 4517, 4519, 4523, 4547, 4549, 4561, 4567, 4583,
         4591, 4597, 4603, 4621, 4637, 4639, 4643, 4649, 4651, 4657,
         4663, 4673, 4679, 4691, 4703, 4721, 4723, 4729, 4733, 4751,
