@@ -19,13 +19,8 @@
 package net.sf.ntru.encrypt;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-
-import net.sf.ntru.encrypt.EncryptionKeyPair;
-import net.sf.ntru.encrypt.EncryptionParameters;
-import net.sf.ntru.encrypt.EncryptionPrivateKey;
-import net.sf.ntru.encrypt.EncryptionPublicKey;
-import net.sf.ntru.encrypt.NtruEncrypt;
 import net.sf.ntru.encrypt.EncryptionParameters.TernaryPolynomialType;
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
@@ -39,9 +34,13 @@ public class NtruEncryptTest {
     @Test
     public void testEncryptDecrypt() {
         EncryptionParameters params = EncryptionParameters.APR2011_743.clone();
+        // set df1..df3 and dr1..dr3 so params can be used for SIMPLE as well as PRODUCT
         params.df1 = EncryptionParameters.APR2011_743_FAST.df1;
         params.df2 = EncryptionParameters.APR2011_743_FAST.df2;
         params.df3 = EncryptionParameters.APR2011_743_FAST.df3;
+        params.dr1 = EncryptionParameters.APR2011_743_FAST.dr1;
+        params.dr2 = EncryptionParameters.APR2011_743_FAST.dr2;
+        params.dr3 = EncryptionParameters.APR2011_743_FAST.dr3;
         
         for (TernaryPolynomialType polyType: TernaryPolynomialType.values())
             for (boolean fastP: new boolean[] {true, false}) {
@@ -62,6 +61,7 @@ public class NtruEncryptTest {
                 testEmpty(ntru, kp, params);
                 testMaxLength(ntru, kp, params);
                 testTooLong(ntru, kp, params);
+                testInvalidEncoding(ntru, kp, params);
         }
     }
     
@@ -101,8 +101,8 @@ public class NtruEncryptTest {
     
     // tests a message that is too long
     private void testTooLong(NtruEncrypt ntru, EncryptionKeyPair kp, EncryptionParameters params) {
+        byte[] plainText = new byte[params.maxMsgLenBytes+1];
         try {
-            byte[] plainText = new byte[params.maxMsgLenBytes+1];
             System.arraycopy("secret encrypted text".getBytes(), 0, plainText, 0, 21);
             byte[] encrypted = ntru.encrypt(plainText, kp.pub);
             byte[] decrypted = ntru.decrypt(encrypted, kp);
@@ -110,6 +110,23 @@ public class NtruEncryptTest {
             fail("An exception should have been thrown!");
         }
         catch (NtruException ex) {
+            assertEquals("Message too long: " + plainText.length + ">" + params.maxMsgLenBytes, ex.getMessage());
+        }
+    }
+    
+    // tests that altering the public key *AFTER* encryption causes the decrypted message to be rejected
+    private void testInvalidEncoding(NtruEncrypt ntru, EncryptionKeyPair kp, EncryptionParameters params) {
+        try {
+            byte[] plainText = "secret encrypted text".getBytes();
+            byte[] encrypted = ntru.encrypt(plainText, kp.pub);
+            IntegerPolynomial h = kp.pub.h.clone();
+            h.coeffs[0] = (h.coeffs[0]+111) % params.q;   // alter h
+            kp = new EncryptionKeyPair(kp.priv, new EncryptionPublicKey(h, params));
+            ntru.decrypt(encrypted, kp);
+            fail("An exception should have been thrown!");
+        }
+        catch (NtruException ex) {
+            assertEquals("Invalid message encoding", ex.getMessage());
         }
     }
     
