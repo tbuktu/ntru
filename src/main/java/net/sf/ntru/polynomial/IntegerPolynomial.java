@@ -164,6 +164,26 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
+     * Converts a byte array produced by {@link #toBinary3Tight()} to a polynomial.
+     * @param b a byte array
+     * @param N number of coefficients
+     * @return the decoded polynomial
+     */
+    public static IntegerPolynomial fromBinary3Tight(byte[] b, int N) {
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3Tight(b, N));
+    }
+    
+    /**
+     * Reads data produced by {@link #toBinary3Tight()} from an input stream and converts it to a polynomial.
+     * @param is an input stream
+     * @param N number of coefficients
+     * @return the decoded polynomial
+     */
+    public static IntegerPolynomial fromBinary3Tight(InputStream is, int N) throws IOException {
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3Tight(is, N));
+    }
+    
+    /**
      * Returns a polynomial with N coefficients between <code>0</code> and <code>q-1</code>.<br/>
      * <code>q</code> must be a power of 2.<br/>
      * Ignores any excess bytes.
@@ -224,26 +244,6 @@ public class IntegerPolynomial implements Polynomial {
             // drop sign bit
             arr = Arrays.copyOfRange(arr, 1, arr.length);
         return arr;
-    }
-    
-    /**
-     * Converts a byte array produced by {@link #toBinary3Tight()} to a polynomial.
-     * @param b a byte array
-     * @param N number of coefficients
-     * @return the decoded polynomial
-     */
-    public static IntegerPolynomial fromBinary3Tight(byte[] b, int N) {
-        return new IntegerPolynomial(ArrayEncoder.decodeMod3Tight(b, N));
-    }
-    
-    /**
-     * Reads data produced by {@link #toBinary3Tight()} from an input stream and converts it to a polynomial.
-     * @param is an input stream
-     * @param N number of coefficients
-     * @return the decoded polynomial
-     */
-    public static IntegerPolynomial fromBinary3Tight(InputStream is, int N) throws IOException {
-        return new IntegerPolynomial(ArrayEncoder.decodeMod3Tight(is, N));
     }
     
     /**
