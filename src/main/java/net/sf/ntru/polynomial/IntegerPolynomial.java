@@ -153,7 +153,7 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Decodes a byte array to a polynomial with <code>N</code> coefficients between -1 and 1.<br/>
+     * Decodes a byte array to a polynomial with <code>N</code> ternary coefficients<br/>
      * Ignores any excess bytes.
      * @param data an encoded ternary polynomial
      * @param N number of coefficients
@@ -210,7 +210,7 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Encodes a polynomial whose coefficients are between -1 and 1, to binary.
+     * Encodes a polynomial with ternary coefficients to binary.
      * <code>coeffs[2*i]</code> and <code>coeffs[2*i+1]</code> must not both equal -1 for any integer </code>i<code>,
      * so this method is only safe to use with polynomials produced by <code>fromBinary3Sves()</code>.
      * @return the encoded polynomial
@@ -220,7 +220,7 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Converts a polynomial whose coefficients are between -1 and 1, to binary.
+     * Converts a polynomial with ternary coefficients to binary.
      * @return the encoded polynomial
      */
     public byte[] toBinary3Tight() {
@@ -836,7 +836,7 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Takes each coefficient modulo 3 such that all coefficients are between -1 and 1.
+     * Takes each coefficient modulo 3 such that all coefficients are ternary.
      */
     public void mod3() {
         for (int i=0; i<coeffs.length; i++) {
