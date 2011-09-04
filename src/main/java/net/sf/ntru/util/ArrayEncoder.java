@@ -246,7 +246,7 @@ public class ArrayEncoder {
     
     /**
      * Converts data produced by {@link #encodeMod3Arith(int[])} back to an <code>int</code> array.
-     * @param b an input stream containing the data to decode
+     * @param is an input stream containing the data to decode
      * @param N number of coefficients
      * @return the decoded array
      */

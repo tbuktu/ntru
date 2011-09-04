@@ -77,7 +77,6 @@ public class DenseTernaryPolynomial extends IntegerPolynomial implements Ternary
     /**
      * Generates a polynomial with coefficients randomly selected from <code>{-1, 0, 1}</code>.
      * @param N number of coefficients
-     * @return
      */
     public static DenseTernaryPolynomial generateRandom(int N) {
         SecureRandom rng = new SecureRandom();

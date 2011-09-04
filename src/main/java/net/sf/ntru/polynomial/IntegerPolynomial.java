@@ -238,7 +238,7 @@ public class IntegerPolynomial implements Polynomial {
     
     /**
      * Reads data produced by toBinary3Arith() from an input stream and converts it to a polynomial.
-     * @param b an input stream
+     * @param is an input stream
      * @param N number of coefficients
      * @return the decoded polynomial
      */

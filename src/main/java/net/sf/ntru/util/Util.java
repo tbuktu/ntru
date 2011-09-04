@@ -118,7 +118,7 @@ public class Util {
      * is thrown.
      * @param is
      * @param length
-     * @return
+     * @return an array of length <code>length</code>
      * @throws IOException
      */
     public static byte[] readFullLength(InputStream is, int length) throws IOException {
