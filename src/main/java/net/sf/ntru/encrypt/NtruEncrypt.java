@@ -120,7 +120,8 @@ public class NtruEncrypt {
     }
     
     /**
-     * Encrypts a message.
+     * Encrypts a message.<br/>
+     * See P1363.1 section 9.2.2.
      * @param m The message to encrypt
      * @param pubKey the public key to encrypt the message with
      * @return the encrypted message
@@ -175,7 +176,7 @@ public class NtruEncrypt {
             R4.modPositive(4);
             byte[] oR4 = R4.toBinary(4);
             IntegerPolynomial mask = MGF1(oR4, N, minCallsMask);
-            mTrin.add(mask, 3);
+            mTrin.add(mask);
             mTrin.mod3();
             
             if (mTrin.count(-1) < dm0)
@@ -281,7 +282,8 @@ public class NtruEncrypt {
     }
 
     /**
-     * Decrypts a message.
+     * Decrypts a message.<br/>
+     * See P1363.1 section 9.2.3.
      * @param data The message to decrypt
      * @param kp a key pair that contains the public key the message was encrypted with, and the corresponding private key
      * @return the decrypted message
@@ -321,7 +323,7 @@ public class NtruEncrypt {
         byte[] coR4 = cR4.toBinary(4);
         IntegerPolynomial mask = MGF1(coR4, N, minCallsMask);
         IntegerPolynomial cMTrin = ci;
-        cMTrin.sub(mask, 3);
+        cMTrin.sub(mask);
         cMTrin.mod3();
         byte[] cM = cMTrin.toBinary3();
         
