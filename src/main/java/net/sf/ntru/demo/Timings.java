@@ -30,11 +30,11 @@ import net.sf.ntru.sign.SignatureParameters;
 
 public class Timings {
     private static final int NUM_ENC_KEY_GEN = 20;
-    private static final int NUM_ENCRYPT = 100;
-    private static final int NUM_DECRYPT = 400;
+    private static final int NUM_ENCRYPT = 2000;
+    private static final int NUM_DECRYPT = 2000;
     private static final int NUM_SIG_KEY_GEN = 1;
-    private static final int NUM_SIGN = 100;
-    private static final int NUM_VERIFY = 100;
+    private static final int NUM_SIGN = 200;
+    private static final int NUM_VERIFY = 200;
     
     private byte[] plain = "test message".getBytes();
     private byte[] encrypted;
