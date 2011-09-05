@@ -113,6 +113,12 @@ Parameter Sets
   256 bits for the "743" parameters.
 
 
+Error Conditions
+
+  Errors cause a NtruException with an appropriate message and/or cause to be
+  thrown. NtruException is an unchecked exception.
+
+
 Sample Programs
 
   The net.sf.ntru.demo package contains several small console programs:
@@ -131,7 +137,7 @@ Maven Artifact
   <dependency>
     <groupId>net.sf.ntru</groupId>
     <artifactId>ntru</artifactId>
-    <version>0.8</version>
+    <version>1.0</version>
   </dependency>
 
 
