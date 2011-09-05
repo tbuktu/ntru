@@ -141,7 +141,7 @@ public class EncryptionParameters implements Cloneable {
         maxMsgLenBytes = N*3/2/8 - llen - db/8;
         bufferLenBits = (N*3/2+7)/8*8;   // one byte more than p1363.1 says
         bufferLenTrits = N - 1;
-        pkLen = db / 2;
+        pkLen = db;
     }
 
     /**
