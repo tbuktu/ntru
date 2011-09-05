@@ -151,7 +151,7 @@ public class NtruEncrypt {
             // M = b|octL|m|p0
             byte[] b = new byte[db/8];
             rng.nextBytes(b);
-            byte[] p0 = new byte[maxLenBytes-l];
+            byte[] p0 = new byte[maxLenBytes+1-l];
             ByteBuffer mBuf = ByteBuffer.allocate(bufferLenBits/8);
             mBuf.put(b);
             mBuf.put((byte)l);
