@@ -137,6 +137,7 @@ public class NtruEncrypt {
         int dm0 = params.dm0;
         int pkLen = params.pkLen;
         int minCallsMask = params.minCallsMask;
+        boolean hashSeed = params.hashSeed;
         byte[] oid = params.oid;
         
         int l = m.length;
@@ -175,7 +176,7 @@ public class NtruEncrypt {
             IntegerPolynomial R4 = R.clone();
             R4.modPositive(4);
             byte[] oR4 = R4.toBinary(4);
-            IntegerPolynomial mask = MGF1(oR4, N, minCallsMask);
+            IntegerPolynomial mask = MGF(oR4, N, minCallsMask, hashSeed);
             mTrin.add(mask);
             mTrin.mod3();
             
@@ -252,33 +253,68 @@ public class NtruEncrypt {
     
     /**
      * An implementation of MGF-TP-1 from P1363.1 section 8.4.1.1.
-     * @param input
+     * @param seed
      * @param N
-     * @param minCallsMask
+     * @param minCallsR
+     * @param hashSeed whether to hash the seed
      * @return
      * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
-    private IntegerPolynomial MGF1(byte[] input, int N, int minCallsMask) {
-        int numBytes = (N*3+2)/2;
+    private IntegerPolynomial MGF(byte[] seed, int N, int minCallsR, boolean hashSeed) {
         MessageDigest hashAlg;
         try {
             hashAlg = MessageDigest.getInstance(params.hashAlg);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }
+        
         int hashLen = hashAlg.getDigestLength();
-        int numCalls = (numBytes+hashLen-1) / hashLen;   // calls to the hash function
-        ByteBuffer buf = ByteBuffer.allocate(numCalls*hashLen);
-        for (int counter=0; counter<numCalls; counter++) {
-            ByteBuffer hashInput = ByteBuffer.allocate(input.length + 4);
-            hashInput.put(input);
+        ByteBuffer buf = ByteBuffer.allocate(minCallsR*hashLen);
+        byte[] Z = hashSeed ? hashAlg.digest(seed) : seed;
+        int counter = 0;
+        while (counter < minCallsR) {
+            ByteBuffer hashInput = ByteBuffer.allocate(Z.length + 4);
+            hashInput.put(Z);
             hashInput.putInt(counter);
             byte[] hash = hashAlg.digest(hashInput.array());
             buf.put(hash);
+            counter++;
         }
-        byte [] output = buf.array();
-        output = Arrays.copyOf(output, numBytes);
-        return IntegerPolynomial.fromBinary3Sves(buf.array(), N);
+        
+        IntegerPolynomial i = new IntegerPolynomial(N);
+        while (true) {
+            int cur = 0;
+            for (byte o: buf.array()) {
+                int O = (int)o & 0xFF;
+                if (O >= 243)   // 243 = 3^5
+                    continue;
+                
+                for (int terIdx=0; terIdx<4; terIdx++) {
+                    int rem3 = O % 3;
+                    i.coeffs[cur] = rem3 - 1;
+                    cur++;
+                    if (cur == N)
+                        return i;
+                    O = (O-rem3) / 3;
+                }
+                
+                i.coeffs[cur] = O - 1;
+                cur++;
+                if (cur == N)
+                    return i;
+            }
+            
+            if (cur >= N)
+                return i;
+            
+            buf = ByteBuffer.allocate(hashLen);
+            ByteBuffer hashInput = ByteBuffer.allocate(Z.length + 4);
+            hashInput.put(Z);
+            hashInput.putInt(counter);
+            byte[] hash = hashAlg.digest(hashInput.array());
+            buf.put(hash);
+            counter++;
+        }
     }
 
     /**
@@ -300,6 +336,7 @@ public class NtruEncrypt {
         int dm0 = params.dm0;
         int pkLen = params.pkLen;
         int minCallsMask = params.minCallsMask;
+        boolean hashSeed = params.hashSeed;
         byte[] oid = params.oid;
         
         if (maxMsgLenBytes > 255)
@@ -323,7 +360,7 @@ public class NtruEncrypt {
         IntegerPolynomial cR4 = cR.clone();
         cR4.modPositive(4);
         byte[] coR4 = cR4.toBinary(4);
-        IntegerPolynomial mask = MGF1(coR4, N, minCallsMask);
+        IntegerPolynomial mask = MGF(coR4, N, minCallsMask, hashSeed);
         IntegerPolynomial cMTrin = ci;
         cMTrin.sub(mask);
         cMTrin.mod3();
