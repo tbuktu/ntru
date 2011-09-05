@@ -101,10 +101,19 @@ public class Timings {
         System.out.println("Min" + formatDuration(minEncKeyGenTime) + "  " + formatDuration(minEncryptTime) + "  " + formatDuration(minDecryptTime) + "  " + 
                 formatDuration(minSigKeyGenTime) + "  " + formatDuration(minSignTime) + "  " + formatDuration(minVerifyTime) + "  " + formatDuration(minTotalTime));
         iterations--;   // don't count warmup round
-        System.out.println("Avg" + formatDuration(totEncKeyGenTime/iterations) + "  " + formatDuration(totEncryptTime/iterations) + "  " + formatDuration(totDecryptTime/iterations) + "  " +
-                formatDuration(totSigKeyGenTime/iterations) + "  " + formatDuration(totSignTime/iterations) + "  " + formatDuration(totVerifyTime/iterations) + "  " + formatDuration(totTotalTime/iterations));
-        System.out.println("Ops" + formatOpsPerSecond(minEncKeyGenTime, NUM_ENC_KEY_GEN) + "  " + formatOpsPerSecond(minEncryptTime, NUM_ENCRYPT) + "  " + formatOpsPerSecond(minDecryptTime, NUM_DECRYPT) + "  " +
-                formatOpsPerSecond(minSigKeyGenTime, NUM_SIG_KEY_GEN) + "  " + formatOpsPerSecond(minSignTime, NUM_SIGN) + "  " + formatOpsPerSecond(minVerifyTime, NUM_VERIFY));
+        
+        long avgEncKeyGenTime = totEncKeyGenTime / iterations;
+        long avgEncryptTime = totEncryptTime / iterations;
+        long avgDecryptTime = totDecryptTime / iterations;
+        long avgSigKeyGenTime = totSigKeyGenTime / iterations;
+        long avgSignTime = totSignTime / iterations;
+        long avgVerifyTime = totVerifyTime / iterations;
+        long avgTotalTime = totTotalTime / iterations;
+        
+        System.out.println("Avg" + formatDuration(avgEncKeyGenTime) + "  " + formatDuration(avgEncryptTime) + "  " + formatDuration(avgDecryptTime) + "  " +
+                formatDuration(avgSigKeyGenTime) + "  " + formatDuration(avgSignTime) + "  " + formatDuration(avgVerifyTime) + "  " + formatDuration(avgTotalTime));
+        System.out.println("Ops" + formatOpsPerSecond(avgEncKeyGenTime, NUM_ENC_KEY_GEN) + "  " + formatOpsPerSecond(avgEncryptTime, NUM_ENCRYPT) + "  " + formatOpsPerSecond(avgDecryptTime, NUM_DECRYPT) + "  " +
+                formatOpsPerSecond(avgSigKeyGenTime, NUM_SIG_KEY_GEN) + "  " + formatOpsPerSecond(avgSignTime, NUM_SIGN) + "  " + formatOpsPerSecond(avgVerifyTime, NUM_VERIFY));
     }
     
     /**
