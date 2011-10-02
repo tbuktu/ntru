@@ -23,6 +23,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import net.sf.ntru.encrypt.EncryptionParameters.TernaryPolynomialType;
 import net.sf.ntru.exception.NtruException;
@@ -50,17 +54,33 @@ public class NtruEncrypt {
     }
     
     /**
-     * Generates a new encryption key pair.
+     * Generates a new encryption key pair using two threads if possible.
      * @return a key pair
      */
     public EncryptionKeyPair generateKeyPair() {
+        return generateKeyPair(true);
+    }
+    
+    /**
+     * Generates a new encryption key pair in a single thread.
+     * @return a key pair
+     */
+    public EncryptionKeyPair generateKeyPairSingleThread() {
+        return generateKeyPair(false);
+    }
+    
+    /**
+     * Generates a new encryption key pair.
+     * @param multiThread whether to use two threads; only has an effect if more than one virtual processor is available
+     * @return a key pair
+     */
+    private EncryptionKeyPair generateKeyPair(boolean multiThread) {
         int N = params.N;
         int q = params.q;
         int df = params.df;
         int df1 = params.df1;
         int df2 = params.df2;
         int df3 = params.df3;
-        int dg = params.dg;
         boolean fastFp = params.fastFp;
         boolean sparse = params.sparse;
         
@@ -68,6 +88,23 @@ public class NtruEncrypt {
         IntegerPolynomial fq;
         IntegerPolynomial fp = null;
         
+        // Choose a random g that is invertible mod q. Start a new thread if multiThread=true and more than one processor is available.
+        Future<IntegerPolynomial> gResult = null;
+        IntegerPolynomial g = null;
+        if (multiThread && Runtime.getRuntime().availableProcessors()>1) {
+            Callable<IntegerPolynomial> gTask = new Callable<IntegerPolynomial>() {
+                @Override
+                public IntegerPolynomial call() {
+                    return generateG();
+                }
+            };
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+            gResult = executor.submit(gTask);
+            executor.shutdown();
+        }
+        else
+            g = generateG();
+
         // choose a random f that is invertible mod 3 and q
         while (true) {
             IntegerPolynomial f;
@@ -100,14 +137,14 @@ public class NtruEncrypt {
             fp.coeffs[0] = 1;
         }
         
-        // choose a random g that is invertible mod q
-        DenseTernaryPolynomial g;
-        while (true) {
-            g = DenseTernaryPolynomial.generateRandom(N, dg, dg-1);
-            if (g.invertFq(q) != null)
-                break;
-        }
-
+        // if g is being generated in a separate thread, wait for it to become available
+        if (g == null)
+            try {
+                g = gResult.get();
+            } catch (Exception e) {
+                throw new NtruException(e);
+            }
+        
         IntegerPolynomial h = g.mult(fq, q);
         h.mult3(q);
         h.ensurePositive(q);
@@ -117,6 +154,22 @@ public class NtruEncrypt {
         EncryptionPrivateKey priv = new EncryptionPrivateKey(t, fp, params);
         EncryptionPublicKey pub = new EncryptionPublicKey(h, params);
         return new EncryptionKeyPair(priv, pub);
+    }
+    
+    /**
+     * Generates the ephemeral secret polynomial <code>g</code>.
+     * @return
+     */
+    private IntegerPolynomial generateG() {
+        final int N = params.N;
+        final int q = params.q;
+        int dg = params.dg;
+        
+        while (true) {
+            DenseTernaryPolynomial g = DenseTernaryPolynomial.generateRandom(N, dg, dg-1);
+            if (g.invertFq(q) != null)
+                return g;
+        }
     }
     
     /**

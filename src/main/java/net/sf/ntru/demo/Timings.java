@@ -29,7 +29,7 @@ import net.sf.ntru.sign.SignatureKeyPair;
 import net.sf.ntru.sign.SignatureParameters;
 
 public class Timings {
-    private static final int NUM_ENC_KEY_GEN = 20;
+    private static final int NUM_ENC_KEY_GEN = 50;
     private static final int NUM_ENCRYPT = 2000;
     private static final int NUM_DECRYPT = 2000;
     private static final int NUM_SIG_KEY_GEN = 1;
