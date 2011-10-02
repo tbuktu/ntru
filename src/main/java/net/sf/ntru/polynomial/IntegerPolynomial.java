@@ -329,7 +329,9 @@ public class IntegerPolynomial implements Polynomial {
     
     /**
      * Computes the inverse mod <code>q; q</code> must be a power of 2.<br/>
-     * Returns <code>null</code> if the polynomial is not invertible.
+     * Returns <code>null</code> if the polynomial is not invertible.<br/>
+     * The algorithm is described in <a href="http://www.securityinnovation.com/uploads/Crypto/NTRUTech014.pdf">
+     * Almost Inverses and Fast NTRU Key Generation</a>.
      * @param q the modulus
      * @return a new polynomial
      */
@@ -391,7 +393,9 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Computes the inverse mod q from the inverse mod 2
+     * Computes the inverse mod <code>q</code> from the inverse mod 2.<br/>
+     * The algorithm is described in <a href="http://www.securityinnovation.com/uploads/Crypto/NTRUTech014.pdf">
+     * Almost Inverses and Fast NTRU Key Generation</a>.
      * @param Fq
      * @param q
      * @return The inverse of this polynomial mod q
@@ -427,7 +431,9 @@ public class IntegerPolynomial implements Polynomial {
     
     /**
      * Computes the inverse mod 3.
-     * Returns <code>null</code> if the polynomial is not invertible.
+     * Returns <code>null</code> if the polynomial is not invertible.<br/>
+     * The algorithm is described in <a href="http://www.securityinnovation.com/uploads/Crypto/NTRUTech014.pdf">
+     * Almost Inverses and Fast NTRU Key Generation</a>.
      * @return a new polynomial
      */
     public IntegerPolynomial invertF3() {
