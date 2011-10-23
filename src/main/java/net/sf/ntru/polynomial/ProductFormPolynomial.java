@@ -81,6 +81,13 @@ public class ProductFormPolynomial implements Polynomial {
     }
 
     @Override
+    public IntegerPolynomial mult(IntegerPolynomial poly2, int modulus) {
+        IntegerPolynomial c = mult(poly2);
+        c.mod(modulus);
+        return c;
+    }
+
+    @Override
     public BigIntPolynomial mult(BigIntPolynomial b) {
         BigIntPolynomial c = f1.mult(b);
         c = f2.mult(c);
@@ -93,13 +100,6 @@ public class ProductFormPolynomial implements Polynomial {
         IntegerPolynomial i = f1.mult(f2.toIntegerPolynomial());
         i.add(f3.toIntegerPolynomial());
         return i;
-    }
-
-    @Override
-    public IntegerPolynomial mult(IntegerPolynomial poly2, int modulus) {
-        IntegerPolynomial c = mult(poly2);
-        c.mod(modulus);
-        return c;
     }
 
     @Override
