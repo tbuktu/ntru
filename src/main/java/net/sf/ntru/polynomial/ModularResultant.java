@@ -20,7 +20,7 @@ package net.sf.ntru.polynomial;
 
 import java.math.BigInteger;
 
-import net.sf.ntru.euclid.BigIntEuclidean;
+import net.sf.ntru.arith.BigIntEuclidean;
 
 /** A resultant modulo a <code>BigInteger</code> */
 public class ModularResultant extends Resultant {

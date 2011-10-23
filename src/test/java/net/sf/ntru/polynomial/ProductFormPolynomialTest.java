@@ -53,7 +53,7 @@ public class ProductFormPolynomialTest {
     @Test
     public void testMult() {
         ProductFormPolynomial p1 = ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1);
-        IntegerPolynomial p2 = PolynomialGenerator.generateRandom(N, q);
+        IntegerPolynomial p2 = PolynomialGeneratorForTesting.generateRandom(N, q);
         IntegerPolynomial p3 = p1.mult(p2);
         IntegerPolynomial p4 = p1.toIntegerPolynomial().mult(p2);
         assertEquals(p3, p4);

@@ -33,10 +33,10 @@ import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
 import net.sf.ntru.polynomial.IntegerPolynomial;
 import net.sf.ntru.polynomial.Polynomial;
+import net.sf.ntru.polynomial.PolynomialGenerator;
 import net.sf.ntru.polynomial.ProductFormPolynomial;
 import net.sf.ntru.polynomial.SparseTernaryPolynomial;
 import net.sf.ntru.polynomial.TernaryPolynomial;
-import net.sf.ntru.util.Util;
 
 /**
  * Encrypts, decrypts data and generates key pairs.<br/>
@@ -112,13 +112,13 @@ public class NtruEncrypt {
             // choose random t, calculate f and fp
             if (fastFp) {
                 // if fastFp=true, f is always invertible mod 3
-                t = params.polyType==TernaryPolynomialType.SIMPLE ? Util.generateRandomTernary(N, df, df, sparse) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3);
+                t = params.polyType==TernaryPolynomialType.SIMPLE ? PolynomialGenerator.generateRandomTernary(N, df, df, sparse) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3);
                 f = t.toIntegerPolynomial();
                 f.mult(3);
                 f.coeffs[0] += 1;
             }
             else {
-                t = params.polyType==TernaryPolynomialType.SIMPLE ? Util.generateRandomTernary(N, df, df-1, sparse) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1);
+                t = params.polyType==TernaryPolynomialType.SIMPLE ? PolynomialGenerator.generateRandomTernary(N, df, df-1, sparse) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1);
                 f = t.toIntegerPolynomial();
                 fp = f.invertF3();
                 if (fp == null)

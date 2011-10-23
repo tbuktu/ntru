@@ -20,13 +20,15 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package net.sf.ntru.polynomial;
+package net.sf.ntru.arith;
 
 import static org.junit.Assert.*;
 
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Random;
+
+import net.sf.ntru.arith.SchönhageStrassen;
 
 import org.junit.Test;
 

@@ -5,7 +5,8 @@ The NTRU Cryptosystem
   
   NTRU's main strengths are high performance and resistance to quantum
   computer attacks.
-  NTRU keys are longer than ECC keys but shorter than RSA keys.
+  NTRU keys are longer than ECC keys; they can be longer or shorter than RSA
+  keys depending on the security level.
   
   http://en.wikipedia.org/wiki/NTRUEncrypt
   http://en.wikipedia.org/wiki/NTRUSign

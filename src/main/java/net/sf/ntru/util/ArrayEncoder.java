@@ -137,7 +137,7 @@ public class ArrayEncoder {
     public static int[] decodeModQ(InputStream is, int N, int q) throws IOException {
         int qBits = 31 - Integer.numberOfLeadingZeros(q);
         int size = (N*qBits+7) / 8;
-        byte[] arr = Util.readFullLength(is, size);
+        byte[] arr = ArrayEncoder.readFullLength(is, size);
         return decodeModQ(arr, N, q);
     }
     
@@ -254,7 +254,7 @@ public class ArrayEncoder {
      */
     public static int[] decodeMod3Tight(InputStream is, int N) throws IOException {
         int size = (int)Math.ceil(N * Math.log(3) / Math.log(2) / 8);
-        byte[] arr = Util.readFullLength(is, size);
+        byte[] arr = ArrayEncoder.readFullLength(is, size);
         return decodeMod3Tight(arr, N);
     }
     
@@ -262,5 +262,21 @@ public class ArrayEncoder {
         int byteIndex = bitIndex / 8;
         int arrElem = arr[byteIndex] & 0xFF;
         return (arrElem >> (bitIndex%8)) & 1;
+    }
+
+    /**
+     * Reads a given number of bytes from an <code>InputStream</code>.
+     * If there are not enough bytes in the stream, an <code>IOException</code>
+     * is thrown.
+     * @param is
+     * @param length
+     * @return an array of length <code>length</code>
+     * @throws IOException
+     */
+    public static byte[] readFullLength(InputStream is, int length) throws IOException {
+        byte[] arr = new byte[length];
+        if (is.read(arr) != arr.length)
+            throw new IOException("Not enough bytes to read.");
+        return arr;
     }
 }

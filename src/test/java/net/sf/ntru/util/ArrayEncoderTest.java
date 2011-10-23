@@ -23,7 +23,7 @@ import static org.junit.Assert.assertArrayEquals;
 import java.util.Random;
 
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
-import net.sf.ntru.polynomial.PolynomialGenerator;
+import net.sf.ntru.polynomial.PolynomialGeneratorForTesting;
 import net.sf.ntru.util.ArrayEncoder;
 
 import org.junit.Test;
@@ -32,7 +32,7 @@ public class ArrayEncoderTest {
     
     @Test
     public void testEncodeDecodeModQ() {
-        int[] coeffs = PolynomialGenerator.generateRandom(1000, 2048).coeffs;
+        int[] coeffs = PolynomialGeneratorForTesting.generateRandom(1000, 2048).coeffs;
         byte[] data = ArrayEncoder.encodeModQ(coeffs, 2048);
         int[] coeffs2 = ArrayEncoder.decodeModQ(data, 1000, 2048);
         assertArrayEquals(coeffs, coeffs2);

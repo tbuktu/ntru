@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import net.sf.ntru.euclid.BigIntEuclidean;
+import net.sf.ntru.arith.BigIntEuclidean;
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.polynomial.BigDecimalPolynomial;
 import net.sf.ntru.polynomial.BigIntPolynomial;

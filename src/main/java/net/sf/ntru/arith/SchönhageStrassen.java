@@ -20,7 +20,7 @@
  * DEALINGS IN THE SOFTWARE.
  */
 
-package net.sf.ntru.polynomial;
+package net.sf.ntru.arith;
 
 import java.math.BigInteger;
 import java.util.Arrays;

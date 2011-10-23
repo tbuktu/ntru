@@ -43,8 +43,8 @@ public class LongPolynomial2Test {
         Random rng = new Random();
         for (int i=0; i<10; i++) {
             int N = 2 + rng.nextInt(2000);
-            i1 = PolynomialGenerator.generateRandom(N, 2048);
-            i2 = PolynomialGenerator.generateRandom(N, 2048);
+            i1 = PolynomialGeneratorForTesting.generateRandom(N, 2048);
+            i2 = PolynomialGeneratorForTesting.generateRandom(N, 2048);
             a = new LongPolynomial2(i1);
             b = new LongPolynomial2(i2);
             c1 = i1.mult(i2);

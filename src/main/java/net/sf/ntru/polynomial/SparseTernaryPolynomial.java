@@ -25,7 +25,6 @@ import java.util.Arrays;
 
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.util.ArrayEncoder;
-import net.sf.ntru.util.Util;
 
 /**
  * A <code>TernaryPolynomial</code> with a "low" number of nonzero coefficients.
@@ -100,11 +99,11 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         int bitsPerIndex = 32 - Integer.numberOfLeadingZeros(maxIndex-1);
         
         int data1Len = (numOnes*bitsPerIndex+7) / 8;
-        byte[] data1 = Util.readFullLength(is, data1Len);
+        byte[] data1 = ArrayEncoder.readFullLength(is, data1Len);
         int[] ones = ArrayEncoder.decodeModQ(data1, numOnes, maxIndex);
         
         int data2Len = (numNegOnes*bitsPerIndex+7) / 8;
-        byte[] data2 = Util.readFullLength(is, data2Len);
+        byte[] data2 = ArrayEncoder.readFullLength(is, data2Len);
         int[] negOnes = ArrayEncoder.decodeModQ(data2, numNegOnes, maxIndex);
         
         return new SparseTernaryPolynomial(N, ones, negOnes);
@@ -118,7 +117,7 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
      * @param numNegOnes number of -1's
      */
     public static SparseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes) {
-        int[] coeffs = Util.generateRandomTernary(N, numOnes, numNegOnes);
+        int[] coeffs = PolynomialGenerator.generateRandomTernary(N, numOnes, numNegOnes);
         return new SparseTernaryPolynomial(coeffs);
     }
     

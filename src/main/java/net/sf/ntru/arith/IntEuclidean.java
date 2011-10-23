@@ -16,47 +16,43 @@
  * USA
  */
 
-package net.sf.ntru.euclid;
+package net.sf.ntru.arith;
 
-import java.math.BigInteger;
-
-/** Extended Euclidean Algorithm in <code>BigInteger</code>s */
-public class BigIntEuclidean {
-    public BigInteger x, y, gcd;
+/** Extended Euclidean Algorithm in <code>int</code>s */
+public class IntEuclidean {
+    public int x, y, gcd;
     
-    private BigIntEuclidean() {
-    }
-
+    private IntEuclidean() { }
+    
     /**
-     * Runs the EEA on two <code>BigInteger</code>s<br/>
+     * Runs the EEA on two <code>int</code>s<br/>
      * Implemented from pseudocode on <a href="http://en.wikipedia.org/wiki/Extended_Euclidean_algorithm">Wikipedia</a>.
      * @param a
      * @param b
-     * @return a <code>BigIntEuclidean</code> object that contains the result in the variables <code>x</code>, <code>y</code>, and <code>gcd</code>
+     * @return a <code>IntEuclidean</code> object that contains the result in the variables <code>x</code>, <code>y</code>, and <code>gcd</code>
      */
-    public static BigIntEuclidean calculate(BigInteger a, BigInteger b) {
-        BigInteger x = BigInteger.ZERO;
-        BigInteger lastx = BigInteger.ONE;
-        BigInteger y = BigInteger.ONE;
-        BigInteger lasty = BigInteger.ZERO;
-        while (!b.equals(BigInteger.ZERO)) {
-            BigInteger[] quotientAndRemainder = a.divideAndRemainder(b);
-            BigInteger quotient = quotientAndRemainder[0];
+    public static IntEuclidean calculate(int a, int b) {
+        int x = 0;
+        int lastx = 1;
+        int y = 1;
+        int lasty = 0;
+        while (b != 0) {
+            int quotient = a / b;
             
-            BigInteger temp = a;
+            int temp = a;
             a = b;
-            b = quotientAndRemainder[1];
+            b = temp % b;
             
             temp = x;
-            x = lastx.subtract(quotient.multiply(x));
+            x = lastx - quotient*x;
             lastx = temp;
             
             temp = y;
-            y = lasty.subtract(quotient.multiply(y));
+            y = lasty - quotient*y;
             lasty = temp;
         }
         
-        BigIntEuclidean result = new BigIntEuclidean();
+        IntEuclidean result = new IntEuclidean();
         result.x = lastx;
         result.y = lasty;
         result.gcd = a;

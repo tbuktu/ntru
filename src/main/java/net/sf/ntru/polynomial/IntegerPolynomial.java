@@ -35,11 +35,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import net.sf.ntru.euclid.BigIntEuclidean;
+import net.sf.ntru.arith.BigIntEuclidean;
+import net.sf.ntru.arith.IntEuclidean;
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.sign.SignatureParameters;
 import net.sf.ntru.util.ArrayEncoder;
-import net.sf.ntru.util.Util;
+import net.sf.ntru.util.PlatformUtil;
 
 /**
  * A polynomial with <code>int</code> coefficients.<br/>
@@ -401,7 +402,7 @@ public class IntegerPolynomial implements Polynomial {
      * @return The inverse of this polynomial mod q
      */
     private IntegerPolynomial mod2ToModq(IntegerPolynomial Fq, int q) {
-        if (Util.is64BitJVM() && q==2048) {
+        if (PlatformUtil.is64BitJVM() && q==2048) {
             LongPolynomial2 thisLong = new LongPolynomial2(this);
             LongPolynomial2 FqLong = new LongPolynomial2(Fq);
             int v = 2;
@@ -675,14 +676,14 @@ public class IntegerPolynomial implements Polynomial {
         int c = 0;
         int r = 1;
         while (db > 0) {
-            c = Util.invert(b.coeffs[db], p);
+            c = invert(b.coeffs[db], p);
             c = (c * a.coeffs[da]) % p;
             a.multShiftSub(b, c, da-db, p);
             v1.multShiftSub(v2, c, da-db, p);
             
             da = a.degree();
             if (da < db) {
-                r *= Util.pow(b.coeffs[db], ta-da, p);
+                r *= pow(b.coeffs[db], ta-da, p);
                 r %= p;
                 if (ta%2==1 && db%2==1)
                     r = (-r) % p;
@@ -698,9 +699,9 @@ public class IntegerPolynomial implements Polynomial {
                 db = tempdeg;
             }
         }
-        r *= Util.pow(b.coeffs[0], da, p);
+        r *= pow(b.coeffs[0], da, p);
         r %= p;
-        c = Util.invert(b.coeffs[0], p);
+        c = invert(b.coeffs[0], p);
         v2.mult(c);
         v2.mod(p);
         v2.mult(r);
@@ -709,6 +710,22 @@ public class IntegerPolynomial implements Polynomial {
         // drop the highest coefficient so #coeffs matches the original input
         v2.coeffs = Arrays.copyOf(v2.coeffs, v2.coeffs.length-1);
         return new ModularResultant(new BigIntPolynomial(v2), BigInteger.valueOf(r), BigInteger.valueOf(p));
+    }
+    
+    /** Calculates the inverse of n mod modulus */
+    private int invert(int n, int modulus) {
+        n %= modulus;
+        if (n < 0)
+            n += modulus;
+        return IntEuclidean.calculate(n, modulus).x;
+    }
+    
+    /** Calculates a^b mod modulus */
+    private int pow(int a, int b, int modulus) {
+        int p = 1;
+        for (int i=0; i<b; i++)
+            p = (p*a) % modulus;
+        return p;
     }
     
     /**

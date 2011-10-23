@@ -22,7 +22,6 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 
 import net.sf.ntru.exception.NtruException;
-import net.sf.ntru.util.Util;
 
 /**
  * A <code>TernaryPolynomial</code> with a "high" number of nonzero coefficients.
@@ -70,7 +69,7 @@ public class DenseTernaryPolynomial extends IntegerPolynomial implements Ternary
      * @param numNegOnes number of -1's
      */
     public static DenseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes) {
-        int[] coeffs = Util.generateRandomTernary(N, numOnes, numNegOnes);
+        int[] coeffs = PolynomialGenerator.generateRandomTernary(N, numOnes, numNegOnes);
         return new DenseTernaryPolynomial(coeffs);
     }
     

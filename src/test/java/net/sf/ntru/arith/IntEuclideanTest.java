@@ -16,26 +16,26 @@
  * USA
  */
 
-package net.sf.ntru.polynomial;
+package net.sf.ntru.arith;
 
-import java.util.Random;
+import static org.junit.Assert.assertEquals;
 
-import net.sf.ntru.polynomial.IntegerPolynomial;
+import net.sf.ntru.arith.IntEuclidean;
 
-public class PolynomialGenerator {
+import org.junit.Test;
+
+public class IntEuclideanTest {
     
-    /**
-     * Creates a random polynomial with <code>N</code> coefficients
-     * between <code>0</code> and <code>q-1</code>.
-     * @param N length of the polynomial
-     * @param q coefficients will all be below this number
-     * @return a random polynomial
-     */
-    public static IntegerPolynomial generateRandom(int N, int q) {
-        Random rng = new Random();
-        int[] coeffs = new int[N];
-        for (int i=0; i<N; i++)
-            coeffs[i] = rng.nextInt(q);
-        return new IntegerPolynomial(coeffs);
+    @Test
+    public void testCalculate() {
+        IntEuclidean r = IntEuclidean.calculate(120, 23);
+        assertEquals(-9, r.x);
+        assertEquals(47, r.y);
+        assertEquals(1, r.gcd);
+        
+        r = IntEuclidean.calculate(126, 231);
+        assertEquals(2, r.x);
+        assertEquals(-1, r.y);
+        assertEquals(21, r.gcd);
     }
 }
