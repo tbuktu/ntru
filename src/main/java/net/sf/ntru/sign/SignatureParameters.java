@@ -69,18 +69,18 @@ public class SignatureParameters implements Cloneable {
     
     /**
      * Constructs a parameter set that uses ternary private keys (i.e. </code>polyType=SIMPLE</code>).
-     * @param N number of polynomial coefficients
-     * @param q modulus
-     * @param d number of -1's in the private polynomials <code>f</code> and <code>g</code>
-     * @param B number of perturbations
-     * @param basisType whether to use the standard or transpose lattice
-     * @param beta balancing factor for the transpose lattice
-     * @param normBound maximum norm for valid signatures
+     * @param N            number of polynomial coefficients
+     * @param q            modulus
+     * @param d            number of -1's in the private polynomials <code>f</code> and <code>g</code>
+     * @param B            number of perturbations
+     * @param basisType    whether to use the standard or transpose lattice
+     * @param beta         balancing factor for the transpose lattice
+     * @param normBound    maximum norm for valid signatures
      * @param keyNormBound maximum norm for the ploynomials <code>F</code> and <code>G</code>
-     * @param primeCheck whether <code>2N+1</code> is prime
-     * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
-     * @param keyGenAlg <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster. <code>RESULTANT</code> follows the EESS standard while <code>FLOAT</code> is described in Hoffstein et al: An Introduction to Mathematical Cryptography.
-     * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>. The <code>MessageDigest</code> must support the <code>getDigestLength()</code> method.
+     * @param primeCheck   whether <code>2N+1</code> is prime
+     * @param sparse       whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
+     * @param keyGenAlg    <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster. <code>RESULTANT</code> follows the EESS standard while <code>FLOAT</code> is described in Hoffstein et al: An Introduction to Mathematical Cryptography.
+     * @param hashAlg      a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>. The <code>MessageDigest</code> must support the <code>getDigestLength()</code> method.
      */
     public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg, String hashAlg) {
         this.N = N;
@@ -101,20 +101,20 @@ public class SignatureParameters implements Cloneable {
 
     /**
      * Constructs a parameter set that uses product-form private keys (i.e. </code>polyType=PRODUCT</code>).
-     * @param N number of polynomial coefficients
-     * @param q modulus
-     * @param d1 number of -1's in the private polynomials <code>f</code> and <code>g</code>
-     * @param d2 number of -1's in the private polynomials <code>f</code> and <code>g</code>
-     * @param d3 number of -1's in the private polynomials <code>f</code> and <code>g</code>
-     * @param B number of perturbations
-     * @param basisType whether to use the standard or transpose lattice
-     * @param beta balancing factor for the transpose lattice
-     * @param normBound maximum norm for valid signatures
+     * @param N            number of polynomial coefficients
+     * @param q            modulus
+     * @param d1           number of -1's in the private polynomials <code>f</code> and <code>g</code>
+     * @param d2           number of -1's in the private polynomials <code>f</code> and <code>g</code>
+     * @param d3           number of -1's in the private polynomials <code>f</code> and <code>g</code>
+     * @param B            number of perturbations
+     * @param basisType    whether to use the standard or transpose lattice
+     * @param beta         balancing factor for the transpose lattice
+     * @param normBound    maximum norm for valid signatures
      * @param keyNormBound maximum norm for the ploynomials <code>F</code> and <code>G</code>
-     * @param primeCheck whether <code>2N+1</code> is prime
-     * @param sparse whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
-     * @param keyGenAlg <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster. <code>RESULTANT</code> follows the EESS standard while <code>FLOAT</code> is described in Hoffstein et al: An Introduction to Mathematical Cryptography.
-     * @param hashAlg a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>. The <code>MessageDigest</code> must support the <code>getDigestLength()</code> method.
+     * @param primeCheck   whether <code>2N+1</code> is prime
+     * @param sparse       whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
+     * @param keyGenAlg    <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster. <code>RESULTANT</code> follows the EESS standard while <code>FLOAT</code> is described in Hoffstein et al: An Introduction to Mathematical Cryptography.
+     * @param hashAlg      a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>. The <code>MessageDigest</code> must support the <code>getDigestLength()</code> method.
      */
     public SignatureParameters(int N, int q, int d1, int d2, int d3, int B, BasisType basisType, double beta, double normBound, double keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg, String hashAlg) {
         this.N = N;
