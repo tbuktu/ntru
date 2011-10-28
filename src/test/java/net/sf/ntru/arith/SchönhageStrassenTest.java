@@ -39,11 +39,11 @@ public class SchönhageStrassenTest {
         testMult(BigInteger.valueOf(0), BigInteger.valueOf(0));
         testMult(BigInteger.valueOf(100), BigInteger.valueOf(100));
         
-        Random rng = new Random();
+        Random rng = new Random(0);
         testMult(BigInteger.valueOf(rng.nextInt(1000000000)+65536), BigInteger.valueOf(rng.nextInt(1000000000)+65536));
         testMult(BigInteger.valueOf((rng.nextLong()>>>1)+1000), BigInteger.valueOf((rng.nextLong()>>>1)+1000));
         
-        for (int i=0; i<3; i++) {
+        for (int i=0; i<10; i++) {
             byte[] aArr = new byte[20000+rng.nextInt(50000)];
             rng.nextBytes(aArr);
             byte[] bArr = new byte[20000+rng.nextInt(50000)];
@@ -60,148 +60,13 @@ public class SchönhageStrassenTest {
     
     @Test
     public void testModFn() {
-        byte[][] a = new byte[][] {
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {84, 0},
-                {62, 22},
-                {103, 56},
-                {6, -103},
-                {-98, 7},
-                {-118, 27},
-                {-55, -127},
-                {11, 64}
-        };
+        int[] a = new int[] {50593286, 151520511};
         SchönhageStrassen.modFn(a);
-        byte[][] aExpected = new byte[][] {
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {84, 0},
-                {40, 0},
-                {47, 0},
-                {110, 0},
-                {-105, 0},
-                {111, 0},
-                {72, 0},
-                {-52, 0}
-        };
-        assertArrayEquals(aExpected, a);
-    }
-    
-    @Test
-    public void testDft() {
-        int m = 5;
-        int n = 3;
+        assertArrayEquals(new int[] {-100927224, 0}, a);
         
-        byte[][] a = new byte[][] {
-                {0, 6},
-                {0, 3},
-                {0, 14},
-                {0, 2},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0}
-        };
-        byte[][] aTrans = SchönhageStrassen.dft(a, m, n);
-        byte[][] aExpected = new byte[][] {
-                {0, 84},
-                {22, 62},
-                {56, 103},
-                {-103, 6},
-                {7, -98},
-                {27, -118},
-                {-127, -55},
-                {64, 11}
-        };
-        assertArrayEquals(aExpected, Arrays.copyOfRange(aTrans, 8, 16));
-        
-        byte[][] b = new byte[][] {
-                {0, 11},
-                {0, 15},
-                {0, 2},
-                {0, 2},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0}
-        };
-        byte[][] bTrans = SchönhageStrassen.dft(b, m, n);
-        byte[][] bExpected = new byte[][] {
-                {0, 65},
-                {46, 19},
-                {9, -20},
-                {-23, 12},
-                {5, 3},
-                {120, -113},
-                {-121, -53},
-                {64, 19}
-        };
-        assertArrayEquals(bExpected, Arrays.copyOfRange(bTrans, 8, 16));
-    }
-    
-    @Test
-    public void testIdft() {
-        int m = 5;
-        int n = 3;
-        byte[][] a = new byte[][] {
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {0, 0},
-                {21, 84},
-                {35, -16},
-                {41, -83},
-                {15, 120},
-                {-106, 105},
-                {9, -7},
-                {19, 32},
-                {-88, -16}
-        };
-        byte[][] aTrans = SchönhageStrassen.idft(a, m, n);
-        byte[][] aExpected = new byte[][] {
-                {-103, -37},
-                {-3, 119},
-                {122, 76},
-                {-56, -63},
-                {-117, -53},
-                {-101, -69},
-                {52, 56},
-                {84, 84}
-        };
-        assertArrayEquals(aExpected, Arrays.copyOfRange(aTrans, 8, 16));
+        a = new int[] {1157041776, -1895306073, -1094584616, -218513495};
+        SchönhageStrassen.modFn(a);
+        assertArrayEquals(new int[] {-2043340903, -1676792579, 0, 0}, a);
     }
     
     @Test
@@ -210,86 +75,93 @@ public class SchönhageStrassenTest {
             testInversion();
     }
     
-    /** verifies idft(idft(idft(...(dft(dft(dft(...(a))) = a */
+    /** verifies idft(dft(a)) = a */
     private void testInversion() {
         Random rng = new Random();
         
-        int m = rng.nextInt(10) + 5;
+        int m = 7 + rng.nextInt(10);
         int n = m/2 + 1;
-        int len = 1<<(n+1);
-        byte[][] a = new byte[len][len/8];
-        for (int i=0; i<a.length; i++)
-            for (int j=0; j<a[0].length; j++)
-                a[i][j] = (byte)rng.nextInt(256);
-        byte[][] aTrans = a.clone();
-        for (int i=0; i<10; i++)
-            aTrans = SchönhageStrassen.dft(aTrans, m, n);
-        for (int i=0; i<10; i++)
-            aTrans = SchönhageStrassen.idft(aTrans, m, n);
-        assertArrayEquals(Arrays.copyOf(a, a.length/2), Arrays.copyOf(aTrans, aTrans.length/2));
+        int numElements = m%2==0 ? 1<<n : 1<<(n+1);
+        int[][] a = new int[numElements][1<<(n+1-5)];
+        for (int i=0; i<a.length/2; i++) {
+            for (int j=0; j<a[i].length; j++)
+                a[i][j] = rng.nextInt();
+            SchönhageStrassen.modFn(a[i]);
+        }
+        int[][] aDft = SchönhageStrassen.dft(a, m, n);
+        for (int i=0; i<aDft.length/2; i++)
+            Arrays.fill(aDft[i], (byte)0);
+        int[][] aIdft = SchönhageStrassen.idft(aDft, m, n);
+        SchönhageStrassen.modFn(aIdft);
+        for (int j=0; j<a.length/2; j++)
+            assertArrayEquals(a[j], aIdft[a.length/2+j]);
     }
     
     @Test
     public void testAddModFn() {
         Random rng = new Random();
-        int n = 3 + rng.nextInt(10);
-        int len = 1 << (n+1-3);
-        byte[] aArr = new byte[len];
-        rng.nextBytes(aArr);
-        BigInteger a = new BigInteger(1, SchönhageStrassen.reverse(aArr));
-        byte[] bArr = new byte[len];
-        rng.nextBytes(bArr);
-        BigInteger b = new BigInteger(1, SchönhageStrassen.reverse(bArr));
+        int n = 5 + rng.nextInt(10);
+        int len = 1 << (n+1-5);
+        int[] aArr = new int[len];
+        for (int i=0; i<aArr.length; i++)
+            aArr[i] = rng.nextInt();
+        BigInteger a = new BigInteger(1, SchönhageStrassen.reverse(SchönhageStrassen.toByteArray(aArr)));
+        int[] bArr = new int[len];
+        for (int i=0; i<bArr.length; i++)
+            bArr[i] = rng.nextInt();
+        BigInteger b = new BigInteger(1, SchönhageStrassen.reverse(SchönhageStrassen.toByteArray(bArr)));
         SchönhageStrassen.addModFn(aArr, bArr);
         SchönhageStrassen.modFn(aArr);
         BigInteger Fn = BigInteger.valueOf(2).pow(1<<n).add(BigInteger.ONE);
         BigInteger c = a.add(b).mod(Fn);
-        assertEquals(c, new BigInteger(1, SchönhageStrassen.reverse(aArr)));
+        assertEquals(c, new BigInteger(1, SchönhageStrassen.reverse(SchönhageStrassen.toByteArray(aArr))));
     }
     
     @Test
     public void testMultModFn() {
-        assertArrayEquals(new byte[] {100, 0, 15, -112}, SchönhageStrassen.multModFn(new byte[] {10, -64, 0, 0}, new byte[] {10, -64, 0, 0}));
+        assertArrayEquals(new int[] {1713569892, -280255914}, SchönhageStrassen.multModFn(new int[] {-142491638, 0}, new int[] {-142491638, 0}));
     }
     
     @Test
     public void testSubModPow2() {
-        byte[] a = new byte[] {4, 15, 0, 0, 0, 0, 0, 0, 0, 0};
-        byte[] b = new byte[] {-5, 78, 98, 37, -44, 122, 22, 65, 28, 9};
+        int[] a = new int[] {3844, 0, 0};
+        int[] b = new int[] {627199739, 1091992276, 2332};
         SchönhageStrassen.subModPow2(a, b, 12);
-        assertArrayEquals(new byte[] {9, 0, 0, 0, 0, 0, 0, 0, 0, 0}, a);
+        assertArrayEquals(new int[] {9, 0, 0}, a);
     }
     
     @Test
     public void testCyclicShift() {
-        byte[] arr = new byte[] {2, 3, -1, 127, -128};
+        int[] arr = new int[] {16712450, -2139160576};
         
         // test cyclicShiftLeft
-        assertArrayEquals(new byte[] {5, 6, -2, -1, 0}, SchönhageStrassen.cyclicShiftLeft(arr, 1));
-        assertArrayEquals(new byte[] {-128, 2, 3, -1, 127}, SchönhageStrassen.cyclicShiftLeft(arr, 8));
-        assertArrayEquals(new byte[] {127, -128, 2, 3, -1}, SchönhageStrassen.cyclicShiftLeft(arr, 16));
-        assertArrayEquals(new byte[] {-1, 127, -128, 2, 3}, SchönhageStrassen.cyclicShiftLeft(arr, 24));
-        assertArrayEquals(new byte[] {3, -1, 127, -128, 2}, SchönhageStrassen.cyclicShiftLeft(arr, 32));
-        assertArrayEquals(arr, SchönhageStrassen.cyclicShiftLeft(arr, 40));
-        byte[] arr2 = SchönhageStrassen.cyclicShiftLeft(arr, 17);
+        assertArrayEquals(new int[] {33424901, 16646144}, SchönhageStrassen.cyclicShiftLeft(arr, 1));
+        assertArrayEquals(new int[] {-16579968, 2130706432}, SchönhageStrassen.cyclicShiftLeft(arr, 8));
+        assertArrayEquals(new int[] {50495615, 255}, SchönhageStrassen.cyclicShiftLeft(arr, 16));
+        assertArrayEquals(new int[] {41975552, 65283}, SchönhageStrassen.cyclicShiftLeft(arr, 24));
+        assertArrayEquals(new int[] {-2139160576, 16712450}, SchönhageStrassen.cyclicShiftLeft(arr, 32));
+        assertArrayEquals(arr, SchönhageStrassen.cyclicShiftLeft(arr, 64));
+        int[] arr2 = SchönhageStrassen.cyclicShiftLeft(arr, 17);
         arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 12);
         arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 1);
         arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 1);
+        arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 24);
         arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 9);
         assertArrayEquals(arr, arr2);
         
         // test cyclicShiftRight
-        assertArrayEquals(new byte[] {-127, -127, -1, 63, 64}, SchönhageStrassen.cyclicShiftRight(arr, 1));
-        assertArrayEquals(new byte[] {3, -1, 127, -128, 2}, SchönhageStrassen.cyclicShiftRight(arr, 8));
-        assertArrayEquals(new byte[] {-1, 127, -128, 2, 3}, SchönhageStrassen.cyclicShiftRight(arr, 16));
-        assertArrayEquals(new byte[] {127, -128, 2, 3, -1}, SchönhageStrassen.cyclicShiftRight(arr, 24));
-        assertArrayEquals(new byte[] {-128, 2, 3, -1, 127}, SchönhageStrassen.cyclicShiftRight(arr, 32));
-        assertArrayEquals(new byte[] {2, 3, -1, 127, -128}, SchönhageStrassen.cyclicShiftRight(arr, 40));
-        assertArrayEquals(arr, SchönhageStrassen.cyclicShiftRight(arr, 40));
+        assertArrayEquals(new int[] {8356225, 1077903360}, SchönhageStrassen.cyclicShiftRight(arr, 1));
+        assertArrayEquals(new int[] {65283, 41975552}, SchönhageStrassen.cyclicShiftRight(arr, 8));
+        assertArrayEquals(new int[] {255, 50495615}, SchönhageStrassen.cyclicShiftRight(arr, 16));
+        assertArrayEquals(new int[] {2130706432, -16579968}, SchönhageStrassen.cyclicShiftRight(arr, 24));
+        assertArrayEquals(new int[] {-2139160576, 16712450}, SchönhageStrassen.cyclicShiftRight(arr, 32));
+        assertArrayEquals(new int[] {41975552, 65283}, SchönhageStrassen.cyclicShiftRight(arr, 40));
+        assertArrayEquals(arr, SchönhageStrassen.cyclicShiftRight(arr, 64));
         arr2 = SchönhageStrassen.cyclicShiftRight(arr, 17);
         arr2 = SchönhageStrassen.cyclicShiftRight(arr2, 12);
         arr2 = SchönhageStrassen.cyclicShiftRight(arr2, 1);
         arr2 = SchönhageStrassen.cyclicShiftRight(arr2, 1);
+        arr2 = SchönhageStrassen.cyclicShiftRight(arr2, 24);
         arr2 = SchönhageStrassen.cyclicShiftRight(arr2, 9);
         assertArrayEquals(arr, arr2);
         
@@ -306,12 +178,36 @@ public class SchönhageStrassenTest {
     
     @Test
     public void testAppendBits() {
-        byte[] a = new byte[2];
-        SchönhageStrassen.appendBits(a, 8, new byte[] {5}, 4);
-        assertArrayEquals(new byte[] {0, 5}, a);
+        int[] a = new int[] {3615777, 0};
+        SchönhageStrassen.appendBits(a, 22, new int[] {61797}, 13);
+        assertArrayEquals(new int[] {1500982305, 60}, a);
+    }
+    
+    @Test
+    public void testToIntArray() {
+        Random rng = new Random();
+        byte[] a = new byte[1+rng.nextInt(100)];
+        rng.nextBytes(a);
+        int[] b = SchönhageStrassen.toIntArray(a);
+        byte[] c = SchönhageStrassen.toByteArray(b);
+        assertArrayEquals(Arrays.copyOf(a, (a.length+3)&0x7FFFFFFC), c);
+    }
+    
+    @Test
+    public void testAddShifted() {
+        int[] a = new int[] {1522485231, 1933026569};
+        int[] b = new int[] {233616584};
+        SchönhageStrassen.addShifted(a, b, 1);
+        assertArrayEquals(a, new int[] {1522485231, -2128324143});
         
-        a = new byte[] {33, 44, 55, 0, 0};
-        SchönhageStrassen.appendBits(a, 22, new byte[] {101, -15}, 13);
-        assertArrayEquals(new byte[] {33, 44, 119, 89, 60}, a);
+        a = new int[] {796591014, -1050856894, 1260609160};
+        b = new int[] {2093350350, -1822145887};
+        SchönhageStrassen.addShifted(a, b, 1);
+        assertArrayEquals(a, new int[] {796591014, 1042493456, -561536726});
+        
+        a = new int[] {-1135845471, 1374513806, 391471507};
+        b = new int[] {980775637, 1136222341};
+        SchönhageStrassen.addShifted(a, b, 1);
+        assertArrayEquals(a, new int[] {-1135845471, -1939677853, 1527693848});
     }
 }

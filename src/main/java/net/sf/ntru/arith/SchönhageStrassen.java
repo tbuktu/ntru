@@ -36,7 +36,8 @@ import java.util.Arrays;
  *       Arnold Schönhage und Volker Strassen: Schnelle Multiplikation großer Zahlen, Computing 7, 1971, Springer-Verlag, S. 281–292</a></li>
  *   <li><a href="http://malte-leip.net/beschreibung_ssa.pdf">Eine verständliche Beschreibung des Schönhage-Strassen-Algorithmus</a></li>
  * </ol>
- * TODO: use int[] instead of byte[]
+ * <p/>
+ * Numbers are internally represented as <code>int</code> arrays; the <code>int</code>s are interpreted as unsigned numbers.
  * TODO: use Karatsuba instead of BigInteger.multiply()
  */
 public class SchönhageStrassen {
@@ -44,6 +45,7 @@ public class SchönhageStrassen {
     
     /**
      * Multiplies two {@link BigInteger}s using Schönhage-Strassen if the numbers are above a certain size.
+     * Otherwise, O(n²) multiplication is used.
      * @param a
      * @param b
      * @return
@@ -59,34 +61,38 @@ public class SchönhageStrassen {
         if (b.signum() < 0)
             b = b.negate();
         
-        byte[] aArr = reverse(a.toByteArray());
-        byte[] bArr = reverse(b.toByteArray());
-        byte[] cArr = mult(aArr, a.bitLength(), bArr, b.bitLength());
-        BigInteger c = new BigInteger(reverse(cArr));
+        byte[] aByteArr = reverse(a.toByteArray());
+        int[] aIntArr = toIntArray(aByteArr);
+        byte[] bByteArr = reverse(b.toByteArray());
+        int[] bIntArr = toIntArray(bByteArr);
+        int[] cIntArr = mult(aIntArr, a.bitLength(), bIntArr, b.bitLength());
+        byte[] cByteArr = toByteArray(cIntArr);
+        BigInteger c = new BigInteger(reverse(cByteArr));
         if (signum < 0)
             c = c.negate();
         return c;
     }
     
     /**
-     * Multiplies two <b>positive</b> numbers represented as byte arrays, i.e. in base 256.<br/>
+     * Multiplies two <b>positive</b> numbers represented as int arrays, i.e. in base <code>2^32</code>.<br/>
      * The upper <code>a.length/2</code> and <code>b.length/2</code> digits must be zeros.<br/>
      * The arrays must be ordered least significant to most significant,
      * so the least significant digit must be at index 0.<br/>
-     * Note that this format is not compatible to {@link BigInteger#toByteArray()}.
      * @param a
      * @param aBitLen
      * @param b
      * @param bBitLen
      * @return
      */
-    private static byte[] mult(byte[] a, int aBitLen, byte[] b, int bBitLen) {
+    private static int[] mult(int[] a, int aBitLen, int[] b, int bBitLen) {
         if (Math.min(aBitLen, bBitLen) < BIT_LENGTH_THRESHOLD) {
-            byte[] c = reverse(new BigInteger(reverse(a)).multiply(new BigInteger(reverse(b))).toByteArray());
+            byte[] aByte = toByteArray(a);
+            byte[] bByte = toByteArray(b);
+            byte[] c = reverse(new BigInteger(reverse(aByte)).multiply(new BigInteger(reverse(bByte))).toByteArray());
             // if the sign bit appended by toByteArray() increases the array length, trim the array
             if (c.length > Math.max(a.length, b.length))
-                c = Arrays.copyOf(c, Math.max(a.length, b.length));
-            return c;
+                c = Arrays.copyOf(c, Math.max(aByte.length, bByte.length));
+            return toIntArray(c);
         }
         
         // set M to the number of binary digits in a or b, whichever is greater
@@ -97,41 +103,41 @@ public class SchönhageStrassen {
         
         int n = m/2 + 1;
         
-        // split a and b into pieces 1<<(n-1) bits long; assume n>=4 so pieces start and end at byte boundaries
+        // split a and b into pieces 1<<(n-1) bits long; assume n>=6 so pieces start and end at int boundaries
         boolean even = m%2 == 0;
         int numPieces = even ? 1<<n : 1<<(n+1);
-        int pieceSize = 1 << (n-1-3);   // in bytes
+        int pieceSize = 1 << (n-1-5);   // in ints
         int totalBits = even ? 1<<(2*n-1) : 1<<(2*n);   // numPieces * pieceSize
-        byte[][] ai = new byte[numPieces][pieceSize];
-        a = Arrays.copyOf(a, totalBits/8);
+        int[][] ai = new int[numPieces][pieceSize];
+        a = Arrays.copyOf(a, totalBits/32);
         for (int i=0; i<numPieces; i++)
             System.arraycopy(a, i*pieceSize, ai[i], 0, pieceSize);
         
-        byte[][] bi = new byte[numPieces][pieceSize];
-        b = Arrays.copyOf(b, totalBits/8);
+        int[][] bi = new int[numPieces][pieceSize];
+        b = Arrays.copyOf(b, totalBits/32);
         for (int i=0; i<numPieces; i++)
             System.arraycopy(b, i*pieceSize, bi[i], 0, pieceSize);
         
         // alpha[i] = ai[i] modulo 2^(n+2), beta[i] = bi[i] modulo 2^(n+2)
-        byte[][] alpha = new byte[numPieces][(n+2+7)/8];
-        byte[][] beta = new byte[numPieces][(n+2+7)/8];
-        int fullBytes = (n+2) / 8;
-        int extraBits = (n+2) % 8;
-        int mask = 0xFF >>> (8-extraBits);   // masks the low extraBits
+        int[][] alpha = new int[numPieces][(n+2+31)/32];
+        int[][] beta = new int[numPieces][(n+2+31)/32];
+        int fullInts = (n+2) / 32;
+        int extraBits = (n+2) % 32;
+        int mask = -1 >>> (32-extraBits);   // masks the low extraBits
         for (int i=0; i<numPieces; i++) {
-            for (int j=0; j<fullBytes; j++) {
+            for (int j=0; j<fullInts; j++) {
                 alpha[i][j] = ai[i][j];
                 beta[i][j] = bi[i][j];
             }
-            alpha[i][fullBytes] = (byte)(ai[i][fullBytes] & mask);
-            beta[i][fullBytes] = (byte)(bi[i][fullBytes] & mask);
+            alpha[i][fullInts] = ai[i][fullInts] & mask;
+            beta[i][fullInts] = bi[i][fullInts] & mask;
         }
         
         // build u and v from alpha and beta, allocating 3n+5 bits per element
         int uvLen = numPieces * (3*n+5);   // #bits
-        uvLen = (uvLen+7) / 8;   // #bytes
-        byte[] u = new byte[uvLen];
-        byte[] v = new byte[uvLen];
+        uvLen = (uvLen+31) / 32;   // #ints
+        int[] u = new int[uvLen];
+        int[] v = new int[uvLen];
         int uBitLength = 0;
         int vBitLength = 0;
         for (int i=0; i<numPieces; i++) {
@@ -141,15 +147,15 @@ public class SchönhageStrassen {
             vBitLength += 3*n+5;
         }
         
-        byte[] gamma = mult(u, uBitLength, v, vBitLength);
-        byte[][] gammai = subdivide(gamma, 3*n+5);
+        int[] gamma = mult(u, uBitLength, v, vBitLength);
+        int[][] gammai = subdivide(gamma, 3*n+5);
         int halfNumPcs = numPieces / 2;
         gammai = Arrays.copyOf(gammai, 4*halfNumPcs);
         for (int i=0; i<gammai.length; i++)
             if (gammai[i] == null)
-                gammai[i] = new byte[(3*n+5+7)/8];
+                gammai[i] = new int[(3*n+5+31)/32];
         
-        byte[][] zi = new byte[halfNumPcs][(3*n+5+7)/8];
+        int[][] zi = new int[halfNumPcs][(3*n+5+31)/32];
         for (int i=0; i<halfNumPcs; i++) {
             zi[i] = gammai[i].clone();
             addModPow2(zi[i], gammai[i+2*halfNumPcs], n+2);
@@ -158,81 +164,83 @@ public class SchönhageStrassen {
         }
         
         // zr mod Fn
-        ai = extend(ai, 1<<(n+1-3));
-        bi = extend(bi, 1<<(n+1-3));
-        byte[][] aTrans = dft(ai, m, n);
-        byte[][] bTrans = dft(bi, m, n);
+        ai = extend(ai, 1<<(n+1-5));
+        bi = extend(bi, 1<<(n+1-5));
+        int[][] aTrans = dft(ai, m, n);
+        int[][] bTrans = dft(bi, m, n);
         modFn(aTrans);
         modFn(bTrans);
-        byte[][] cTrans = new byte[aTrans.length][aTrans[0].length];
+        int[][] cTrans = new int[aTrans.length][aTrans[0].length];
         for (int i=cTrans.length/2; i<cTrans.length; i++)
             cTrans[i] = multModFn(aTrans[i], bTrans[i]);
-        byte[][] c = idft(cTrans, m, n);
+        int[][] c = idft(cTrans, m, n);
         modFn(c);
 
-        byte[] z = new byte[1<<(m+1-3)];
+        int[] z = new int[1<<(m+1-5)];
         // calculate zr mod Fm from zr mod Fn and zr mod 2^(n+2), then add to z
         for (int i=0; i<numPieces/2; i++) {
             // zi = (zi-c[i]) % 2^(n+2)
             subModPow2(zi[i], c[i+numPieces/2], n+2);
             
             // zr = zi + delta*(2^2^n+1)
-            byte[] zr = Arrays.copyOf(zi[i], 3*(1<<(n-3)));
-            byte[] delta = zr.clone();
+            int[] zr = Arrays.copyOf(zi[i], 3*(1<<(n-5)));
+            int[] delta = zr.clone();
             shiftLeft(delta, 1<<n);
             add(zr, delta);
             add(zr, c[i+numPieces/2]);
             
             // z += zr * i * 2^(n-1)
-            addShifted(z, zr, i*(1<<(n-1-3)));   // assume n>=4
+            addShifted(z, zr, i*(1<<(n-1-5)));   // assume n>=6
         }
         
-        modFn(z);   // assume m>=3
+        modFn(z);   // assume m>=5
         return z;
     }
     
-    private static void add(byte[] a, byte[] b) {
+    private static void add(int[] a, int[] b) {
         boolean carry = false;
         for (int i=0; i<b.length; i++) {
-            int sum = (a[i]&0xFF) + (b[i]&0xFF);
+            long sum = (long)a[i] + (long)b[i];
             if (carry)
                 sum++;
-            a[i] = (byte)sum;
-            carry = sum >= 256;
+            a[i] = (int)sum;
+            carry = sum >= 1L<<32;
         }
     }
     
     /** drops elements of b that are shifted outside the valid range */
-    private static void addShifted(byte[] a, byte[] b, int numBytes) {
+    static void addShifted(int[] a, int[] b, int numElements) {
         boolean carry = false;
-        for (int i=0; i<Math.min(b.length, a.length-numBytes); i++) {
-            int sum = (a[i+numBytes]&0xFF) + (b[i]&0xFF);
+        for (int i=0; i<Math.min(b.length, a.length-numElements); i++) {
+            int ai = a[i+numElements];
+            int sum = ai + b[i];
             if (carry)
                 sum++;
-            a[i+numBytes] = (byte)sum;
-            carry = sum >= 256;
+            carry = ((sum>>>31) < (ai>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
+            a[i+numElements] = sum;
         }
     }
     
-    static void modFn(byte[] a) {
+    static void modFn(int[] a) {
         int len = a.length;
         boolean carry = false;
-        for (int j=0; j<len/2; j++) {
-            int diff = (a[j]&0xFF) - (a[len/2+j]&0xFF);
+        for (int i=0; i<len/2; i++) {
+            int bi = a[len/2+i];
+            int diff = a[i] - bi;
             if (carry)
                 diff--;
-            a[j] = (byte)diff;
-            carry = diff < 0;
+            carry = ((diff>>>31) > (a[i]>>>31)-(bi>>>31));   // carry if signBit(diff) > signBit(a)-signBit(b)
+            a[i] = diff;
         }
-        for (int j=len/2; j<len; j++)
-            a[j] = 0;
-        // if result is negative, add Fn (mod 2^n)
+        for (int i=len/2; i<len; i++)
+            a[i] = 0;
+        // if result is negative, add Fn; since Fn ≡ 1 (mod 2^n), it suffices to add 1
         if (carry) {
             int j = 0;
             do {
-                int sum = (a[j]&0xFF) + 1;
-                a[j] = (byte)sum;
-                carry = sum >= 256;
+                int sum = a[j] + 1;
+                a[j] = sum;
+                carry = sum == 0;
                 j++;
                 if (j >= a.length)
                     j = 0;
@@ -242,40 +250,17 @@ public class SchönhageStrassen {
     
     /**
      * Reduces all elements in the <b>upper half</b> of the outer array modulo <code>2^2^n+1</code>.
-     * @param aTrans byte arrays of length <code>2^(n+1)</code> bits; n must be 4 or greater
+     * @param aTrans byte arrays of length <code>2^(n+1)</code> bits; n must be 6 or greater
      */
-    static void modFn(byte[][] a) {
-        for (int i=a.length/2; i<a.length; i++) {
-            int len = a[i].length;
-            boolean carry = false;
-            for (int j=0; j<len/2; j++) {
-                int diff = (a[i][j]&0xFF) - (a[i][len/2+j]&0xFF);
-                if (carry)
-                    diff--;
-                a[i][j] = (byte)diff;
-                carry = diff < 0;
-            }
-            for (int j=len/2; j<len; j++)
-                a[i][j] = 0;
-            // if result is negative, add Fn
-            if (carry) {
-                int j = 0;
-                do {
-                    int sum = (a[i][j]&0xFF) + 1;
-                    a[i][j] = (byte)sum;
-                    carry = sum >= 256;
-                    j++;
-                    if (j >= a.length)
-                        j = 0;
-                } while (carry);
-            }
-        }
+    static void modFn(int[][] a) {
+        for (int i=a.length/2; i<a.length; i++)
+            modFn(a[i]);
     }
     
-    static byte[][] dft(byte[][] a, int m, int n) {
+    static int[][] dft(int[][] a, int m, int n) {
         boolean even = m%2 == 0;
         int len = a.length;
-        byte[][] A = extend(a, 1<<(n+1-3));
+        int[][] A = extend(a, 1<<(n+1-5));
         int v = 0;
         int mask = len/2;   // masks the current bit
         for (int slen=len/2; slen>=1; slen/=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
@@ -295,8 +280,8 @@ public class SchönhageStrassen {
                 }
                 
                 for (int k=0; k<slen; k++) {
-                    byte[] c = A[idx&nmask].clone();
-                    byte[] d = cyclicShiftLeft(A[idx|mask], x);
+                    int[] c = A[idx&nmask].clone();
+                    int[] d = cyclicShiftLeft(A[idx|mask], x);
                     if (slen < len/2) {
                         A[idx] = c.clone();
                         addModFn(A[idx], d);
@@ -317,10 +302,10 @@ public class SchönhageStrassen {
         return A;
     }
     
-    static byte[][] idft(byte[][] a, int m, int n) {
+    static int[][] idft(int[][] a, int m, int n) {
         boolean even = m%2 == 0;
         int len = a.length;
-        byte[][] A = extend(a, 1<<(n+1-3));
+        int[][] A = extend(a, 1<<(n+1-5));
         int v = n - 1;
         int mask = 1;   // masks the current bit
         for (int slen=1; slen<=len/4; slen*=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
@@ -342,8 +327,8 @@ public class SchönhageStrassen {
                 }
                 
                 for (int k=0; k<slen; k++) {
-                    byte[] c = A[idx&nmask].clone();
-                    byte[] d = A[idx|mask];
+                    int[] c = A[idx&nmask].clone();
+                    int[] d = A[idx|mask];
                     addModFn(A[idx], d);
                     A[idx] = cyclicShiftRight(A[idx], 1);
                     
@@ -360,190 +345,213 @@ public class SchönhageStrassen {
         return A;
     }
     
-    private static byte[][] extend(byte[][] a, int numBytes) {
-        byte[][] b = new byte[a.length][numBytes];
+    private static int[][] extend(int[][] a, int numElements) {
+        int[][] b = new int[a.length][numElements];
         for (int i=0; i<a.length; i++)
-            b[i] = Arrays.copyOf(a[i], numBytes);
+            b[i] = Arrays.copyOf(a[i], numElements);
         return b;
     }
     
-    static void addModFn(byte[] a, byte[] b) {
-        int carry = 0;
+    static void addModFn(int[] a, int[] b) {
+        boolean carry = false;
         for (int i=0; i<a.length; i++) {
-            int sum = (a[i]&0xFF) + (b[i]&0xFF) + carry;
-            a[i] = (byte)sum;
-            carry = sum >>> 8;   // carry>0 if sum>=256 or sum<0
+            int sum = a[i] + b[i];
+            if (carry)
+                sum++;
+            carry = ((sum>>>31) < (a[i]>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
+            a[i] = sum;
         }
         
-        // take a mod Fn by adding any remaining carry bit to the lowest bit
-        if (carry > 0) {
-            int i = 0;
-            do {
-                int sum = (a[i]&0xFF) + 1;
-                a[i] = (byte)sum;
-                carry = sum >> 8;
-                i++;
-                if (i >= a.length)
-                    i = 0;
-            } while (carry > 0);
+        // take a mod Fn by adding any remaining carry bit to the lowest bit;
+        // since Fn ≡ 1 (mod 2^n), it suffices to add 1
+        int i = 0;
+        while (carry) {
+            int sum = a[i] + 1;
+            a[i] = sum;
+            carry = sum == 0;
+            i++;
+            if (i >= a.length)
+                i = 0;
         }
     }
     
-    private static void subModFn(byte[] a, byte[] b, int pow2n) {
+    private static void subModFn(int[] a, int[] b, int pow2n) {
         addModFn(a, cyclicShiftLeft(b, pow2n));
     }
     
-    private static void addModPow2(byte[] a, byte[] b, int numBits) {
-        int numBytes = (numBits+7) / 8;
-        int carry = 0;
+    private static void addModPow2(int[] a, int[] b, int numBits) {
+        int numElements = (numBits+31) / 32;
+        boolean carry = false;
         int i;
-        for (i=0; i<numBytes; i++) {
-            int sum = (a[i]&0xFF) + (b[i]&0xFF) + carry;
-            a[i] = (byte)sum;
-            carry = sum >>> 8;
+        for (i=0; i<numElements; i++) {
+            int sum = a[i] + b[i];
+            if (carry)
+                sum++;
+            carry = ((sum>>>31) < (a[i]>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
+            a[i] = sum;
         }
-        a[i-1] &= 0xFF >>> (8-(numBits%8));
+        a[i-1] &= -1 >>> (32-(numBits%32));
         for (; i<a.length; i++)
             a[i] = 0;
     }
     
-    static void subModPow2(byte[] a, byte[] b, int numBits) {
-        int numBytes = (numBits+7) / 8;
-        int carry = 0;
+    static void subModPow2(int[] a, int[] b, int numBits) {
+        int numElements = (numBits+31) / 32;
+        boolean carry = false;
         int i;
-        for (i=0; i<numBytes; i++) {
-            int diff = (a[i]&0xFF) - (b[i]&0xFF) - carry;
-            a[i] = (byte)diff;
-            carry = (diff >>> 8) & 1;
+        for (i=0; i<numElements; i++) {
+            int diff = a[i] - b[i];
+            if (carry)
+                diff--;
+            carry = ((diff>>>31) > (a[i]>>>31)-(b[i]>>>31));   // carry if signBit(diff) > signBit(a)-signBit(b)
+            a[i] = diff;
         }
-        a[i-1] &= 0xFF >>> (8-(numBits%8));
+        a[i-1] &= -1 >>> (32-(numBits%32));
         for (; i<a.length; i++)
             a[i] = 0;
     }
     
-    private static void shiftLeft(byte[] a, int numBits) {
-        int numBytes = numBits / 8;
-        System.arraycopy(a, 0, a, numBytes, a.length-numBytes);
-        Arrays.fill(a, 0, numBytes, (byte)0);
+    private static void shiftLeft(int[] a, int numBits) {
+        int numElements = numBits / 32;
+        System.arraycopy(a, 0, a, numElements, a.length-numElements);
+        Arrays.fill(a, 0, numElements, 0);
         
-        numBits = numBits % 8;
+        numBits = numBits % 32;
         if (numBits != 0) {
             a[a.length-1] <<= numBits;
             for (int i=a.length-1; i>0; i--) {
-                a[i] |= (byte)((a[i-1]&0xFF) >>> (8-numBits));
+                a[i] |= a[i-1] >>> (32-numBits);
                 a[i-1] <<= numBits;
             }
         }
     }
     
-    static byte[] cyclicShiftRight(byte[] a, int numBits) {
-        byte[] b = new byte[a.length];
-        int numBytes = numBits / 8;
-        System.arraycopy(a, numBytes, b, 0, a.length-numBytes);
-        System.arraycopy(a, 0, b, a.length-numBytes, numBytes);
+    static int[] cyclicShiftRight(int[] a, int numBits) {
+        int[] b = new int[a.length];
+        int numElements = numBits / 32;
+        System.arraycopy(a, numElements, b, 0, a.length-numElements);
+        System.arraycopy(a, 0, b, a.length-numElements, numElements);
         
-        numBits = numBits % 8;
+        numBits = numBits % 32;
         if (numBits != 0) {
-            byte b0 = b[0];
-            b[0] = (byte)((b[0]&0xFF) >> numBits);
+            int b0 = b[0];
+            b[0] = b[0] >>> numBits;
             for (int i=1; i<b.length; i++) {
-                b[i-1] |= (byte)(b[i] << (8-numBits));
-                b[i] = (byte)((b[i]&0xFF) >> numBits);
+                b[i-1] |= b[i] << (32-numBits);
+                b[i] = b[i] >>> numBits;
             }
-            b[b.length-1] |= (byte)(b0 << (8-numBits));
+            b[b.length-1] |= b0 << (32-numBits);
         }
         return b;
     }
     
-    static byte[] multModFn(byte[] a, byte[] b) {
-        byte[] c = mult(a, a.length*8, b, b.length*8);
+    static int[] multModFn(int[] a, int[] b) {
+        int[] c = mult(a, a.length*32, b, b.length*32);
         // special case: if a=b=Fn-1, a*b mod 2^2^(n+1) will be 0 but a*b mod Fn=1, so set c to 1 in this case
         if (isZero(c) && !isZero(a) && !isZero(b))
             c[0] = 1;
         return c;
     }
     
-    private static boolean isZero(byte[] a) {
-        for (byte b: a)
+    private static boolean isZero(int[] a) {
+        for (int b: a)
             if (b != 0)
                 return false;
         return true;
     }
     
     /** left means towards the higher array indices and the higher bits */
-    static byte[] cyclicShiftLeft(byte[] a, int numBits) {
-        byte[] b = new byte[a.length];
-        int numBytes = numBits / 8;
-        System.arraycopy(a, 0, b, numBytes, a.length-numBytes);
-        System.arraycopy(a, a.length-numBytes, b, 0, numBytes);
+    static int[] cyclicShiftLeft(int[] a, int numBits) {
+        int[] b = new int[a.length];
+        int numElements = numBits / 32;
+        System.arraycopy(a, 0, b, numElements, a.length-numElements);
+        System.arraycopy(a, a.length-numElements, b, 0, numElements);
         
-        numBits = numBits % 8;
+        numBits = numBits % 32;
         if (numBits != 0) {
-            byte bhi = b[b.length-1];
+            int bhi = b[b.length-1];
             b[b.length-1] <<= numBits;
             for (int i=b.length-1; i>0; i--) {
-                b[i] |= (byte)((b[i-1]&0xFF) >>> (8-numBits));
+                b[i] |= b[i-1] >>> (32-numBits);
                 b[i-1] <<= numBits;
             }
-            b[0] |= (byte)((bhi&0xFF) >>> (8-numBits));
+            b[0] |= bhi >>> (32-numBits);
         }
         return b;
     }
     
-    static void appendBits(byte[] a, int aBitLength, byte[] b, int bBitLength) {
-        int aByteIdx = aBitLength / 8;
-        int bit8 = aBitLength % 8;
+    static void appendBits(int[] a, int aBitLength, int[] b, int bBitLength) {
+        int aIdx = aBitLength / 32;
+        int bit32 = aBitLength % 32;
         
-        for (int i=0; i<bBitLength/8; i++) {
-            if (bit8 > 0) {
-                a[aByteIdx] |= b[i] << bit8;
-                aByteIdx++;
-                a[aByteIdx] = (byte)((b[i]&0xFF) >>> (8-bit8));
+        for (int i=0; i<bBitLength/32; i++) {
+            if (bit32 > 0) {
+                a[aIdx] |= b[i] << bit32;
+                aIdx++;
+                a[aIdx] = b[i] >>> (32-bit32);
             }
             else {
-                a[aByteIdx] = b[i];
-                aByteIdx++;
+                a[aIdx] = b[i];
+                aIdx++;
             }
         }
         
-        if (bBitLength%8 > 0) {
-            int bByteIdx = bBitLength / 8;
-            a[aByteIdx] |= b[bByteIdx] << bit8;
-            if (bit8 > 0)
-                a[aByteIdx+1] = (byte)((b[bByteIdx]&0xFF) >>> (8-bit8));
+        if (bBitLength%32 > 0) {
+            int bIdx = bBitLength / 32;
+            a[aIdx] |= b[bIdx] << bit32;
+            if (bit32+(bBitLength%32) > 32)
+                a[aIdx+1] = b[bIdx] >>> (32-bit32);
         }
     }
     
-    /** Divides a byte array into pieces <code>bitLength</code> bits long */
-    private static byte[][] subdivide(byte[] a, int bitLength) {
-        int aByteIdx = 0;
+    /** Divides a int array into pieces <code>bitLength</code> bits long */
+    private static int[][] subdivide(int[] a, int bitLength) {
+        int aIntIdx = 0;
         int aBitIdx = 0;
-        int numPieces = (a.length*8+bitLength-1) / bitLength;
-        int pieceLength = (bitLength+7) / 8;   // in bytes
-        byte[][] b = new byte[numPieces][pieceLength];
+        int numPieces = (a.length*32+bitLength-1) / bitLength;
+        int pieceLength = (bitLength+31) / 32;   // in ints
+        int[][] b = new int[numPieces][pieceLength];
         for (int i=0; i<b.length; i++) {
-            int bitsRemaining = Math.min(bitLength, a.length*8-i*bitLength);
-            int bByteIdx = 0;
+            int bitsRemaining = Math.min(bitLength, a.length*32-i*bitLength);
+            int bIntIdx = 0;
             int bBitIdx = 0;
             while (bitsRemaining > 0) {
-                int bitsToCopy = Math.min(8-aBitIdx, 8-bBitIdx);
+                int bitsToCopy = Math.min(32-aBitIdx, 32-bBitIdx);
                 bitsToCopy = Math.min(bitsRemaining, bitsToCopy);
-                int mask = a[aByteIdx] >>> aBitIdx;
-                mask &= 0xFF >>> (8-bitsToCopy);
+                int mask = a[aIntIdx] >>> aBitIdx;
+                mask &= -1 >>> (32-bitsToCopy);
                 mask <<= bBitIdx;
-                b[i][bByteIdx] |= mask;
+                b[i][bIntIdx] |= mask;
                 bitsRemaining -= bitsToCopy;
                 aBitIdx += bitsToCopy;
-                if (aBitIdx >= 8) {
-                    aBitIdx -= 8;
-                    aByteIdx++;
+                if (aBitIdx >= 32) {
+                    aBitIdx -= 32;
+                    aIntIdx++;
                 }
                 bBitIdx += bitsToCopy;
-                if (bBitIdx >= 8) {
-                    bBitIdx -= 8;
-                    bByteIdx++;
+                if (bBitIdx >= 32) {
+                    bBitIdx -= 32;
+                    bIntIdx++;
                 }
             }
+        }
+        return b;
+    }
+    
+    static int[] toIntArray(byte[] a) {
+        int[] b = new int[(a.length+3)/4];
+        for (int i=0; i<a.length; i++)
+            b[i/4] += (a[i]&0xFF) << ((i%4)*8);
+        return b;
+    }
+    
+    static byte[] toByteArray(int[] a) {
+        byte[] b = new byte[a.length*4];
+        for (int i=0; i<a.length; i++) {
+            b[i*4] = (byte)(a[i] & 0xFF);
+            b[i*4+1] = (byte)((a[i]>>>8) & 0xFF);
+            b[i*4+2] = (byte)((a[i]>>>16) & 0xFF);
+            b[i*4+3] = (byte)(a[i] >>> 24);
         }
         return b;
     }
