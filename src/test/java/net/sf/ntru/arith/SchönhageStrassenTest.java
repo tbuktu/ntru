@@ -38,15 +38,21 @@ public class SchönhageStrassenTest {
     public void testMult() {
         testMult(BigInteger.valueOf(0), BigInteger.valueOf(0));
         testMult(BigInteger.valueOf(100), BigInteger.valueOf(100));
+        testMult(BigInteger.valueOf(-394786896548787L), BigInteger.valueOf(604984572698687L));
+        testMult(BigInteger.valueOf(415338904376L), BigInteger.valueOf(527401434558L));
+        testMult(new BigInteger("9145524700683826415"), new BigInteger("1786442289234590209543"));
         
         Random rng = new Random(0);
         testMult(BigInteger.valueOf(rng.nextInt(1000000000)+65536), BigInteger.valueOf(rng.nextInt(1000000000)+65536));
         testMult(BigInteger.valueOf((rng.nextLong()>>>1)+1000), BigInteger.valueOf((rng.nextLong()>>>1)+1000));
         
-        for (int i=0; i<10; i++) {
-            byte[] aArr = new byte[20000+rng.nextInt(50000)];
+        testMult(BigInteger.valueOf(rng.nextInt(1000000000)+65536), BigInteger.valueOf(rng.nextInt(1000000000)+65536));
+        testMult(BigInteger.valueOf((rng.nextLong()>>>1)+1000), BigInteger.valueOf((rng.nextLong()>>>1)+1000));
+        
+        for (int i=0; i<3; i++) {
+            byte[] aArr = new byte[20000+rng.nextInt(20000)];
             rng.nextBytes(aArr);
-            byte[] bArr = new byte[20000+rng.nextInt(50000)];
+            byte[] bArr = new byte[20000+rng.nextInt(20000)];
             rng.nextBytes(bArr);
             BigInteger a = new BigInteger(aArr);
             BigInteger b = new BigInteger(bArr);
@@ -180,7 +186,7 @@ public class SchönhageStrassenTest {
     public void testAppendBits() {
         int[] a = new int[] {3615777, 0};
         SchönhageStrassen.appendBits(a, 22, new int[] {61797}, 13);
-        assertArrayEquals(new int[] {1500982305, 60}, a);
+        assertArrayEquals(new int[] {1500982305, 4}, a);
     }
     
     @Test

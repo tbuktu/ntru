@@ -41,7 +41,7 @@ import java.util.Arrays;
  * TODO: use Karatsuba instead of BigInteger.multiply()
  */
 public class SchönhageStrassen {
-    private static final int BIT_LENGTH_THRESHOLD = 100000;   // must be at least 2^16 for the recursion to terminate
+    private static final int SS_THRESHOLD = 100000;   // min #bits for Schönhage-Strassen; must be at least 2^16 for the recursion to terminate
     
     /**
      * Multiplies two {@link BigInteger}s using Schönhage-Strassen if the numbers are above a certain size.
@@ -51,7 +51,7 @@ public class SchönhageStrassen {
      * @return
      */
     public static BigInteger mult(BigInteger a, BigInteger b) {
-        if (Math.min(a.bitLength(), b.bitLength()) < BIT_LENGTH_THRESHOLD)
+        if (Math.min(a.bitLength(), b.bitLength()) < SS_THRESHOLD)
             return a.multiply(b);
         
         // remove any minus signs, multiply, then fix sign
@@ -67,14 +67,15 @@ public class SchönhageStrassen {
         int[] bIntArr = toIntArray(bByteArr);
         int[] cIntArr = mult(aIntArr, a.bitLength(), bIntArr, b.bitLength());
         byte[] cByteArr = toByteArray(cIntArr);
-        BigInteger c = new BigInteger(reverse(cByteArr));
+        BigInteger c = new BigInteger(1, reverse(cByteArr));
         if (signum < 0)
             c = c.negate();
         return c;
     }
     
     /**
-     * Multiplies two <b>positive</b> numbers represented as int arrays, i.e. in base <code>2^32</code>.<br/>
+     * Multiplies two <b>positive</b> numbers represented as int arrays, i.e. in base <code>2^32</code>.
+     * Positive means an int is always interpreted as an unsigned number, regardless of the sign bit.<br/>
      * The upper <code>a.length/2</code> and <code>b.length/2</code> digits must be zeros.<br/>
      * The arrays must be ordered least significant to most significant,
      * so the least significant digit must be at index 0.<br/>
@@ -85,7 +86,7 @@ public class SchönhageStrassen {
      * @return
      */
     private static int[] mult(int[] a, int aBitLen, int[] b, int bBitLen) {
-        if (Math.min(aBitLen, bBitLen) < BIT_LENGTH_THRESHOLD) {
+        if (Math.min(aBitLen, bBitLen) < SS_THRESHOLD) {
             byte[] aByte = toByteArray(a);
             byte[] bByte = toByteArray(b);
             byte[] c = reverse(new BigInteger(reverse(aByte)).multiply(new BigInteger(reverse(bByte))).toByteArray());
@@ -107,31 +108,23 @@ public class SchönhageStrassen {
         boolean even = m%2 == 0;
         int numPieces = even ? 1<<n : 1<<(n+1);
         int pieceSize = 1 << (n-1-5);   // in ints
-        int totalBits = even ? 1<<(2*n-1) : 1<<(2*n);   // numPieces * pieceSize
         int[][] ai = new int[numPieces][pieceSize];
-        a = Arrays.copyOf(a, totalBits/32);
         for (int i=0; i<numPieces; i++)
-            System.arraycopy(a, i*pieceSize, ai[i], 0, pieceSize);
+            if (i*pieceSize < a.length) {
+                if ((i+1)*pieceSize < a.length)
+                    System.arraycopy(a, i*pieceSize, ai[i], 0, pieceSize);
+                else
+                    System.arraycopy(a, i*pieceSize, ai[i], 0, a.length-i*pieceSize);
+            }
         
         int[][] bi = new int[numPieces][pieceSize];
-        b = Arrays.copyOf(b, totalBits/32);
         for (int i=0; i<numPieces; i++)
-            System.arraycopy(b, i*pieceSize, bi[i], 0, pieceSize);
-        
-        // alpha[i] = ai[i] modulo 2^(n+2), beta[i] = bi[i] modulo 2^(n+2)
-        int[][] alpha = new int[numPieces][(n+2+31)/32];
-        int[][] beta = new int[numPieces][(n+2+31)/32];
-        int fullInts = (n+2) / 32;
-        int extraBits = (n+2) % 32;
-        int mask = -1 >>> (32-extraBits);   // masks the low extraBits
-        for (int i=0; i<numPieces; i++) {
-            for (int j=0; j<fullInts; j++) {
-                alpha[i][j] = ai[i][j];
-                beta[i][j] = bi[i][j];
+            if (i*pieceSize < b.length) {
+                if ((i+1)*pieceSize < b.length)
+                    System.arraycopy(b, i*pieceSize, bi[i], 0, pieceSize);
+                else
+                    System.arraycopy(b, i*pieceSize, bi[i], 0, b.length-i*pieceSize);
             }
-            alpha[i][fullInts] = ai[i][fullInts] & mask;
-            beta[i][fullInts] = bi[i][fullInts] & mask;
-        }
         
         // build u and v from alpha and beta, allocating 3n+5 bits per element
         int uvLen = numPieces * (3*n+5);   // #bits
@@ -141,9 +134,9 @@ public class SchönhageStrassen {
         int uBitLength = 0;
         int vBitLength = 0;
         for (int i=0; i<numPieces; i++) {
-            appendBits(u, uBitLength, alpha[i], n+2);
+            appendBits(u, uBitLength, ai[i], n+2);
             uBitLength += 3*n+5;
-            appendBits(v, vBitLength, beta[i], n+2);
+            appendBits(v, vBitLength, bi[i], n+2);
             vBitLength += 3*n+5;
         }
         
@@ -164,8 +157,6 @@ public class SchönhageStrassen {
         }
         
         // zr mod Fn
-        ai = extend(ai, 1<<(n+1-5));
-        bi = extend(bi, 1<<(n+1-5));
         int[][] aTrans = dft(ai, m, n);
         int[][] bTrans = dft(bi, m, n);
         modFn(aTrans);
@@ -445,6 +436,7 @@ public class SchönhageStrassen {
         return b;
     }
     
+    /** a and b are assumed to be reduced mod Fn, i.e. 0<=a<Fn and 0<=b<Fn */
     static int[] multModFn(int[] a, int[] b) {
         int[] c = mult(a, a.length*32, b, b.length*32);
         // special case: if a=b=Fn-1, a*b mod 2^2^(n+1) will be 0 but a*b mod Fn=1, so set c to 1 in this case
@@ -498,9 +490,11 @@ public class SchönhageStrassen {
         
         if (bBitLength%32 > 0) {
             int bIdx = bBitLength / 32;
-            a[aIdx] |= b[bIdx] << bit32;
+            int bi = b[bIdx];
+            bi &= -1 >>> (32-bBitLength);
+            a[aIdx] |= bi << bit32;
             if (bit32+(bBitLength%32) > 32)
-                a[aIdx+1] = b[bIdx] >>> (32-bit32);
+                a[aIdx+1] = bi >>> (32-bit32);
         }
     }
     
