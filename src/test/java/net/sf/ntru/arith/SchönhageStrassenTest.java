@@ -49,19 +49,43 @@ public class SchönhageStrassenTest {
         testMult(BigInteger.valueOf(rng.nextInt(1000000000)+65536), BigInteger.valueOf(rng.nextInt(1000000000)+65536));
         testMult(BigInteger.valueOf((rng.nextLong()>>>1)+1000), BigInteger.valueOf((rng.nextLong()>>>1)+1000));
         
-        for (int i=0; i<3; i++) {
-            byte[] aArr = new byte[20000+rng.nextInt(20000)];
-            rng.nextBytes(aArr);
-            byte[] bArr = new byte[20000+rng.nextInt(20000)];
-            rng.nextBytes(bArr);
-            BigInteger a = new BigInteger(aArr);
-            BigInteger b = new BigInteger(bArr);
-            testMult(a, b);
-        }
+        byte[] aArr = new byte[80000+rng.nextInt(20000)];
+        rng.nextBytes(aArr);
+        byte[] bArr = new byte[80000+rng.nextInt(20000)];
+        rng.nextBytes(bArr);
+        BigInteger a = new BigInteger(aArr);
+        BigInteger b = new BigInteger(bArr);
+        testMult(a, b);
     }
     
     private void testMult(BigInteger a, BigInteger b) {
         assertEquals(a.multiply(b), SchönhageStrassen.mult(a, b));
+    }
+    
+    @Test
+    public void testMultKaratsuba() {
+        testMult(new int[] {9, 2}, new int[] {5, 6});
+        testMult(new int[] {0, -4}, new int[] {-2, -4});
+        testMult(new int[] {-5, 4, 0}, new int[] {3, 2, -2});
+        testMult(new int[] {-5, 4, 0, -4}, new int[] {3, 2, -2, -4});
+        testMult(new int[] {2, -2, 0, -1, -4}, new int[] {2, -3, -1, 0, -5});
+        
+        Random rng = new Random();
+        for (int i=0; i<10; i++) {
+            int[] a = new int[rng.nextInt(1000)];
+            int[] b = new int[a.length];
+            for (int j=0; j<a.length; j++) {
+                a[j] = rng.nextInt(1000) - 500;
+                b[j] = rng.nextInt(1000) - 500;
+            }
+            testMult(a, b);
+        }
+    }
+    
+    private void testMult(int[] a, int[] b) {
+        int[] cSchön = SchönhageStrassen.multSimple(a, b);
+        int[] cKara = SchönhageStrassen.multKaratsuba(a, b);
+        assertArrayEquals(cSchön, Arrays.copyOf(cKara, cSchön.length));
     }
     
     @Test

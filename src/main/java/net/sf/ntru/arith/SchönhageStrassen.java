@@ -38,22 +38,18 @@ import java.util.Arrays;
  * </ol>
  * <p/>
  * Numbers are internally represented as <code>int</code> arrays; the <code>int</code>s are interpreted as unsigned numbers.
- * TODO: use Karatsuba instead of BigInteger.multiply()
  */
 public class SchönhageStrassen {
-    private static final int SS_THRESHOLD = 100000;   // min #bits for Schönhage-Strassen; must be at least 2^16 for the recursion to terminate
+    private static final int KARATSUBA_THRESHOLD = 32;   // min #ints for Karatsuba
     
     /**
      * Multiplies two {@link BigInteger}s using Schönhage-Strassen if the numbers are above a certain size.
-     * Otherwise, O(n²) multiplication is used.
+     * Otherwise, Karatsuba or O(n²) multiplication is used.
      * @param a
      * @param b
      * @return
      */
     public static BigInteger mult(BigInteger a, BigInteger b) {
-        if (Math.min(a.bitLength(), b.bitLength()) < SS_THRESHOLD)
-            return a.multiply(b);
-        
         // remove any minus signs, multiply, then fix sign
         int signum = a.signum() * b.signum();
         if (a.signum() < 0)
@@ -65,11 +61,14 @@ public class SchönhageStrassen {
         int[] aIntArr = toIntArray(aByteArr);
         byte[] bByteArr = reverse(b.toByteArray());
         int[] bIntArr = toIntArray(bByteArr);
+        
         int[] cIntArr = mult(aIntArr, a.bitLength(), bIntArr, b.bitLength());
+        
         byte[] cByteArr = toByteArray(cIntArr);
         BigInteger c = new BigInteger(1, reverse(cByteArr));
         if (signum < 0)
             c = c.negate();
+        
         return c;
     }
     
@@ -86,15 +85,8 @@ public class SchönhageStrassen {
      * @return
      */
     private static int[] mult(int[] a, int aBitLen, int[] b, int bBitLen) {
-        if (Math.min(aBitLen, bBitLen) < SS_THRESHOLD) {
-            byte[] aByte = toByteArray(a);
-            byte[] bByte = toByteArray(b);
-            byte[] c = reverse(new BigInteger(reverse(aByte)).multiply(new BigInteger(reverse(bByte))).toByteArray());
-            // if the sign bit appended by toByteArray() increases the array length, trim the array
-            if (c.length > Math.max(a.length, b.length))
-                c = Arrays.copyOf(c, Math.max(aByte.length, bByte.length));
-            return toIntArray(c);
-        }
+        if (!shouldUseSchönhageStrassen(Math.max(aBitLen, bBitLen)))
+            return multKaratsuba(a, b);
         
         // set M to the number of binary digits in a or b, whichever is greater
         int M = Math.max(aBitLen, bBitLen);
@@ -186,6 +178,116 @@ public class SchönhageStrassen {
         
         modFn(z);   // assume m>=5
         return z;
+    }
+    
+    /**
+     * Estimates whether SS or Karatsuba will be more efficient when multiplying two numbers
+     * of a given length in bits.
+     * @param bitLength the number of bits in each of the two factors
+     * @return <code>true</code> if SS is more efficient, <code>false</code> if Karatsuba is more efficient
+     */
+    private static boolean shouldUseSchönhageStrassen(int bitLength) {
+        // The following values were determined experimentally on a 32-bit JVM.
+        // Note that SS will fail for bit lengths below 2^16 because it goes into an endless recursion.
+        if (bitLength>355000 && bitLength<524288)
+            return true;
+        if (bitLength > 552000)
+            return true;
+        return false;
+    }
+    
+    /** Multiplies two <b>positive</b> numbers represented as <code>int</code> arrays. */
+    static int[] multKaratsuba(int[] a, int[] b) {
+        int n = Math.max(a.length, b.length);
+        if (n <= KARATSUBA_THRESHOLD)
+            return multSimple(a, b);
+        else {
+            int n1 = (n+1) / 2;
+            
+            int[] a1 = Arrays.copyOf(a, n1);
+            int[] a2 = Arrays.copyOfRange(a, n1, n);
+            int[] b1 = Arrays.copyOf(b, n1);
+            int[] b2 = Arrays.copyOfRange(b, n1, n);
+            
+            int[] A = addExpand(a1, a2);
+            int[] B = addExpand(b1, b2);
+            
+            int[] c1 = multKaratsuba(a1, b1);
+            int[] c2 = multKaratsuba(a2, b2);
+            int[] c3 = multKaratsuba(A, B);
+            c3 = subExpand(c3, c1);   // c3-c1>0 because a and b are positive
+            c3 = subExpand(c3, c2);   // c3-c2>0 because a and b are positive
+            
+            int[] c = Arrays.copyOf(c1, Math.max(n1+c3.length, 2*n1+c2.length));
+            addShifted(c, c3, n1);
+            addShifted(c, c2, 2*n1);
+            
+            return c;
+        }
+    }
+    
+    private static int[] addExpand(int[] a, int[] b) {
+        int[] c = Arrays.copyOf(a, Math.max(a.length, b.length));
+        boolean carry = false;
+        int i = 0;
+        while (i < Math.min(b.length, a.length)) {
+            int sum = a[i] + b[i];
+            if (carry)
+                sum++;
+            carry = ((sum>>>31) < (a[i]>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
+            c[i] = sum;
+            i++;
+        }
+        while (carry) {
+            if (i == c.length)
+                c = Arrays.copyOf(c, c.length+1);
+            c[i]++;
+            carry = c[i] == 0;
+            i++;
+        }
+        return c;
+    }
+    
+    private static int[] subExpand(int[] a, int[] b) {
+        int[] c = Arrays.copyOf(a, Math.max(a.length, b.length));
+        boolean carry = false;
+        int i = 0;
+        while (i < Math.min(b.length, a.length)) {
+            int diff = a[i] - b[i];
+            if (carry)
+                diff--;
+            carry = ((diff>>>31) > (a[i]>>>31)-(b[i]>>>31));   // carry if signBit(diff) > signBit(a)-signBit(b)
+            c[i] = diff;
+            i++;
+        }
+        while (carry) {
+            if (i == c.length)
+                c = Arrays.copyOf(c, c.length+1);
+            c[i]--;
+            carry = c[i] == -1;
+            i++;
+        }
+        return c;
+    }
+    
+    /** O(n²) convolution */
+    static int[] multSimple(int[] a, int[] b) {
+        int[] c = new int[a.length+b.length];
+        long carry = 0;
+        for (int i=0; i<c.length; i++) {
+            long ci = c[i] & 0xFFFFFFFFL;
+            for (int k=Math.max(0,i-b.length+1); k<a.length&&k<=i; k++) {
+                long prod = (a[k]&0xFFFFFFFFL) * (b[i-k]&0xFFFFFFFFL);
+                ci += prod;
+                carry += ci >>> 32;
+                ci = ci << 32 >>> 32;
+            }
+            c[i] = (int)ci;
+            if (i < c.length-1)
+                c[i+1] = (int)carry;
+            carry >>>= 32;
+        }
+        return c;
     }
     
     private static void add(int[] a, int[] b) {
@@ -438,18 +540,16 @@ public class SchönhageStrassen {
     
     /** a and b are assumed to be reduced mod Fn, i.e. 0<=a<Fn and 0<=b<Fn */
     static int[] multModFn(int[] a, int[] b) {
-        int[] c = mult(a, a.length*32, b, b.length*32);
-        // special case: if a=b=Fn-1, a*b mod 2^2^(n+1) will be 0 but a*b mod Fn=1, so set c to 1 in this case
-        if (isZero(c) && !isZero(a) && !isZero(b))
-            c[0] = 1;
+        int[] a0 = Arrays.copyOf(a, a.length/2);
+        int[] b0 = Arrays.copyOf(b, b.length/2);
+        int[] c = mult(a0, a0.length*32, b0, b0.length*32);
+        int n = a.length/2;
+        // special case: if a=Fn-1, add b*2^2^n which is the same as subtracting b
+        if (a[n] == 1)
+            subModFn(c, b0, 1<<n);
+        if (b[n] == 1)
+            subModFn(c, a0, 1<<n);
         return c;
-    }
-    
-    private static boolean isZero(int[] a) {
-        for (int b: a)
-            if (b != 0)
-                return false;
-        return true;
     }
     
     /** left means towards the higher array indices and the higher bits */
