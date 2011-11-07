@@ -120,7 +120,7 @@ public class SchönhageStrassen {
                     System.arraycopy(b, i*pieceSize, bi[i], 0, b.length-i*pieceSize);
             }
         
-        // build u and v from alpha and beta, allocating 3n+5 bits per element
+        // build u and v from ai and bi, allocating 3n+5 bits per element
         int uvLen = numPieces * (3*n+5);   // #bits
         uvLen = (uvLen+31) / 32;   // #ints
         int[] u = new int[uvLen];
@@ -358,35 +358,37 @@ public class SchönhageStrassen {
         int[][] A = extend(a, 1<<(n+1-5));
         int v = 0;
         int mask = len/2;   // masks the current bit
-        for (int slen=len/2; slen>=1; slen/=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
-            int nmask = ~mask;   // the inverted bit mask
+        
+        int nmask = ~mask;   // the inverted bit mask
+        for (int j=len/2; j<len; j+=len) {
+            int idx = j;
+            int x = getOmegaExponent(n, v, idx, even);
+            
+            for (int k=len/2-1; k>=0; k--) {
+                int[] d = cyclicShiftLeftBits(A[idx|mask], x);
+                // in the first slen loop, there are only subtractions
+                int[] c = A[idx&nmask].clone();
+                subModFn(c, d, 1<<n);
+                A[idx] = c;
+                idx++;
+            }
+        }
+        v++;
+        mask /= 2;
+        
+        for (int slen=len/4; slen>0; slen/=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
+            nmask = ~mask;   // the inverted bit mask
             for (int j=len/2; j<len; j+=2*slen) {
                 int idx = j;
-                int x;
-                if (even) {
-                    x = Integer.reverse(idx >>> (n-v)) >>> (32-v);
-                    x <<= n - v - 1;
-                    // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
-                    x *= 2;
-                }
-                else {
-                    x = Integer.reverse(idx >>> (n+1-v)) >>> (32-v);
-                    x <<= n - v;
-                }
+                int x = getOmegaExponent(n, v, idx, even);
                 
-                for (int k=0; k<slen; k++) {
-                    int[] c = A[idx&nmask].clone();
-                    int[] d = cyclicShiftLeft(A[idx|mask], x);
-                    if (slen < len/2) {
-                        A[idx] = c.clone();
-                        addModFn(A[idx], d);
-                        subModFn(c, d, 1<<n);
-                        A[idx+slen] = c;
-                    }
-                    else {   // in the first slen loop, there are only subtractions
-                        subModFn(c, d, 1<<n);
-                        A[idx] = c;
-                    }
+                for (int k=slen-1; k>=0; k--) {
+                    int[] d = cyclicShiftLeftBits(A[idx|mask], x);
+                    int[] c = A[idx&nmask];
+                    A[idx] = c.clone();
+                    addModFn(A[idx], d);
+                    subModFn(c, d, 1<<n);
+                    A[idx+slen] = c;
                     idx++;
                 }
             }
@@ -395,6 +397,21 @@ public class SchönhageStrassen {
             mask /= 2;
         }
         return A;
+    }
+    
+    private static int getOmegaExponent(int n, int v, int idx, boolean even) {
+        int x;
+        if (even) {
+            x = Integer.reverse(idx >>> (n-v)) >>> (32-v);
+            x <<= n - v - 1;
+            // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
+            x *= 2;
+        }
+        else {
+            x = Integer.reverse(idx >>> (n+1-v)) >>> (32-v);
+            x <<= n - v;
+        }
+        return x;
     }
     
     static int[][] idft(int[][] a, int m, int n) {
@@ -407,6 +424,7 @@ public class SchönhageStrassen {
             int nmask = ~mask;   // the inverted bit mask
             for (int j=len/2; j<len; j+=2*slen) {
                 int idx = j;
+                int idx2 = idx + slen;   // idx2 is always idx+slen
                 int x;
                 if (even) {
                     x = Integer.reverse(idx >>> (n-v)) >>> (32-v);
@@ -420,17 +438,19 @@ public class SchönhageStrassen {
                     if (even)
                         x *= 2;   // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
                 }
+                x++;
                 
-                for (int k=0; k<slen; k++) {
+                for (int k=slen-1; k>=0; k--) {
                     int[] c = A[idx&nmask].clone();
                     int[] d = A[idx|mask];
                     addModFn(A[idx], d);
                     A[idx] = cyclicShiftRight(A[idx], 1);
                     
                     subModFn(c, d, 1<<n);
-                    A[idx+slen] = c;
-                    A[idx+slen] = cyclicShiftRight(A[idx+slen], x+1);
+                    A[idx2] = c;
+                    A[idx2] = cyclicShiftRight(A[idx2], x);
                     idx++;
+                    idx2++;
                 }
             }
             
@@ -471,7 +491,7 @@ public class SchönhageStrassen {
     }
     
     private static void subModFn(int[] a, int[] b, int pow2n) {
-        addModFn(a, cyclicShiftLeft(b, pow2n));
+        addModFn(a, cyclicShiftLeftElements(b, pow2n/32));
     }
     
     private static void addModPow2(int[] a, int[] b, int numBits) {
@@ -555,11 +575,8 @@ public class SchönhageStrassen {
     }
     
     /** left means towards the higher array indices and the higher bits */
-    static int[] cyclicShiftLeft(int[] a, int numBits) {
-        int[] b = new int[a.length];
-        int numElements = numBits / 32;
-        System.arraycopy(a, 0, b, numElements, a.length-numElements);
-        System.arraycopy(a, a.length-numElements, b, 0, numElements);
+    static int[] cyclicShiftLeftBits(int[] a, int numBits) {
+        int[] b = cyclicShiftLeftElements(a, numBits/32);
         
         numBits = numBits % 32;
         if (numBits != 0) {
@@ -571,6 +588,13 @@ public class SchönhageStrassen {
             }
             b[0] |= bhi >>> (32-numBits);
         }
+        return b;
+    }
+    
+    static int[] cyclicShiftLeftElements(int[] a, int numElements) {
+        int[] b = new int[a.length];
+        System.arraycopy(a, 0, b, numElements, a.length-numElements);
+        System.arraycopy(a, a.length-numElements, b, 0, numElements);
         return b;
     }
     

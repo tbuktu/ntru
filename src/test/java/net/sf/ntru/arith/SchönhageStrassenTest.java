@@ -48,14 +48,22 @@ public class SchönhageStrassenTest {
         
         testMult(BigInteger.valueOf(rng.nextInt(1000000000)+65536), BigInteger.valueOf(rng.nextInt(1000000000)+65536));
         testMult(BigInteger.valueOf((rng.nextLong()>>>1)+1000), BigInteger.valueOf((rng.nextLong()>>>1)+1000));
-        
-        byte[] aArr = new byte[80000+rng.nextInt(20000)];
-        rng.nextBytes(aArr);
-        byte[] bArr = new byte[80000+rng.nextInt(20000)];
-        rng.nextBytes(bArr);
-        BigInteger a = new BigInteger(aArr);
-        BigInteger b = new BigInteger(bArr);
-        testMult(a, b);
+
+        int aLength = 80000 + rng.nextInt(20000);
+        int bLength = 80000 + rng.nextInt(20000);
+        for (int i=0; i<2; i++) {
+            byte[] aArr = new byte[aLength];
+            rng.nextBytes(aArr);
+            byte[] bArr = new byte[bLength];
+            rng.nextBytes(bArr);
+            BigInteger a = new BigInteger(aArr);
+            BigInteger b = new BigInteger(bArr);
+            testMult(a, b);
+            
+            // double the length and test again so an even and an odd m is tested
+            aLength *= 2;
+            bLength *= 2;
+        }
     }
     
     private void testMult(BigInteger a, BigInteger b) {
@@ -165,18 +173,18 @@ public class SchönhageStrassenTest {
         int[] arr = new int[] {16712450, -2139160576};
         
         // test cyclicShiftLeft
-        assertArrayEquals(new int[] {33424901, 16646144}, SchönhageStrassen.cyclicShiftLeft(arr, 1));
-        assertArrayEquals(new int[] {-16579968, 2130706432}, SchönhageStrassen.cyclicShiftLeft(arr, 8));
-        assertArrayEquals(new int[] {50495615, 255}, SchönhageStrassen.cyclicShiftLeft(arr, 16));
-        assertArrayEquals(new int[] {41975552, 65283}, SchönhageStrassen.cyclicShiftLeft(arr, 24));
-        assertArrayEquals(new int[] {-2139160576, 16712450}, SchönhageStrassen.cyclicShiftLeft(arr, 32));
-        assertArrayEquals(arr, SchönhageStrassen.cyclicShiftLeft(arr, 64));
-        int[] arr2 = SchönhageStrassen.cyclicShiftLeft(arr, 17);
-        arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 12);
-        arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 1);
-        arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 1);
-        arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 24);
-        arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 9);
+        assertArrayEquals(new int[] {33424901, 16646144}, SchönhageStrassen.cyclicShiftLeftBits(arr, 1));
+        assertArrayEquals(new int[] {-16579968, 2130706432}, SchönhageStrassen.cyclicShiftLeftBits(arr, 8));
+        assertArrayEquals(new int[] {50495615, 255}, SchönhageStrassen.cyclicShiftLeftBits(arr, 16));
+        assertArrayEquals(new int[] {41975552, 65283}, SchönhageStrassen.cyclicShiftLeftBits(arr, 24));
+        assertArrayEquals(new int[] {-2139160576, 16712450}, SchönhageStrassen.cyclicShiftLeftBits(arr, 32));
+        assertArrayEquals(arr, SchönhageStrassen.cyclicShiftLeftBits(arr, 64));
+        int[] arr2 = SchönhageStrassen.cyclicShiftLeftBits(arr, 17);
+        arr2 = SchönhageStrassen.cyclicShiftLeftBits(arr2, 12);
+        arr2 = SchönhageStrassen.cyclicShiftLeftBits(arr2, 1);
+        arr2 = SchönhageStrassen.cyclicShiftLeftBits(arr2, 1);
+        arr2 = SchönhageStrassen.cyclicShiftLeftBits(arr2, 24);
+        arr2 = SchönhageStrassen.cyclicShiftLeftBits(arr2, 9);
         assertArrayEquals(arr, arr2);
         
         // test cyclicShiftRight
@@ -196,13 +204,13 @@ public class SchönhageStrassenTest {
         assertArrayEquals(arr, arr2);
         
         // shift left, then right by the same amount
-        arr2 = SchönhageStrassen.cyclicShiftLeft(arr, 22);
+        arr2 = SchönhageStrassen.cyclicShiftLeftBits(arr, 22);
         arr2 = SchönhageStrassen.cyclicShiftRight(arr2, 22);
         assertArrayEquals(arr, arr2);
-        arr2 = SchönhageStrassen.cyclicShiftLeft(arr, 9);
+        arr2 = SchönhageStrassen.cyclicShiftLeftBits(arr, 9);
         arr2 = SchönhageStrassen.cyclicShiftRight(arr2, 14);
         arr2 = SchönhageStrassen.cyclicShiftRight(arr2, 9);
-        arr2 = SchönhageStrassen.cyclicShiftLeft(arr2, 14);
+        arr2 = SchönhageStrassen.cyclicShiftLeftBits(arr2, 14);
         assertArrayEquals(arr, arr2);
     }
     
