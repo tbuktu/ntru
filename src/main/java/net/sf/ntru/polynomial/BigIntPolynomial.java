@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import net.sf.ntru.arith.SchönhageStrassen;
 import net.sf.ntru.exception.NtruException;
 
 /**
@@ -99,10 +100,138 @@ public class BigIntPolynomial {
      * Multiplies the polynomial by another, taking the indices mod N. Does not
      * change this polynomial but returns the result as a new polynomial.<br/>
      * Both polynomials must have the same number of coefficients.
+     * This method is designed for large polynomials and uses Schönhage-Strassen multiplication
+     * in combination with
+     * <a href="http://en.wikipedia.org/wiki/Kronecker_substitution">Kronecker substitution</a>.
+     * See
+     * <a href="http://math.stackexchange.com/questions/58946/karatsuba-vs-schonhage-strassen-for-multiplication-of-polynomials#58955">
+     * here</a> for details.
      * @param poly2 the polynomial to multiply by
      * @return a new polynomial
      */
-    public BigIntPolynomial mult(BigIntPolynomial poly2) {
+    public BigIntPolynomial multBig(BigIntPolynomial poly2) {
+        int N = coeffs.length;
+        
+        // determine #bits needed per coefficient
+        int logMinDigits = 32 - Integer.numberOfLeadingZeros(N-1);
+        int maxLengthA = 0;
+        for (BigInteger coeff: coeffs)
+            maxLengthA = Math.max(maxLengthA, coeff.bitLength());
+        int maxLengthB = 0;
+        for (BigInteger coeff: poly2.coeffs)
+            maxLengthB = Math.max(maxLengthB, coeff.bitLength());
+        int k = logMinDigits + maxLengthA + maxLengthB + 1;   // in bits
+        k = (k+31) / 32;   // in ints
+        
+        // encode each polynomial into an int[]
+        int aDeg = degree();
+        int bDeg = poly2.degree();
+        if (aDeg<0 || bDeg<0)
+            return new BigIntPolynomial(N);   // return zero
+        int[] aInt = toIntArray(this, k);
+        int[] bInt = toIntArray(poly2, k);
+        
+        int[] cInt = SchönhageStrassen.mult(aInt, bInt);
+        
+        // decode poly coefficients from the product
+        BigInteger _2k = ONE.shiftLeft(k*32);
+        BigIntPolynomial cPoly = new BigIntPolynomial(N);
+        for (int i=0; i<2*N-1; i++) {
+            int[] coeffInt = Arrays.copyOfRange(cInt, i*k, (i+1)*k);
+            BigInteger coeff = new BigInteger(1, SchönhageStrassen.reverse(SchönhageStrassen.toByteArray(coeffInt)));
+            if (coeffInt[k-1] < 0) {   // if coeff > 2^(k-1)
+                coeff = coeff.subtract(_2k);
+                
+                // add 2^k to cInt which is the same as subtracting coeff
+                boolean carry = false;
+                int cIdx = (i+1) * k;
+                do {
+                    cInt[cIdx]++;
+                    carry = cInt[cIdx] == 0;
+                    cIdx++;
+                } while (carry);
+            }
+            cPoly.coeffs[i%N] = cPoly.coeffs[i%N].add(coeff);
+        }
+
+        int aSign = coeffs[aDeg].signum();
+        int bSign = poly2.coeffs[bDeg].signum();
+        if (aSign*bSign < 0)
+            for (int i=0; i<N; i++)
+                cPoly.coeffs[i] = cPoly.coeffs[i].negate();
+        
+        return cPoly;
+    }
+    
+    private int[] toIntArray(BigIntPolynomial a, int k) {
+        int N = a.coeffs.length;
+        
+        int sign = a.coeffs[a.degree()].signum();
+        
+        int[] aInt = new int[N*k];
+        for (int i=N-1; i>=0; i--) {
+            int[] cArr = SchönhageStrassen.toIntArray(SchönhageStrassen.reverse(a.coeffs[i].abs().toByteArray()));
+            if (a.coeffs[i].signum()*sign < 0)
+                subShifted(aInt, cArr, i*k);
+            else
+                addShifted(aInt, cArr, i*k);
+        }
+        
+        return aInt;
+    }
+    
+    /** drops elements of b that are shifted outside the valid range */
+    static void addShifted(int[] a, int[] b, int numElements) {
+        boolean carry = false;
+        int i = 0;
+        while (i < Math.min(b.length, a.length-numElements)) {
+            int ai = a[i+numElements];
+            int sum = ai + b[i];
+            if (carry)
+                sum++;
+            carry = ((sum>>>31) < (ai>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
+            a[i+numElements] = sum;
+            i++;
+        }
+        i += numElements;
+        while (carry) {
+            a[i]++;
+            carry = a[i] == 0;
+            i++;
+        }
+    }
+    
+    /** drops elements of b that are shifted outside the valid range */
+    static void subShifted(int[] a, int[] b, int numElements) {
+        boolean carry = false;
+        int i = 0;
+        while (i < Math.min(b.length, a.length-numElements)) {
+            int ai = a[i+numElements];
+            int diff = ai - b[i];
+            if (carry)
+                diff--;
+            carry = ((diff>>>31) > (a[i]>>>31)-(b[i]>>>31));   // carry if signBit(diff) > signBit(a)-signBit(b)
+            a[i+numElements] = diff;
+            i++;
+        }
+        i += numElements;
+        while (carry) {
+            a[i]--;
+            carry = a[i] == -1;
+            i++;
+        }
+    }
+    
+    /**
+     * Multiplies the polynomial by another, taking the indices mod N. Does not
+     * change this polynomial but returns the result as a new polynomial.<br/>
+     * Both polynomials must have the same number of coefficients.
+     * This method is designed for smaller polynomials and uses 
+     * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba multiplication</a>.
+     * @param poly2 the polynomial to multiply by
+     * @return a new polynomial
+     */
+    public BigIntPolynomial multSmall(BigIntPolynomial poly2) {
         int N = coeffs.length;
         if (poly2.coeffs.length != N)
             throw new NtruException("Number of coefficients must be the same");
@@ -286,6 +415,14 @@ public class BigIntPolynomial {
         for (int i=0; i<coeffs.length; i++)
             sum = sum.add(coeffs[i]);
         return sum;
+    }
+    
+    /** Returns the degree of the polynomial or -1 if the degree is negative */
+    private int degree() {
+        int degree = coeffs.length - 1;
+        while (degree>=0 && coeffs[degree].equals(ZERO))
+            degree--;
+        return degree;
     }
     
     /**

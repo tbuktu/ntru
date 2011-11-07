@@ -171,7 +171,7 @@ public class IntegerPolynomialTest {
     
     // verifies that res=rho*a mod x^n-1
     private void verifyResultant(IntegerPolynomial a, Resultant r) {
-        BigIntPolynomial b = new BigIntPolynomial(a).mult(r.rho);
+        BigIntPolynomial b = new BigIntPolynomial(a).multSmall(r.rho);
         
         for (int j=1; j<b.coeffs.length-1; j++)
             assertEquals(BigInteger.ZERO, b.coeffs[j]);
@@ -197,7 +197,7 @@ public class IntegerPolynomialTest {
     
     // verifies that res=rho*a mod x^n-1 mod p
     private void verifyResultant(IntegerPolynomial a, Resultant r, int p) {
-        BigIntPolynomial b = new BigIntPolynomial(a).mult(r.rho);
+        BigIntPolynomial b = new BigIntPolynomial(a).multSmall(r.rho);
         b.mod(BigInteger.valueOf(p));
         
         for (int j=1; j<b.coeffs.length-1; j++)

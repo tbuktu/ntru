@@ -413,7 +413,7 @@ public class NtruSign {
             Resultant rt = t.resultant();
             C = fRev.mult(B);   // fRev.mult(B) is actually faster than new SparseTernaryPolynomial(fRev).mult(B), possibly due to cache locality?
             C.add(gRev.mult(A));
-            C = C.mult(rt.rho);
+            C = C.multBig(rt.rho);
             C.div(rt.res);
         }
         else {   // KeyGenAlg.FLOAT

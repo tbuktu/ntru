@@ -281,7 +281,7 @@ public class IntegerPolynomial implements Polynomial {
     
     @Override
     public BigIntPolynomial mult(BigIntPolynomial poly2) {
-        return new BigIntPolynomial(this).mult(poly2);
+        return new BigIntPolynomial(this).multSmall(poly2);
     }
     
     /** Karazuba multiplication */

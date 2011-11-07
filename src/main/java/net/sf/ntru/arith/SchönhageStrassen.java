@@ -79,11 +79,13 @@ public class SchönhageStrassen {
      * The arrays must be ordered least significant to most significant,
      * so the least significant digit must be at index 0.<br/>
      * @param a
-     * @param aBitLen
      * @param b
-     * @param bBitLen
      * @return
      */
+    public static int[] mult(int[] a, int[] b) {
+        return mult(a, a.length*32, b, b.length*32);
+    }
+    
     private static int[] mult(int[] a, int aBitLen, int[] b, int bBitLen) {
         if (!shouldUseSchönhageStrassen(Math.max(aBitLen, bBitLen)))
             return multKaratsuba(a, b);
@@ -542,7 +544,7 @@ public class SchönhageStrassen {
     static int[] multModFn(int[] a, int[] b) {
         int[] a0 = Arrays.copyOf(a, a.length/2);
         int[] b0 = Arrays.copyOf(b, b.length/2);
-        int[] c = mult(a0, a0.length*32, b0, b0.length*32);
+        int[] c = mult(a0, b0);
         int n = a.length/2;
         // special case: if a=Fn-1, add b*2^2^n which is the same as subtracting b
         if (a[n] == 1)
@@ -632,14 +634,14 @@ public class SchönhageStrassen {
         return b;
     }
     
-    static int[] toIntArray(byte[] a) {
+    public static int[] toIntArray(byte[] a) {
         int[] b = new int[(a.length+3)/4];
         for (int i=0; i<a.length; i++)
             b[i/4] += (a[i]&0xFF) << ((i%4)*8);
         return b;
     }
     
-    static byte[] toByteArray(int[] a) {
+    public static byte[] toByteArray(int[] a) {
         byte[] b = new byte[a.length*4];
         for (int i=0; i<a.length; i++) {
             b[i*4] = (byte)(a[i] & 0xFF);
@@ -650,7 +652,7 @@ public class SchönhageStrassen {
         return b;
     }
     
-    static byte[] reverse(byte[] a) {
+    public static byte[] reverse(byte[] a) {
         byte[] b = new byte[a.length];
         for (int i=0; i<a.length; i++)
             b[i] = a[a.length-1-i];
