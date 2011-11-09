@@ -88,6 +88,7 @@ public class BigDecimalPolynomial {
      * change this polynomial but returns the result as a new polynomial.
      * @param poly2 the polynomial to multiply by
      * @return a new polynomial
+     * @throws NtruException if the two polynomials differ in the number of coefficients
      */
     BigDecimalPolynomial mult(BigDecimalPolynomial poly2) {
         int N = coeffs.length;

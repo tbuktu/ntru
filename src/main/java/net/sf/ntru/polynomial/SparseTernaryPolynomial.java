@@ -61,6 +61,7 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
     /**
      * Constructs a new <code>SparseTernaryPolynomial</code> with a given set of coefficients.
      * @param coeffs the coefficients
+     * @throws NtruException if the coefficients are not ternary
      */
     public SparseTernaryPolynomial(int[] coeffs) {
         N = coeffs.length;

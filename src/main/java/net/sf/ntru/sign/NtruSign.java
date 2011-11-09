@@ -111,6 +111,7 @@ public class NtruSign {
     /**
      * Resets the engine for signing a message.
      * @param kp
+     * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
     public void initSign(SignatureKeyPair kp) {
         this.signingKeyPair = kp;
@@ -125,6 +126,7 @@ public class NtruSign {
     /**
      * Adds data to sign or verify.
      * @param m
+     * @throws NtruException if <code>initSign</code> was not called
      */
     public void update(byte[] m) {
         if (hashAlg == null)
@@ -155,6 +157,7 @@ public class NtruSign {
      * @param m the message to sign
      * @param kp a key pair (the public key is needed to ensure there are no signing failures)
      * @return a signature
+     * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
     public byte[] sign(byte[] m, SignatureKeyPair kp) {
         try {
@@ -240,6 +243,7 @@ public class NtruSign {
     /**
      * Resets the engine for verifying a signature.
      * @param pub the public key to use in the {@link #verify(byte[])} step
+     * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
     public void initVerify(SignaturePublicKey pub) {
         verificationKey = pub;
@@ -273,6 +277,7 @@ public class NtruSign {
      * @param sig the signature
      * @param pub a public key
      * @return whether the signature is valid
+     * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
     public boolean verify(byte[] m, byte[] sig, SignaturePublicKey pub) {
         try {

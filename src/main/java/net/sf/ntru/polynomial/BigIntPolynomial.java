@@ -230,6 +230,7 @@ public class BigIntPolynomial {
      * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba multiplication</a>.
      * @param poly2 the polynomial to multiply by
      * @return a new polynomial
+     * @throws NtruException if the two polynomials have a different number of coefficients
      */
     public BigIntPolynomial multSmall(BigIntPolynomial poly2) {
         int N = coeffs.length;

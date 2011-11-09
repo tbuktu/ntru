@@ -71,7 +71,7 @@ public class EncryptionPrivateKey {
      * @throws NtruException if an {@link IOException} occurs
      * @see #writeTo(OutputStream)
      */
-    public EncryptionPrivateKey(InputStream is, EncryptionParameters params) throws NtruException {
+    public EncryptionPrivateKey(InputStream is, EncryptionParameters params) {
         this.params = params;
         try {
             if (params.polyType == TernaryPolynomialType.PRODUCT) {

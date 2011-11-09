@@ -32,7 +32,7 @@ import net.sf.ntru.exception.NtruException;
 public class ProductFormPolynomial implements Polynomial {
     private SparseTernaryPolynomial f1, f2, f3;
     
-    public ProductFormPolynomial(SparseTernaryPolynomial f1, SparseTernaryPolynomial f2, SparseTernaryPolynomial f3) throws NtruException {
+    public ProductFormPolynomial(SparseTernaryPolynomial f1, SparseTernaryPolynomial f2, SparseTernaryPolynomial f3) {
         this.f1 = f1;
         this.f2 = f2;
         this.f3 = f3;

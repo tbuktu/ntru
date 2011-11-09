@@ -174,6 +174,7 @@ public class ArrayEncoder {
      * See P1363.1 section 9.2.3.
      * @param arr
      * @return the encoded array
+     * @throws NtruException if <code>(-1,-1)</code> is encountered
      */
     public static byte[] encodeMod3Sves(int[] arr) {
         int numBits = (arr.length*3+1) / 2;
