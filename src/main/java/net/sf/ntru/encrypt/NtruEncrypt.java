@@ -216,8 +216,7 @@ public class NtruEncrypt {
             Polynomial r = generateBlindingPoly(sData, M);
             IntegerPolynomial R = r.mult(pub, q);
             IntegerPolynomial R4 = R.clone();
-            R4.modPositive(4);
-            byte[] oR4 = R4.toBinary(4);
+            byte[] oR4 = R4.toBinary4();
             IntegerPolynomial mask = MGF(oR4, N, minCallsMask, hashSeed);
             mTrin.add(mask);
             mTrin.mod3();
@@ -413,8 +412,7 @@ public class NtruEncrypt {
         cR.sub(ci);
         cR.modPositive(q);
         IntegerPolynomial cR4 = cR.clone();
-        cR4.modPositive(4);
-        byte[] coR4 = cR4.toBinary(4);
+        byte[] coR4 = cR4.toBinary4();
         IntegerPolynomial mask = MGF(coR4, N, minCallsMask, hashSeed);
         IntegerPolynomial cMTrin = ci;
         cMTrin.sub(mask);

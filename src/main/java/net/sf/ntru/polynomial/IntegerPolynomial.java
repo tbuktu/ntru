@@ -256,6 +256,48 @@ public class IntegerPolynomial implements Polynomial {
         return ArrayEncoder.encodeModQ(coeffs, q);
     }
     
+    /**
+     * Optimized version of {@link #toBinary(int)} for <code>q=4</code>.<br/>
+     * Encodes the low 2 bits of all coefficients in a byte array.
+     * @return a byte array equal to what <code>toBinary(4)</code> would return
+     */
+    public byte[] toBinary4() {
+        byte[] data = new byte[(coeffs.length+3)/4];
+        int i = 0;
+        while (i < coeffs.length-3) {
+            int c0 = coeffs[i] & 3;
+            int c1 = coeffs[i+1] & 3;
+            int c2 = coeffs[i+2] & 3;
+            int c3 = coeffs[i+3] & 3;
+            int d = c0 + (c1<<2) + (c2<<4) + (c3<<6);
+            data[i/4] = (byte)d;
+            i += 4;
+        }
+        
+        // handle the last 0 to 3 coefficients
+        if (i >= coeffs.length)
+            return data;
+        int last = data.length - 1;
+        data[last] = (byte)(coeffs[i] & 3);
+        i++;
+        
+        if (i >= coeffs.length)
+            return data;
+        data[last] |= (byte)((coeffs[i]&3) << 2);
+        i++;
+        
+        if (i >= coeffs.length)
+            return data;
+        data[last] |= (byte)((coeffs[i]&3) << 4);
+        i++;
+        
+        if (i >= coeffs.length)
+            return data;
+        data[last] |= (byte)((coeffs[i]&3) << 6);
+        
+        return data;
+    }
+    
     /** Multiplies the polynomial with another, taking the values mod modulus and the indices mod N */
     public IntegerPolynomial mult(IntegerPolynomial poly2, int modulus) {
         IntegerPolynomial c = mult(poly2);
@@ -897,6 +939,14 @@ public class IntegerPolynomial implements Polynomial {
     void mod(int modulus) {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] %= modulus;
+    }
+    
+    /**
+     * Ensures all coefficients are between 0 and 3
+     */
+    public void modPositive4() {
+        for (int i=0; i<coeffs.length; i++)
+            coeffs[i] &= 3;
     }
     
     /**
