@@ -406,17 +406,6 @@ public class BigIntPolynomial {
             coeffs[i] = coeffs[i].mod(modulus);
     }
     
-    /**
-     * Returns the sum of all coefficients, i.e. evaluates the polynomial at 0.
-     * @return the sum of all coefficients
-     */
-    BigInteger sumCoeffs() {
-        BigInteger sum = ZERO;
-        for (int i=0; i<coeffs.length; i++)
-            sum = sum.add(coeffs[i]);
-        return sum;
-    }
-    
     /** Returns the degree of the polynomial or -1 if the degree is negative */
     private int degree() {
         int degree = coeffs.length - 1;
