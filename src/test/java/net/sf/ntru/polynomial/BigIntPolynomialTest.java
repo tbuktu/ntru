@@ -20,6 +20,7 @@ package net.sf.ntru.polynomial;
 
 import static org.junit.Assert.assertArrayEquals;
 
+import java.math.BigInteger;
 import java.util.Random;
 
 import net.sf.ntru.polynomial.BigIntPolynomial;
@@ -38,16 +39,19 @@ public class BigIntPolynomialTest {
         assertArrayEquals(expected.coeffs, a.multBig(b).coeffs);
         
         Random rng = new Random();
+        BigInteger[] aCoeffs = new BigInteger[10+rng.nextInt(50)];
+        BigInteger[] bCoeffs = new BigInteger[aCoeffs.length];
         for (int i=0; i<3; i++) {
-            int[] aArr = new int[rng.nextInt(100)];
-            int[] bArr = new int[aArr.length];
-            for (int j=0; j<aArr.length; j++) {
-                aArr[j] = rng.nextInt(1000) - 500;
-                bArr[j] = rng.nextInt(1000) - 500;
+            for (int j=0; j<aCoeffs.length; j++) {
+                byte[] aArr = new byte[400+rng.nextInt(100)];
+                rng.nextBytes(aArr);
+                aCoeffs[j] = new BigInteger(aArr);
+                byte[] bArr = new byte[400+rng.nextInt(100)];
+                rng.nextBytes(bArr);
+                bCoeffs[j] = new BigInteger(bArr);
             }
-            a = new BigIntPolynomial(new IntegerPolynomial(aArr));
-            b = new BigIntPolynomial(new IntegerPolynomial(bArr));
-            
+            a = new BigIntPolynomial(aCoeffs);
+            b = new BigIntPolynomial(bCoeffs);
             assertArrayEquals(a.multSmall(b).coeffs, a.multBig(b).coeffs);
         }
     }
