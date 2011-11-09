@@ -36,7 +36,6 @@ import net.sf.ntru.polynomial.Polynomial;
 import net.sf.ntru.polynomial.PolynomialGenerator;
 import net.sf.ntru.polynomial.ProductFormPolynomial;
 import net.sf.ntru.polynomial.SparseTernaryPolynomial;
-import net.sf.ntru.polynomial.TernaryPolynomial;
 
 /**
  * Encrypts, decrypts data and generates key pairs.<br/>
@@ -244,13 +243,6 @@ public class NtruEncrypt {
             R.ensurePositive(q);
             return R.toBinary(q);
         }
-    }
-    
-    IntegerPolynomial encrypt(IntegerPolynomial m, TernaryPolynomial r, IntegerPolynomial pubKey) {
-        IntegerPolynomial e = r.mult(pubKey, params.q);
-        e.add(m, params.q);
-        e.ensurePositive(params.q);
-        return e;
     }
     
     /**

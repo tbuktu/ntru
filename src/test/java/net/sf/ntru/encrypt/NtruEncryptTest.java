@@ -23,9 +23,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import net.sf.ntru.encrypt.EncryptionParameters.TernaryPolynomialType;
 import net.sf.ntru.exception.NtruException;
-import net.sf.ntru.polynomial.DenseTernaryPolynomial;
 import net.sf.ntru.polynomial.IntegerPolynomial;
-import net.sf.ntru.polynomial.SparseTernaryPolynomial;
 
 import org.junit.Test;
 
@@ -50,8 +48,6 @@ public class NtruEncryptTest {
                 NtruEncrypt ntru = new NtruEncrypt(params);
                 EncryptionKeyPair kp = ntru.generateKeyPair();
                 
-                testPolynomial(ntru, kp, params);
-                
                 testText(ntru, kp, params);
                 // sparse/dense
                 params.sparse = !params.sparse;
@@ -63,15 +59,6 @@ public class NtruEncryptTest {
                 testTooLong(ntru, kp, params);
                 testInvalidEncoding(ntru, kp, params);
         }
-    }
-    
-    // encrypts and decrypts a polynomial
-    private void testPolynomial(NtruEncrypt ntru, EncryptionKeyPair kp, EncryptionParameters params) {
-        IntegerPolynomial m = DenseTernaryPolynomial.generateRandom(params.N);
-        SparseTernaryPolynomial r = SparseTernaryPolynomial.generateRandom(params.N, params.dr, params.dr);
-        IntegerPolynomial e = ntru.encrypt(m, r, kp.pub.h);
-        IntegerPolynomial c = ntru.decrypt(e, kp.priv.t, kp.priv.fp);
-        assertArrayEquals(m.coeffs, c.coeffs);
     }
     
     // encrypts and decrypts text
