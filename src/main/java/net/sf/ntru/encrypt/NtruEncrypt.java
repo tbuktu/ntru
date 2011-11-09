@@ -187,10 +187,8 @@ public class NtruEncrypt {
         int db = params.db;
         int bufferLenBits = params.bufferLenBits;
         int dm0 = params.dm0;
-        int pkLen = params.pkLen;
         int minCallsMask = params.minCallsMask;
         boolean hashSeed = params.hashSeed;
-        byte[] oid = params.oid;
         
         int l = m.length;
         if (maxLenBytes > 255)
@@ -213,15 +211,7 @@ public class NtruEncrypt {
             
             IntegerPolynomial mTrin = IntegerPolynomial.fromBinary3Sves(M, N);
             
-            // sData = OID|m|b|hTrunc
-            byte[] bh = pub.toBinary(q);
-            byte[] hTrunc = Arrays.copyOf(bh, pkLen/8);
-            ByteBuffer sDataBuffer = ByteBuffer.allocate(oid.length + l + b.length + hTrunc.length);
-            sDataBuffer.put(oid);
-            sDataBuffer.put(m);
-            sDataBuffer.put(b);
-            sDataBuffer.put(hTrunc);
-            byte[] sData = sDataBuffer.array();
+            byte[] sData = getSeed(m, pub, b);
             
             Polynomial r = generateBlindingPoly(sData, M);
             IntegerPolynomial R = r.mult(pub, q);
@@ -243,6 +233,28 @@ public class NtruEncrypt {
             R.ensurePositive(q);
             return R.toBinary(q);
         }
+    }
+
+    /**
+     * Generates a seed for the Blinding Polynomial Generation Function.
+     * @param m the plain-text message
+     * @param pub the public key
+     * @param b <code>db</code> bits of random data
+     * @return a byte array containing a seed value
+     */
+    private byte[] getSeed(byte[] m, IntegerPolynomial pub, byte[] b) {
+        byte[] oid = params.oid;
+        
+        // sData = OID|m|b|hTrunc
+        byte[] bh = pub.toBinary(params.q);
+        byte[] hTrunc = Arrays.copyOf(bh, params.pkLen/8);
+        ByteBuffer sDataBuffer = ByteBuffer.allocate(oid.length + m.length + b.length + hTrunc.length);
+        sDataBuffer.put(oid);
+        sDataBuffer.put(m);
+        sDataBuffer.put(b);
+        sDataBuffer.put(hTrunc);
+        byte[] sData = sDataBuffer.array();
+        return sData;
     }
     
     /**
@@ -379,10 +391,8 @@ public class NtruEncrypt {
         int db = params.db;
         int maxMsgLenBytes = params.maxMsgLenBytes;
         int dm0 = params.dm0;
-        int pkLen = params.pkLen;
         int minCallsMask = params.minCallsMask;
         boolean hashSeed = params.hashSeed;
-        byte[] oid = params.oid;
         
         if (maxMsgLenBytes > 255)
             throw new NtruException("maxMsgLenBytes values bigger than 255 are not supported");
@@ -424,15 +434,7 @@ public class NtruEncrypt {
         if (!Arrays.equals(p0, new byte[p0.length]))
             throw new NtruException("The message is not followed by zeroes");
         
-        // sData = OID|m|b|hTrunc
-        byte[] bh = pub.toBinary(q);
-        byte[] hTrunc = Arrays.copyOf(bh, pkLen/8);
-        ByteBuffer sDataBuffer = ByteBuffer.allocate(oid.length + cl + cb.length + hTrunc.length);
-        sDataBuffer.put(oid);
-        sDataBuffer.put(cm);
-        sDataBuffer.put(cb);
-        sDataBuffer.put(hTrunc);
-        byte[] sData = sDataBuffer.array();
+        byte[] sData = getSeed(cm, pub, cb);
         
         Polynomial cr = generateBlindingPoly(sData, cm);
         IntegerPolynomial cRPrime = cr.mult(pub);
