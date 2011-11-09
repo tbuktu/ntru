@@ -294,12 +294,19 @@ public class SchönhageStrassen {
     
     private static void add(int[] a, int[] b) {
         boolean carry = false;
-        for (int i=0; i<b.length; i++) {
-            long sum = (long)a[i] + (long)b[i];
+        int i = 0;
+        while (i < b.length) {
+            int sum = a[i] + b[i];
             if (carry)
                 sum++;
-            a[i] = (int)sum;
-            carry = sum >= 1L<<32;
+            carry = ((sum>>>31) < (a[i]>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
+            a[i] = sum;
+            i++;
+        }
+        while (carry) {
+            a[i]++;
+            carry = a[i] == 0;
+            i++;
         }
     }
     
