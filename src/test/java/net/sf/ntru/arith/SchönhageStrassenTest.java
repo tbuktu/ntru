@@ -91,9 +91,10 @@ public class SchönhageStrassenTest {
     }
     
     private void testMult(int[] a, int[] b) {
-        int[] cSchön = SchönhageStrassen.multSimple(a, b);
+        int[] cSimple = SchönhageStrassen.multSimple(a, b);
         int[] cKara = SchönhageStrassen.multKaratsuba(a, b);
-        assertArrayEquals(cSchön, Arrays.copyOf(cKara, cSchön.length));
+        int maxLength = Math.max(cSimple.length, cKara.length);
+        assertArrayEquals(Arrays.copyOf(cSimple, maxLength), Arrays.copyOf(cKara, maxLength));
     }
     
     @Test
