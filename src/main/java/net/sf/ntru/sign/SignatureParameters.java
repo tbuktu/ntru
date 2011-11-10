@@ -76,7 +76,7 @@ public class SignatureParameters implements Cloneable {
      * @param basisType    whether to use the standard or transpose lattice
      * @param beta         balancing factor for the transpose lattice
      * @param normBound    maximum norm for valid signatures
-     * @param keyNormBound maximum norm for the ploynomials <code>F</code> and <code>G</code>
+     * @param keyNormBound maximum norm for the polynomials <code>F</code> and <code>G</code>
      * @param primeCheck   whether <code>2N+1</code> is prime
      * @param sparse       whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
      * @param keyGenAlg    <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster. <code>RESULTANT</code> follows the EESS standard while <code>FLOAT</code> is described in Hoffstein et al: An Introduction to Mathematical Cryptography.
@@ -110,7 +110,7 @@ public class SignatureParameters implements Cloneable {
      * @param basisType    whether to use the standard or transpose lattice
      * @param beta         balancing factor for the transpose lattice
      * @param normBound    maximum norm for valid signatures
-     * @param keyNormBound maximum norm for the ploynomials <code>F</code> and <code>G</code>
+     * @param keyNormBound maximum norm for the polynomials <code>F</code> and <code>G</code>
      * @param primeCheck   whether <code>2N+1</code> is prime
      * @param sparse       whether to treat ternary polynomials as sparsely populated ({@link SparseTernaryPolynomial} vs {@link DenseTernaryPolynomial})
      * @param keyGenAlg    <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster. <code>RESULTANT</code> follows the EESS standard while <code>FLOAT</code> is described in Hoffstein et al: An Introduction to Mathematical Cryptography.
