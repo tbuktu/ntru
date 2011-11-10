@@ -75,7 +75,8 @@ public class BigDecimalPolynomial {
     
     /**
      * Multiplies the polynomial by another. Does not change this polynomial
-     * but returns the result as a new polynomial.
+     * but returns the result as a new polynomial.</br>
+     * This implementation calls {@link #mult(BigDecimalPolynomial)}.
      * @param poly2 the polynomial to multiply by
      * @return a new polynomial
      */
@@ -85,7 +86,14 @@ public class BigDecimalPolynomial {
     
     /**
      * Multiplies the polynomial by another, taking the indices mod N. Does not
-     * change this polynomial but returns the result as a new polynomial.
+     * change this polynomial but returns the result as a new polynomial.<br/>
+     * This method uses the
+     * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba algorithm</a>
+     * algorithm. Although polynomial sizes are technically big enough for
+     * Schönhage–Strassen (over a million bits for
+     * {@link net.sf.ntru.sign.SignatureParameters#APR2011_439}, Karatsuba is still
+     * faster, probably because the two polynomials differ too much in the lengths of
+     * their coefficients.
      * @param poly2 the polynomial to multiply by
      * @return a new polynomial
      * @throws NtruException if the two polynomials differ in the number of coefficients
