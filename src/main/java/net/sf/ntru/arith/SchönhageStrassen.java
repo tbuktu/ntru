@@ -102,34 +102,19 @@ public class SchönhageStrassen {
         boolean even = m%2 == 0;
         int numPieces = even ? 1<<n : 1<<(n+1);
         int pieceSize = 1 << (n-1-5);   // in ints
-        int[][] ai = new int[numPieces][pieceSize];
-        for (int i=0; i<numPieces; i++)
-            if (i*pieceSize < a.length) {
-                if ((i+1)*pieceSize < a.length)
-                    System.arraycopy(a, i*pieceSize, ai[i], 0, pieceSize);
-                else
-                    System.arraycopy(a, i*pieceSize, ai[i], 0, a.length-i*pieceSize);
-            }
-        
-        int[][] bi = new int[numPieces][pieceSize];
-        for (int i=0; i<numPieces; i++)
-            if (i*pieceSize < b.length) {
-                if ((i+1)*pieceSize < b.length)
-                    System.arraycopy(b, i*pieceSize, bi[i], 0, pieceSize);
-                else
-                    System.arraycopy(b, i*pieceSize, bi[i], 0, b.length-i*pieceSize);
-            }
+        int[][] ai = split(a, numPieces, pieceSize);
+        int[][] bi = split(b, numPieces, pieceSize);
         
         // build u and v from ai and bi, allocating 3n+5 bits per element
-        int uvLen = numPieces * (3*n+5);   // #bits
-        uvLen = (uvLen+31) / 32;   // #ints
-        int[] u = new int[uvLen];
-        int[] v = new int[uvLen];
+        int[] u = new int[ai.length * (3*n+5) / 32];
         int uBitLength = 0;
-        int vBitLength = 0;
-        for (int i=0; i<numPieces; i++) {
+        for (int i=0; i<ai.length; i++) {
             appendBits(u, uBitLength, ai[i], n+2);
             uBitLength += 3*n+5;
+        }
+        int[] v = new int[bi.length * (3*n+5) / 32];
+        int vBitLength = 0;
+        for (int i=0; i<bi.length; i++) {
             appendBits(v, vBitLength, bi[i], n+2);
             vBitLength += 3*n+5;
         }
@@ -137,25 +122,25 @@ public class SchönhageStrassen {
         int[] gamma = mult(u, uBitLength, v, vBitLength);
         int[][] gammai = subdivide(gamma, 3*n+5);
         int halfNumPcs = numPieces / 2;
-        gammai = Arrays.copyOf(gammai, 4*halfNumPcs);
-        for (int i=0; i<gammai.length; i++)
-            if (gammai[i] == null)
-                gammai[i] = new int[(3*n+5+31)/32];
         
-        int[][] zi = new int[halfNumPcs][(3*n+5+31)/32];
-        for (int i=0; i<halfNumPcs; i++) {
-            zi[i] = gammai[i].clone();
-            addModPow2(zi[i], gammai[i+2*halfNumPcs], n+2);
+        int[][] zi = new int[gammai.length][];
+        for (int i=0; i<gammai.length; i++)
+            zi[i] = gammai[i];
+        for (int i=0; i<gammai.length-halfNumPcs; i++)
             subModPow2(zi[i], gammai[i+halfNumPcs], n+2);
+        for (int i=0; i<gammai.length-2*halfNumPcs; i++)
+            addModPow2(zi[i], gammai[i+2*halfNumPcs], n+2);
+        for (int i=0; i<gammai.length-3*halfNumPcs; i++)
             subModPow2(zi[i], gammai[i+3*halfNumPcs], n+2);
-        }
         
         // zr mod Fn
         int[][] aTrans = dft(ai, m, n);
         int[][] bTrans = dft(bi, m, n);
         modFn(aTrans);
         modFn(bTrans);
-        int[][] cTrans = new int[aTrans.length][aTrans[0].length];
+        int[][] cTrans = new int[aTrans.length][];
+        for (int i=0; i<cTrans.length/2; i++)
+            cTrans[i] = new int[0];
         for (int i=cTrans.length/2; i<cTrans.length; i++)
             cTrans[i] = multModFn(aTrans[i], bTrans[i]);
         int[][] c = idft(cTrans, m, n);
@@ -167,11 +152,9 @@ public class SchönhageStrassen {
             // zi = (zi-c[i]) % 2^(n+2)
             subModPow2(zi[i], c[i+numPieces/2], n+2);
             
-            // zr = zi + delta*(2^2^n+1)
+            // zr = ci + delta*(2^2^n+1)
             int[] zr = Arrays.copyOf(zi[i], 3*(1<<(n-5)));
-            int[] delta = zr.clone();
-            shiftLeft(delta, 1<<n);
-            add(zr, delta);
+            addShifted(zr, zi[i], 1<<(n-5));
             add(zr, c[i+numPieces/2]);
             
             // z += zr * i * 2^(n-1)
@@ -226,6 +209,14 @@ public class SchönhageStrassen {
             
             return c;
         }
+    }
+    
+    private static int[][] split(int[] a, int numPieces, int pieceSize) {
+        int[][] ai = new int[numPieces][pieceSize];
+        for (int i=0; i<a.length/pieceSize; i++)
+            System.arraycopy(a, i*pieceSize, ai[i], 0, pieceSize);
+        System.arraycopy(a, a.length/pieceSize*pieceSize, ai[a.length/pieceSize], 0, a.length%pieceSize);
+        return ai;
     }
     
     private static int[] addExpand(int[] a, int[] b) {
@@ -531,21 +522,6 @@ public class SchönhageStrassen {
         a[i-1] &= -1 >>> (32-(numBits%32));
         for (; i<a.length; i++)
             a[i] = 0;
-    }
-    
-    private static void shiftLeft(int[] a, int numBits) {
-        int numElements = numBits / 32;
-        System.arraycopy(a, 0, a, numElements, a.length-numElements);
-        Arrays.fill(a, 0, numElements, 0);
-        
-        numBits = numBits % 32;
-        if (numBits != 0) {
-            a[a.length-1] <<= numBits;
-            for (int i=a.length-1; i>0; i--) {
-                a[i] |= a[i-1] >>> (32-numBits);
-                a[i-1] <<= numBits;
-            }
-        }
     }
     
     static int[] cyclicShiftRight(int[] a, int numBits) {
