@@ -136,29 +136,25 @@ public class SchönhageStrassen {
         // zr mod Fn
         int[][] aTrans = dft(ai, m, n);
         int[][] bTrans = dft(bi, m, n);
-        modFn(aTrans);
-        modFn(bTrans);
-        int[][] cTrans = new int[aTrans.length][];
-        for (int i=0; i<cTrans.length/2; i++)
-            cTrans[i] = new int[0];
-        for (int i=cTrans.length/2; i<cTrans.length; i++)
-            cTrans[i] = multModFn(aTrans[i], bTrans[i]);
+        modFnUpper(aTrans);
+        modFnUpper(bTrans);
+        int[][] cTrans = new int[halfNumPcs][];
+        for (int i=0; i<cTrans.length; i++)
+            cTrans[i] = multModFn(aTrans[i+halfNumPcs], bTrans[i+halfNumPcs]);
         int[][] c = idft(cTrans, m, n);
-        modFn(c);
+        modFnFull(c);
 
         int[] z = new int[1<<(m+1-5)];
         // calculate zr mod Fm from zr mod Fn and zr mod 2^(n+2), then add to z
-        for (int i=0; i<numPieces/2; i++) {
-            // zi = (zi-c[i]) % 2^(n+2)
-            subModPow2(zi[i], c[i+numPieces/2], n+2);
+        for (int i=0; i<halfNumPcs; i++) {
+            // zi = delta = (zi-c[i]) % 2^(n+2)
+            subModPow2(zi[i], c[i], n+2);
             
-            // zr = ci + delta*(2^2^n+1)
-            int[] zr = Arrays.copyOf(zi[i], 3*(1<<(n-5)));
-            addShifted(zr, zi[i], 1<<(n-5));
-            add(zr, c[i+numPieces/2]);
-            
-            // z += zr * i * 2^(n-1)
-            addShifted(z, zr, i*(1<<(n-1-5)));   // assume n>=6
+            // z += zr<<shift = [ci + delta*(2^2^n+1)] << [i*2^(n-1)]
+            int shift = i*(1<<(n-1-5));   // assume n>=6
+            addShifted(z, c[i], shift);
+            addShifted(z, zi[i], shift);
+            addShifted(z, zi[i], shift+(1<<(n-5)));
         }
         
         modFn(z);   // assume m>=5
@@ -283,34 +279,23 @@ public class SchönhageStrassen {
         return c;
     }
     
-    private static void add(int[] a, int[] b) {
-        boolean carry = false;
-        int i = 0;
-        while (i < b.length) {
-            int sum = a[i] + b[i];
-            if (carry)
-                sum++;
-            carry = ((sum>>>31) < (a[i]>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
-            a[i] = sum;
-            i++;
-        }
-        while (carry) {
-            a[i]++;
-            carry = a[i] == 0;
-            i++;
-        }
-    }
-    
     /** drops elements of b that are shifted outside the valid range */
     static void addShifted(int[] a, int[] b, int numElements) {
         boolean carry = false;
-        for (int i=0; i<Math.min(b.length, a.length-numElements); i++) {
+        int i = 0;
+        while (i < Math.min(b.length, a.length-numElements)) {
             int ai = a[i+numElements];
             int sum = ai + b[i];
             if (carry)
                 sum++;
             carry = ((sum>>>31) < (ai>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
             a[i+numElements] = sum;
+            i++;
+        }
+        while (carry) {
+            a[i+numElements]++;
+            carry = a[i+numElements] == 0;
+            i++;
         }
     }
     
@@ -345,8 +330,13 @@ public class SchönhageStrassen {
      * Reduces all elements in the <b>upper half</b> of the outer array modulo <code>2^2^n+1</code>.
      * @param aTrans byte arrays of length <code>2^(n+1)</code> bits; n must be 6 or greater
      */
-    static void modFn(int[][] a) {
+    static void modFnUpper(int[][] a) {
         for (int i=a.length/2; i<a.length; i++)
+            modFn(a[i]);
+    }
+    
+    static void modFnFull(int[][] a) {
+        for (int i=0; i<a.length; i++)
             modFn(a[i]);
     }
     
@@ -418,20 +408,20 @@ public class SchönhageStrassen {
         int[][] A = extend(a, 1<<(n+1-5));
         int v = n - 1;
         int mask = 1;   // masks the current bit
-        for (int slen=1; slen<=len/4; slen*=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
+        for (int slen=1; slen<=len/2; slen*=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
             int nmask = ~mask;   // the inverted bit mask
-            for (int j=len/2; j<len; j+=2*slen) {
+            for (int j=0; j<len; j+=2*slen) {
                 int idx = j;
                 int idx2 = idx + slen;   // idx2 is always idx+slen
                 int x;
                 if (even) {
-                    x = Integer.reverse(idx >>> (n-v)) >>> (32-v);
+                    x = (Integer.reverse((idx+len)>>>(n-v)) + 1) >>> (32-v);
                     x <<= n - v - 1;
                     // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
                     x *= 2;
                 }
                 else {
-                    x = Integer.reverse(idx >>> (n-v)) >>> (32-v-1);
+                    x = (Integer.reverse((idx+len)>>>(n-v)) + 1) >>> (32-v-1);
                     x <<= n - v - 1;
                     if (even)
                         x *= 2;   // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
