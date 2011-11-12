@@ -106,15 +106,17 @@ public class SchönhageStrassen {
         int[][] bi = split(b, numPieces, pieceSize);
         
         // build u and v from ai and bi, allocating 3n+5 bits per element
-        int[] u = new int[ai.length * (3*n+5) / 32];
+        int numPiecesA = (a.length+pieceSize) / pieceSize;
+        int[] u = new int[(numPiecesA*(3*n+5)+31)/32];
         int uBitLength = 0;
-        for (int i=0; i<ai.length; i++) {
+        for (int i=0; i<numPiecesA; i++) {
             appendBits(u, uBitLength, ai[i], n+2);
             uBitLength += 3*n+5;
         }
-        int[] v = new int[bi.length * (3*n+5) / 32];
+        int numPiecesB = (b.length+pieceSize) / pieceSize;
+        int[] v = new int[(numPiecesB*(3*n+5)+31)/32];
         int vBitLength = 0;
-        for (int i=0; i<bi.length; i++) {
+        for (int i=0; i<numPiecesB; i++) {
             appendBits(v, vBitLength, bi[i], n+2);
             vBitLength += 3*n+5;
         }
@@ -147,14 +149,16 @@ public class SchönhageStrassen {
         int[] z = new int[1<<(m+1-5)];
         // calculate zr mod Fm from zr mod Fn and zr mod 2^(n+2), then add to z
         for (int i=0; i<halfNumPcs; i++) {
+            int[] eta = i>=zi.length ? new int[(n+2+31)/32] : zi[i];
+            
             // zi = delta = (zi-c[i]) % 2^(n+2)
-            subModPow2(zi[i], c[i], n+2);
+            subModPow2(eta, c[i], n+2);
             
             // z += zr<<shift = [ci + delta*(2^2^n+1)] << [i*2^(n-1)]
             int shift = i*(1<<(n-1-5));   // assume n>=6
             addShifted(z, c[i], shift);
-            addShifted(z, zi[i], shift);
-            addShifted(z, zi[i], shift+(1<<(n-5)));
+            addShifted(z, eta, shift);
+            addShifted(z, eta, shift+(1<<(n-5)));
         }
         
         modFn(z);   // assume m>=5
@@ -184,11 +188,13 @@ public class SchönhageStrassen {
             return multSimple(a, b);
         else {
             int n1 = (n+1) / 2;
+            int n1a = Math.min(n1, a.length);
+            int n1b = Math.min(n1, b.length);
             
-            int[] a1 = Arrays.copyOf(a, n1);
-            int[] a2 = Arrays.copyOfRange(a, n1, n);
+            int[] a1 = Arrays.copyOf(a, n1a);
+            int[] a2 = n1a>=a.length ? new int[0] : Arrays.copyOfRange(a, n1a, n);
             int[] b1 = Arrays.copyOf(b, n1);
-            int[] b2 = Arrays.copyOfRange(b, n1, n);
+            int[] b2 = n1b>=b.length ? new int[0] : Arrays.copyOfRange(b, n1b, n);
             
             int[] A = addExpand(a1, a2);
             int[] B = addExpand(b1, b2);
