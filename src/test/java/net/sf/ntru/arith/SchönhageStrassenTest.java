@@ -42,11 +42,19 @@ public class SchönhageStrassenTest {
         testMult(BigInteger.valueOf(415338904376L), BigInteger.valueOf(527401434558L));
         testMult(new BigInteger("9145524700683826415"), new BigInteger("1786442289234590209543"));
         
-        Random rng = new Random(0);
-        testMult(BigInteger.valueOf(rng.nextInt(1000000000)+65536), BigInteger.valueOf(rng.nextInt(1000000000)+65536));
+        testMult(BigInteger.valueOf(1).shiftLeft(524287), BigInteger.valueOf(1).shiftLeft(1024).subtract(BigInteger.ONE));
+        testMult(BigInteger.valueOf(1).shiftLeft(524287), BigInteger.valueOf(1).shiftLeft(524287));
+        testMult(BigInteger.valueOf(1).shiftLeft(524287), BigInteger.valueOf(1).shiftLeft(524287).subtract(BigInteger.ONE));
+        testMult(BigInteger.valueOf(1).shiftLeft(524287), BigInteger.valueOf(1).shiftLeft(524287).add(BigInteger.ONE));
+        testMult(BigInteger.valueOf(1).shiftLeft(524288), BigInteger.valueOf(1).shiftLeft(524288));
+        testMult(BigInteger.valueOf(1).shiftLeft(524288), BigInteger.valueOf(1).shiftLeft(524288).subtract(BigInteger.ONE));
+        testMult(BigInteger.valueOf(1).shiftLeft(524288), BigInteger.valueOf(1).shiftLeft(524288).add(BigInteger.ONE));
+        
+        Random rng = new Random();
+        testMult(BigInteger.valueOf(rng.nextInt(1000000000)+524288), BigInteger.valueOf(rng.nextInt(1000000000)+524288));
         testMult(BigInteger.valueOf((rng.nextLong()>>>1)+1000), BigInteger.valueOf((rng.nextLong()>>>1)+1000));
         
-        testMult(BigInteger.valueOf(rng.nextInt(1000000000)+65536), BigInteger.valueOf(rng.nextInt(1000000000)+65536));
+        testMult(BigInteger.valueOf(rng.nextInt(1000000000)+524288), BigInteger.valueOf(rng.nextInt(1000000000)+524288));
         testMult(BigInteger.valueOf((rng.nextLong()>>>1)+1000), BigInteger.valueOf((rng.nextLong()>>>1)+1000));
 
         int aLength = 80000 + rng.nextInt(20000);
@@ -128,12 +136,12 @@ public class SchönhageStrassenTest {
             SchönhageStrassen.modFn(a[i]);
         }
         int[][] aDft = SchönhageStrassen.dft(a, m, n);
-        for (int i=0; i<aDft.length/2; i++)
-            Arrays.fill(aDft[i], (byte)0);
+        // throw away the lower half
+        aDft = Arrays.copyOfRange(aDft, aDft.length/2, aDft.length);
         int[][] aIdft = SchönhageStrassen.idft(aDft, m, n);
-        SchönhageStrassen.modFn(aIdft);
+        SchönhageStrassen.modFnFull(aIdft);
         for (int j=0; j<a.length/2; j++)
-            assertArrayEquals(a[j], aIdft[a.length/2+j]);
+            assertArrayEquals(a[j], aIdft[j]);
     }
     
     @Test
