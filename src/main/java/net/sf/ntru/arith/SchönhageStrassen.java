@@ -102,8 +102,8 @@ public class SchönhageStrassen {
         boolean even = m%2 == 0;
         int numPieces = even ? 1<<n : 1<<(n+1);
         int pieceSize = 1 << (n-1-5);   // in ints
-        int[][] ai = split(a, numPieces, pieceSize);
-        int[][] bi = split(b, numPieces, pieceSize);
+        int[][] ai = split(a, numPieces, pieceSize, 1<<(n+1-5));
+        int[][] bi = split(b, numPieces, pieceSize, 1<<(n+1-5));
         
         // build u and v from ai and bi, allocating 3n+5 bits per element
         int numPiecesA = (a.length+pieceSize) / pieceSize;
@@ -136,14 +136,14 @@ public class SchönhageStrassen {
             subModPow2(zi[i], gammai[i+3*halfNumPcs], n+2);
         
         // zr mod Fn
-        int[][] aTrans = dft(ai, m, n);
-        int[][] bTrans = dft(bi, m, n);
-        modFnUpper(aTrans);
-        modFnUpper(bTrans);
-        int[][] cTrans = new int[halfNumPcs][];
-        for (int i=0; i<cTrans.length; i++)
-            cTrans[i] = multModFn(aTrans[i+halfNumPcs], bTrans[i+halfNumPcs]);
-        int[][] c = idft(cTrans, m, n);
+        dft(ai, m, n);
+        dft(bi, m, n);
+        modFnUpper(ai);
+        modFnUpper(bi);
+        int[][] c = new int[halfNumPcs][];
+        for (int i=0; i<c.length; i++)
+            c[i] = multModFn(ai[i+halfNumPcs], bi[i+halfNumPcs]);
+        idft(c, m, n);
         modFnFull(c);
 
         int[] z = new int[1<<(m+1-5)];
@@ -218,8 +218,8 @@ public class SchönhageStrassen {
         }
     }
     
-    private static int[][] split(int[] a, int numPieces, int pieceSize) {
-        int[][] ai = new int[numPieces][pieceSize];
+    private static int[][] split(int[] a, int numPieces, int pieceSize, int targetPieceSize) {
+        int[][] ai = new int[numPieces][targetPieceSize];
         for (int i=0; i<a.length/pieceSize; i++)
             System.arraycopy(a, i*pieceSize, ai[i], 0, pieceSize);
         System.arraycopy(a, a.length/pieceSize*pieceSize, ai[a.length/pieceSize], 0, a.length%pieceSize);
@@ -351,10 +351,9 @@ public class SchönhageStrassen {
             modFn(a[i]);
     }
     
-    static int[][] dft(int[][] a, int m, int n) {
+    static void dft(int[][] A, int m, int n) {
         boolean even = m%2 == 0;
-        int len = a.length;
-        int[][] A = extend(a, 1<<(n+1-5));
+        int len = A.length;
         int v = 0;
         int mask = len/2;   // masks the current bit
         
@@ -395,7 +394,6 @@ public class SchönhageStrassen {
             v++;
             mask /= 2;
         }
-        return A;
     }
     
     private static int getOmegaExponent(int n, int v, int idx, boolean even) {
@@ -413,10 +411,9 @@ public class SchönhageStrassen {
         return x;
     }
     
-    static int[][] idft(int[][] a, int m, int n) {
+    static void idft(int[][] A, int m, int n) {
         boolean even = m%2 == 0;
-        int len = a.length;
-        int[][] A = extend(a, 1<<(n+1-5));
+        int len = A.length;
         int v = n - 1;
         int mask = 1;   // masks the current bit
         for (int slen=1; slen<=len/2; slen*=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
@@ -456,14 +453,6 @@ public class SchönhageStrassen {
             v--;
             mask *= 2;
         }
-        return A;
-    }
-    
-    private static int[][] extend(int[][] a, int numElements) {
-        int[][] b = new int[a.length][numElements];
-        for (int i=0; i<a.length; i++)
-            b[i] = Arrays.copyOf(a[i], numElements);
-        return b;
     }
     
     static void addModFn(int[] a, int[] b) {

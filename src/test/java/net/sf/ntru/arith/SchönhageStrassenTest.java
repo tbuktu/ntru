@@ -135,13 +135,14 @@ public class SchönhageStrassenTest {
                 a[i][j] = rng.nextInt();
             SchönhageStrassen.modFn(a[i]);
         }
-        int[][] aDft = SchönhageStrassen.dft(a, m, n);
+        int[][] aOrig = a.clone();
+        SchönhageStrassen.dft(a, m, n);
         // throw away the lower half
-        aDft = Arrays.copyOfRange(aDft, aDft.length/2, aDft.length);
-        int[][] aIdft = SchönhageStrassen.idft(aDft, m, n);
-        SchönhageStrassen.modFnFull(aIdft);
-        for (int j=0; j<a.length/2; j++)
-            assertArrayEquals(a[j], aIdft[j]);
+        a = Arrays.copyOfRange(a, a.length/2, a.length);
+        SchönhageStrassen.idft(a, m, n);
+        SchönhageStrassen.modFnFull(a);
+        for (int j=0; j<aOrig.length/2; j++)
+            assertArrayEquals(aOrig[j], a[j]);
     }
     
     @Test
