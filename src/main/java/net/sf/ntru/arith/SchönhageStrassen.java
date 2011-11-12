@@ -93,8 +93,8 @@ public class SchönhageStrassen {
         // set M to the number of binary digits in a or b, whichever is greater
         int M = Math.max(aBitLen, bBitLen);
         
-        // find the lowest m such that m>log2(2M)
-        int m = 32 - Integer.numberOfLeadingZeros(2*M);
+        // find the lowest m such that m>=log2(2M)
+        int m = 32 - Integer.numberOfLeadingZeros(2*M-1-1);
         
         int n = m/2 + 1;
         
@@ -173,12 +173,17 @@ public class SchönhageStrassen {
      */
     private static boolean shouldUseSchönhageStrassen(int bitLength) {
         // The following values were determined experimentally on a 32-bit JVM.
-        // Note that SS will fail for bit lengths below 2^16 because it goes into an endless recursion.
-        if (bitLength>355000 && bitLength<524288)
+        if (bitLength < 113000)
+            return false;
+        if (bitLength < 131072)
             return true;
-        if (bitLength > 552000)
+        if (bitLength < 182000)
+            return false;
+        if (bitLength < 262144)
             return true;
-        return false;
+        if (bitLength < 292000)
+            return false;
+        return true;
     }
     
     /** Multiplies two <b>positive</b> numbers represented as <code>int</code> arrays. */
@@ -547,9 +552,9 @@ public class SchönhageStrassen {
         int n = a.length/2;
         // special case: if a=Fn-1, add b*2^2^n which is the same as subtracting b
         if (a[n] == 1)
-            subModFn(c, b0, 1<<n);
+            subModFn(c, Arrays.copyOf(b0, c.length), n*32);
         if (b[n] == 1)
-            subModFn(c, a0, 1<<n);
+            subModFn(c, Arrays.copyOf(a0, c.length), n*32);
         return c;
     }
     
