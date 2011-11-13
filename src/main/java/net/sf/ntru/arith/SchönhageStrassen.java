@@ -102,22 +102,20 @@ public class SchönhageStrassen {
         boolean even = m%2 == 0;
         int numPieces = even ? 1<<n : 1<<(n+1);
         int pieceSize = 1 << (n-1-5);   // in ints
-        int[][] ai = split(a, numPieces, pieceSize, 1<<(n+1-5));
-        int[][] bi = split(b, numPieces, pieceSize, 1<<(n+1-5));
         
-        // build u and v from ai and bi, allocating 3n+5 bits per element
+        // build u and v from a and b, allocating 3n+5 bits in u and v for each n+2 bits from a and b, resp.
         int numPiecesA = (a.length+pieceSize) / pieceSize;
         int[] u = new int[(numPiecesA*(3*n+5)+31)/32];
         int uBitLength = 0;
-        for (int i=0; i<numPiecesA; i++) {
-            appendBits(u, uBitLength, ai[i], n+2);
+        for (int i=0; i<numPiecesA && i*pieceSize<a.length; i++) {
+            appendBits(u, uBitLength, a, i*pieceSize, n+2);
             uBitLength += 3*n+5;
         }
         int numPiecesB = (b.length+pieceSize) / pieceSize;
         int[] v = new int[(numPiecesB*(3*n+5)+31)/32];
         int vBitLength = 0;
-        for (int i=0; i<numPiecesB; i++) {
-            appendBits(v, vBitLength, bi[i], n+2);
+        for (int i=0; i<numPiecesB && i*pieceSize<b.length; i++) {
+            appendBits(v, vBitLength, b, i*pieceSize, n+2);
             vBitLength += 3*n+5;
         }
         
@@ -136,13 +134,15 @@ public class SchönhageStrassen {
             subModPow2(zi[i], gammai[i+3*halfNumPcs], n+2);
         
         // zr mod Fn
+        int[][] ai = split(a, halfNumPcs, pieceSize, 1<<(n+1-5));
+        int[][] bi = split(b, halfNumPcs, pieceSize, 1<<(n+1-5));
         dft(ai, m, n);
         dft(bi, m, n);
-        modFnUpper(ai);
-        modFnUpper(bi);
+        modFnFull(ai);
+        modFnFull(bi);
         int[][] c = new int[halfNumPcs][];
         for (int i=0; i<c.length; i++)
-            c[i] = multModFn(ai[i+halfNumPcs], bi[i+halfNumPcs]);
+            c[i] = multModFn(ai[i], bi[i]);
         idft(c, m, n);
         modFnFull(c);
 
@@ -338,14 +338,9 @@ public class SchönhageStrassen {
     }
     
     /**
-     * Reduces all elements in the <b>upper half</b> of the outer array modulo <code>2^2^n+1</code>.
+     * Reduces all elements in the outer array modulo <code>2^2^n+1</code>.
      * @param aTrans byte arrays of length <code>2^(n+1)</code> bits; n must be 6 or greater
      */
-    static void modFnUpper(int[][] a) {
-        for (int i=a.length/2; i<a.length; i++)
-            modFn(a[i]);
-    }
-    
     static void modFnFull(int[][] a) {
         for (int i=0; i<a.length; i++)
             modFn(a[i]);
@@ -354,31 +349,14 @@ public class SchönhageStrassen {
     static void dft(int[][] A, int m, int n) {
         boolean even = m%2 == 0;
         int len = A.length;
-        int v = 0;
-        int mask = len/2;   // masks the current bit
+        int v = 1;
+        int mask = len / 2;   // masks the current bit
         
-        int nmask = ~mask;   // the inverted bit mask
-        for (int j=len/2; j<len; j+=len) {
-            int idx = j;
-            int x = getOmegaExponent(n, v, idx, even);
-            
-            for (int k=len/2-1; k>=0; k--) {
-                int[] d = cyclicShiftLeftBits(A[idx|mask], x);
-                // in the first slen loop, there are only subtractions
-                int[] c = A[idx&nmask].clone();
-                subModFn(c, d, 1<<n);
-                A[idx] = c;
-                idx++;
-            }
-        }
-        v++;
-        mask /= 2;
-        
-        for (int slen=len/4; slen>0; slen/=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
-            nmask = ~mask;   // the inverted bit mask
-            for (int j=len/2; j<len; j+=2*slen) {
+        for (int slen=len/2; slen>0; slen/=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
+            int nmask = ~mask;   // the inverted bit mask
+            for (int j=0; j<len; j+=2*slen) {
                 int idx = j;
-                int x = getOmegaExponent(n, v, idx, even);
+                int x = getOmegaExponent(n, v, idx+len, even);
                 
                 for (int k=slen-1; k>=0; k--) {
                     int[] d = cyclicShiftLeftBits(A[idx|mask], x);
@@ -571,11 +549,11 @@ public class SchönhageStrassen {
         return b;
     }
     
-    static void appendBits(int[] a, int aBitLength, int[] b, int bBitLength) {
+    static void appendBits(int[] a, int aBitLength, int[] b, int bStart, int bBitLength) {
         int aIdx = aBitLength / 32;
         int bit32 = aBitLength % 32;
         
-        for (int i=0; i<bBitLength/32; i++) {
+        for (int i=bStart; i<bStart+bBitLength/32; i++) {
             if (bit32 > 0) {
                 a[aIdx] |= b[i] << bit32;
                 aIdx++;
@@ -589,7 +567,7 @@ public class SchönhageStrassen {
         
         if (bBitLength%32 > 0) {
             int bIdx = bBitLength / 32;
-            int bi = b[bIdx];
+            int bi = b[bStart+bIdx];
             bi &= -1 >>> (32-bBitLength);
             a[aIdx] |= bi << bit32;
             if (bit32+(bBitLength%32) > 32)

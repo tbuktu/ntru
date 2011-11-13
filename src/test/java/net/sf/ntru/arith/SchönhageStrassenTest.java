@@ -129,19 +129,20 @@ public class SchönhageStrassenTest {
         int m = 7 + rng.nextInt(10);
         int n = m/2 + 1;
         int numElements = m%2==0 ? 1<<n : 1<<(n+1);
+        numElements /= 2;
         int[][] a = new int[numElements][1<<(n+1-5)];
-        for (int i=0; i<a.length/2; i++) {
+        for (int i=0; i<a.length; i++)
             for (int j=0; j<a[i].length; j++)
                 a[i][j] = rng.nextInt();
-            SchönhageStrassen.modFn(a[i]);
-        }
-        int[][] aOrig = a.clone();
+        SchönhageStrassen.modFnFull(a);
+        
+        int[][] aOrig = new int[a.length][];
+        for (int i=0; i<a.length; i++)
+            aOrig[i] = a[i].clone();
         SchönhageStrassen.dft(a, m, n);
-        // throw away the lower half
-        a = Arrays.copyOfRange(a, a.length/2, a.length);
         SchönhageStrassen.idft(a, m, n);
         SchönhageStrassen.modFnFull(a);
-        for (int j=0; j<aOrig.length/2; j++)
+        for (int j=0; j<aOrig.length; j++)
             assertArrayEquals(aOrig[j], a[j]);
     }
     
@@ -227,7 +228,7 @@ public class SchönhageStrassenTest {
     @Test
     public void testAppendBits() {
         int[] a = new int[] {3615777, 0};
-        SchönhageStrassen.appendBits(a, 22, new int[] {61797}, 13);
+        SchönhageStrassen.appendBits(a, 22, new int[] {-77, 61797}, 1, 13);
         assertArrayEquals(new int[] {1500982305, 4}, a);
     }
     
