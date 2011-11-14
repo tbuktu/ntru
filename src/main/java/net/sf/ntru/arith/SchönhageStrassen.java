@@ -222,210 +222,6 @@ public class SchönhageStrassen {
     }
     
     /**
-     * Multiplies two <b>positive</b> numbers represented as <code>int</code> arrays using the
-     * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba algorithm</a>.
-     */
-    static int[] multKaratsuba(int[] a, int[] b) {
-        int n = Math.max(a.length, b.length);
-        if (n <= KARATSUBA_THRESHOLD)
-            return multSimple(a, b);
-        else {
-            int n1 = (n+1) / 2;
-            int n1a = Math.min(n1, a.length);
-            int n1b = Math.min(n1, b.length);
-            
-            int[] a1 = Arrays.copyOf(a, n1a);
-            int[] a2 = n1a>=a.length ? new int[0] : Arrays.copyOfRange(a, n1a, n);
-            int[] b1 = Arrays.copyOf(b, n1);
-            int[] b2 = n1b>=b.length ? new int[0] : Arrays.copyOfRange(b, n1b, n);
-            
-            int[] A = addExpand(a1, a2);
-            int[] B = addExpand(b1, b2);
-            
-            int[] c1 = multKaratsuba(a1, b1);
-            int[] c2 = multKaratsuba(a2, b2);
-            int[] c3 = multKaratsuba(A, B);
-            c3 = subExpand(c3, c1);   // c3-c1>0 because a and b are positive
-            c3 = subExpand(c3, c2);   // c3-c2>0 because a and b are positive
-            
-            int[] c = Arrays.copyOf(c1, Math.max(n1+c3.length, 2*n1+c2.length));
-            addShifted(c, c3, n1);
-            addShifted(c, c2, 2*n1);
-            
-            return c;
-        }
-    }
-    
-    /**
-     * Splits an <code>int</code> array into pieces of <code>pieceSize ints</code> each, and
-     * pads each piece to <code>targetPieceSize ints</code>.
-     * @param a the input array
-     * @param numPieces the number of pieces to split the array into
-     * @param pieceSize the size of each piece in the input array in <code>ints</code>
-     * @param targetPieceSize the size of each piece in the output array in <code>ints</code>
-     * @return an array of length <code>numPieces</code> containing subarrays of length <code>targetPieceSize</code>
-     */
-    private static int[][] split(int[] a, int numPieces, int pieceSize, int targetPieceSize) {
-        int[][] ai = new int[numPieces][targetPieceSize];
-        for (int i=0; i<a.length/pieceSize; i++)
-            System.arraycopy(a, i*pieceSize, ai[i], 0, pieceSize);
-        System.arraycopy(a, a.length/pieceSize*pieceSize, ai[a.length/pieceSize], 0, a.length%pieceSize);
-        return ai;
-    }
-    
-    /**
-     * Adds two <b>positive</b> numbers (meaning they are interpreted as unsigned) that are given as
-     * <code>int</code> arrays and returns the result in a new array. The result may be one longer
-     * than the input due to a carry.
-     * @param a a number in base 2^32 starting with the lowest digit
-     * @param b a number in base 2^32 starting with the lowest digit
-     * @return the sum
-     */
-    private static int[] addExpand(int[] a, int[] b) {
-        int[] c = Arrays.copyOf(a, Math.max(a.length, b.length));
-        boolean carry = false;
-        int i = 0;
-        while (i < Math.min(b.length, a.length)) {
-            int sum = a[i] + b[i];
-            if (carry)
-                sum++;
-            carry = ((sum>>>31) < (a[i]>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
-            c[i] = sum;
-            i++;
-        }
-        while (carry) {
-            if (i == c.length)
-                c = Arrays.copyOf(c, c.length+1);
-            c[i]++;
-            carry = c[i] == 0;
-            i++;
-        }
-        return c;
-    }
-    
-    /**
-     * Subtracts two <b>positive</b> numbers (meaning they are interpreted as unsigned) that are given as
-     * <code>int</code> arrays and returns the result in a new array.<br/>
-     * <code>a</code> must be greater than or equal to <code>b</code>.
-     * @param a a number in base 2^32 starting with the lowest digit
-     * @param b a number in base 2^32 starting with the lowest digit
-     * @return the difference
-     */
-    private static int[] subExpand(int[] a, int[] b) {
-        int[] c = Arrays.copyOf(a, Math.max(a.length, b.length));
-        boolean carry = false;
-        int i = 0;
-        while (i < Math.min(b.length, a.length)) {
-            int diff = a[i] - b[i];
-            if (carry)
-                diff--;
-            carry = ((diff>>>31) > (a[i]>>>31)-(b[i]>>>31));   // carry if signBit(diff) > signBit(a)-signBit(b)
-            c[i] = diff;
-            i++;
-        }
-        while (carry) {
-            c[i]--;
-            carry = c[i] == -1;
-            i++;
-        }
-        return c;
-    }
-    
-    /**
-     * Multiplies two <b>positive</b> numbers (meaning they are interpreted as unsigned) represented as
-     * <code>int</code> arrays using the simple O(n²) algorithm.
-     * @param a a number in base 2^32 starting with the lowest digit
-     * @param b a number in base 2^32 starting with the lowest digit
-     * @return the product
-     */
-    static int[] multSimple(int[] a, int[] b) {
-        int[] c = new int[a.length+b.length];
-        long carry = 0;
-        for (int i=0; i<c.length; i++) {
-            long ci = c[i] & 0xFFFFFFFFL;
-            for (int k=Math.max(0,i-b.length+1); k<a.length&&k<=i; k++) {
-                long prod = (a[k]&0xFFFFFFFFL) * (b[i-k]&0xFFFFFFFFL);
-                ci += prod;
-                carry += ci >>> 32;
-                ci = ci << 32 >>> 32;
-            }
-            c[i] = (int)ci;
-            if (i < c.length-1)
-                c[i+1] = (int)carry;
-            carry >>>= 32;
-        }
-        return c;
-    }
-    
-    
-    /**
-     * Adds two numbers, <code>a</code> and <code>b</code>, after shifting <code>b</code> by
-     * <code>numElements</code> elements.<br/>
-     * Both numbers are given as <code>int</code> arrays and must be <b>positive</b> numbers
-     * (meaning they are interpreted as unsigned).</br> The result is returned in the first
-     * argument.
-     * If any elements of b are shifted outside the valid range for <code>a</code>, they are dropped.
-     * @param a a number in base 2^32 starting with the lowest digit
-     * @param b a number in base 2^32 starting with the lowest digit
-     * @param numElements
-     */
-    static void addShifted(int[] a, int[] b, int numElements) {
-        boolean carry = false;
-        int i = 0;
-        while (i < Math.min(b.length, a.length-numElements)) {
-            int ai = a[i+numElements];
-            int sum = ai + b[i];
-            if (carry)
-                sum++;
-            carry = ((sum>>>31) < (ai>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
-            a[i+numElements] = sum;
-            i++;
-        }
-        while (carry) {
-            a[i+numElements]++;
-            carry = a[i+numElements] == 0;
-            i++;
-        }
-    }
-    
-    static void modFn(int[] a) {
-        int len = a.length;
-        boolean carry = false;
-        for (int i=0; i<len/2; i++) {
-            int bi = a[len/2+i];
-            int diff = a[i] - bi;
-            if (carry)
-                diff--;
-            carry = ((diff>>>31) > (a[i]>>>31)-(bi>>>31));   // carry if signBit(diff) > signBit(a)-signBit(b)
-            a[i] = diff;
-        }
-        for (int i=len/2; i<len; i++)
-            a[i] = 0;
-        // if result is negative, add Fn; since Fn ≡ 1 (mod 2^n), it suffices to add 1
-        if (carry) {
-            int j = 0;
-            do {
-                int sum = a[j] + 1;
-                a[j] = sum;
-                carry = sum == 0;
-                j++;
-                if (j >= a.length)
-                    j = 0;
-            } while (carry);
-        }
-    }
-    
-    /**
-     * Reduces all subarrays modulo 2^2^n+1 where n=<code>a[i].length*32/2</code> for all i;
-     * in other words, n is half the number of bits in the subarray.
-     * @param a int arrays whose length is a power of 2
-     */
-    static void modFnFull(int[][] a) {
-        for (int i=0; i<a.length; i++)
-            modFn(a[i]);
-    }
-    
-    /**
      * Performs a
      * <a href="http://en.wikipedia.org/wiki/Discrete_Fourier_transform_%28general%29#Number-theoretic_transform">
      * Fermat Number Transform</a> on an array whose elements are <code>int</code> arrays.<br/>
@@ -609,6 +405,169 @@ public class SchönhageStrassen {
     }
     
     /**
+     * Multiplies two <b>positive</b> numbers (meaning they are interpreted as unsigned) modulo Fn
+     * where Fn=2^2^n+1, and returns the result in a new array.<br/>
+     * <code>a</code> and <code>b</code> are assumed to be reduced mod Fn, i.e. 0<=a<Fn and 0<=b<Fn.
+     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
+     * <code>a</code>.<br/>
+     * Both input values are given as <code>int</code> arrays; they must be the same length.
+     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     * @param b a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     */
+    static int[] multModFn(int[] a, int[] b) {
+        int[] a0 = Arrays.copyOf(a, a.length/2);
+        int[] b0 = Arrays.copyOf(b, b.length/2);
+        int[] c = mult(a0, b0);
+        int n = a.length/2;
+        // special case: if a=Fn-1, add b*2^2^n which is the same as subtracting b
+        if (a[n] == 1)
+            subModFn(c, Arrays.copyOf(b0, c.length), n*32);
+        if (b[n] == 1)
+            subModFn(c, Arrays.copyOf(a0, c.length), n*32);
+        return c;
+    }
+    
+    static void modFn(int[] a) {
+        int len = a.length;
+        boolean carry = false;
+        for (int i=0; i<len/2; i++) {
+            int bi = a[len/2+i];
+            int diff = a[i] - bi;
+            if (carry)
+                diff--;
+            carry = ((diff>>>31) > (a[i]>>>31)-(bi>>>31));   // carry if signBit(diff) > signBit(a)-signBit(b)
+            a[i] = diff;
+        }
+        for (int i=len/2; i<len; i++)
+            a[i] = 0;
+        // if result is negative, add Fn; since Fn ≡ 1 (mod 2^n), it suffices to add 1
+        if (carry) {
+            int j = 0;
+            do {
+                int sum = a[j] + 1;
+                a[j] = sum;
+                carry = sum == 0;
+                j++;
+                if (j >= a.length)
+                    j = 0;
+            } while (carry);
+        }
+    }
+    
+    /**
+     * Reduces all subarrays modulo 2^2^n+1 where n=<code>a[i].length*32/2</code> for all i;
+     * in other words, n is half the number of bits in the subarray.
+     * @param a int arrays whose length is a power of 2
+     */
+    static void modFnFull(int[][] a) {
+        for (int i=0; i<a.length; i++)
+            modFn(a[i]);
+    }
+    
+    /**
+     * Cyclicly shifts a number to the right modulo 2^2^n+1 and returns the result in a new array.
+     * "Right" means towards the lower array indices and the lower bits; this is equivalent to
+     * a multiplication by 2^(-numBits) modulo 2^2^n+1.<br/>
+     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
+     * <code>a</code>.<br/>
+     * Both input values are given as <code>int</code> arrays; they must be the same length.
+     * The result is returned in the first argument.
+     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     * @param numBits the shift amount in bits
+     * @return the shifted number
+     */
+    static int[] cyclicShiftRight(int[] a, int numBits) {
+        int[] b = new int[a.length];
+        int numElements = numBits / 32;
+        System.arraycopy(a, numElements, b, 0, a.length-numElements);
+        System.arraycopy(a, 0, b, a.length-numElements, numElements);
+        
+        numBits = numBits % 32;
+        if (numBits != 0) {
+            int b0 = b[0];
+            b[0] = b[0] >>> numBits;
+            for (int i=1; i<b.length; i++) {
+                b[i-1] |= b[i] << (32-numBits);
+                b[i] = b[i] >>> numBits;
+            }
+            b[b.length-1] |= b0 << (32-numBits);
+        }
+        return b;
+    }
+    
+    /**
+     * Shifts a number to the left modulo 2^2^n+1 and returns the result in a new array.
+     * "Left" means towards the lower array indices and the lower bits; this is equivalent to
+     * a multiplication by 2^numBits modulo 2^2^n+1.<br/>
+     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
+     * <code>a</code>.<br/>
+     * Both input values are given as <code>int</code> arrays; they must be the same length.
+     * The result is returned in the first argument.
+     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     * @param numBits the shift amount in bits
+     * @return the shifted number
+     */
+    static int[] cyclicShiftLeftBits(int[] a, int numBits) {
+        int[] b = cyclicShiftLeftElements(a, numBits/32);
+        
+        numBits = numBits % 32;
+        if (numBits != 0) {
+            int bhi = b[b.length-1];
+            b[b.length-1] <<= numBits;
+            for (int i=b.length-1; i>0; i--) {
+                b[i] |= b[i-1] >>> (32-numBits);
+                b[i-1] <<= numBits;
+            }
+            b[0] |= bhi >>> (32-numBits);
+        }
+        return b;
+    }
+    
+    /**
+     * Cyclicly shifts an array towards the higher indices by <code>numElements</code>
+     * elements and returns the result in a new array.
+     * @param a
+     * @param numElements
+     * @return
+     */
+    static int[] cyclicShiftLeftElements(int[] a, int numElements) {
+        int[] b = new int[a.length];
+        System.arraycopy(a, 0, b, numElements, a.length-numElements);
+        System.arraycopy(a, a.length-numElements, b, 0, numElements);
+        return b;
+    }
+    
+    /**
+     * Adds two numbers, <code>a</code> and <code>b</code>, after shifting <code>b</code> by
+     * <code>numElements</code> elements.<br/>
+     * Both numbers are given as <code>int</code> arrays and must be <b>positive</b> numbers
+     * (meaning they are interpreted as unsigned).</br> The result is returned in the first
+     * argument.
+     * If any elements of b are shifted outside the valid range for <code>a</code>, they are dropped.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     * @param numElements
+     */
+    static void addShifted(int[] a, int[] b, int numElements) {
+        boolean carry = false;
+        int i = 0;
+        while (i < Math.min(b.length, a.length-numElements)) {
+            int ai = a[i+numElements];
+            int sum = ai + b[i];
+            if (carry)
+                sum++;
+            carry = ((sum>>>31) < (ai>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
+            a[i+numElements] = sum;
+            i++;
+        }
+        while (carry) {
+            a[i+numElements]++;
+            carry = a[i+numElements] == 0;
+            i++;
+        }
+    }
+    
+    /**
      * Adds two <b>positive</b> numbers (meaning they are interpreted as unsigned) modulo 2^numBits.
      * Both input values are given as <code>int</code> arrays.
      * The result is returned in the first argument.
@@ -652,102 +611,6 @@ public class SchönhageStrassen {
         a[i-1] &= -1 >>> (32-(numBits%32));
         for (; i<a.length; i++)
             a[i] = 0;
-    }
-    
-    /**
-     * Cyclicly shifts a number to the right modulo 2^2^n+1 and returns the result in a new array.
-     * "Right" means towards the lower array indices and the lower bits; this is equivalent to
-     * a multiplication by 2^(-numBits) modulo 2^2^n+1.<br/>
-     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
-     * <code>a</code>.<br/>
-     * Both input values are given as <code>int</code> arrays; they must be the same length.
-     * The result is returned in the first argument.
-     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
-     * @param numBits the shift amount in bits
-     * @return the shifted number
-     */
-    static int[] cyclicShiftRight(int[] a, int numBits) {
-        int[] b = new int[a.length];
-        int numElements = numBits / 32;
-        System.arraycopy(a, numElements, b, 0, a.length-numElements);
-        System.arraycopy(a, 0, b, a.length-numElements, numElements);
-        
-        numBits = numBits % 32;
-        if (numBits != 0) {
-            int b0 = b[0];
-            b[0] = b[0] >>> numBits;
-            for (int i=1; i<b.length; i++) {
-                b[i-1] |= b[i] << (32-numBits);
-                b[i] = b[i] >>> numBits;
-            }
-            b[b.length-1] |= b0 << (32-numBits);
-        }
-        return b;
-    }
-    
-    /**
-     * Multiplies two <b>positive</b> numbers (meaning they are interpreted as unsigned) modulo Fn
-     * where Fn=2^2^n+1, and returns the result in a new array.<br/>
-     * <code>a</code> and <code>b</code> are assumed to be reduced mod Fn, i.e. 0<=a<Fn and 0<=b<Fn.
-     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
-     * <code>a</code>.<br/>
-     * Both input values are given as <code>int</code> arrays; they must be the same length.
-     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
-     * @param b a number in base 2^32 starting with the lowest digit; the length must be a power of 2
-     */
-    static int[] multModFn(int[] a, int[] b) {
-        int[] a0 = Arrays.copyOf(a, a.length/2);
-        int[] b0 = Arrays.copyOf(b, b.length/2);
-        int[] c = mult(a0, b0);
-        int n = a.length/2;
-        // special case: if a=Fn-1, add b*2^2^n which is the same as subtracting b
-        if (a[n] == 1)
-            subModFn(c, Arrays.copyOf(b0, c.length), n*32);
-        if (b[n] == 1)
-            subModFn(c, Arrays.copyOf(a0, c.length), n*32);
-        return c;
-    }
-    
-    /**
-     * Shifts a number to the left modulo 2^2^n+1 and returns the result in a new array.
-     * "Left" means towards the lower array indices and the lower bits; this is equivalent to
-     * a multiplication by 2^numBits modulo 2^2^n+1.<br/>
-     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
-     * <code>a</code>.<br/>
-     * Both input values are given as <code>int</code> arrays; they must be the same length.
-     * The result is returned in the first argument.
-     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
-     * @param numBits the shift amount in bits
-     * @return the shifted number
-     */
-    static int[] cyclicShiftLeftBits(int[] a, int numBits) {
-        int[] b = cyclicShiftLeftElements(a, numBits/32);
-        
-        numBits = numBits % 32;
-        if (numBits != 0) {
-            int bhi = b[b.length-1];
-            b[b.length-1] <<= numBits;
-            for (int i=b.length-1; i>0; i--) {
-                b[i] |= b[i-1] >>> (32-numBits);
-                b[i-1] <<= numBits;
-            }
-            b[0] |= bhi >>> (32-numBits);
-        }
-        return b;
-    }
-    
-    /**
-     * Cyclicly shifts an array towards the higher indices by <code>numElements</code>
-     * elements and returns the result in a new array.
-     * @param a
-     * @param numElements
-     * @return
-     */
-    static int[] cyclicShiftLeftElements(int[] a, int numElements) {
-        int[] b = new int[a.length];
-        System.arraycopy(a, 0, b, numElements, a.length-numElements);
-        System.arraycopy(a, a.length-numElements, b, 0, numElements);
-        return b;
     }
     
     /**
@@ -824,6 +687,143 @@ public class SchönhageStrassen {
         }
         return b;
     }
+    
+    /**
+     * Splits an <code>int</code> array into pieces of <code>pieceSize ints</code> each, and
+     * pads each piece to <code>targetPieceSize ints</code>.
+     * @param a the input array
+     * @param numPieces the number of pieces to split the array into
+     * @param pieceSize the size of each piece in the input array in <code>ints</code>
+     * @param targetPieceSize the size of each piece in the output array in <code>ints</code>
+     * @return an array of length <code>numPieces</code> containing subarrays of length <code>targetPieceSize</code>
+     */
+    private static int[][] split(int[] a, int numPieces, int pieceSize, int targetPieceSize) {
+        int[][] ai = new int[numPieces][targetPieceSize];
+        for (int i=0; i<a.length/pieceSize; i++)
+            System.arraycopy(a, i*pieceSize, ai[i], 0, pieceSize);
+        System.arraycopy(a, a.length/pieceSize*pieceSize, ai[a.length/pieceSize], 0, a.length%pieceSize);
+        return ai;
+    }
+    
+    /**
+     * Multiplies two <b>positive</b> numbers represented as <code>int</code> arrays using the
+     * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba algorithm</a>.
+     */
+    static int[] multKaratsuba(int[] a, int[] b) {
+        int n = Math.max(a.length, b.length);
+        if (n <= KARATSUBA_THRESHOLD)
+            return multSimple(a, b);
+        else {
+            int n1 = (n+1) / 2;
+            int n1a = Math.min(n1, a.length);
+            int n1b = Math.min(n1, b.length);
+            
+            int[] a1 = Arrays.copyOf(a, n1a);
+            int[] a2 = n1a>=a.length ? new int[0] : Arrays.copyOfRange(a, n1a, n);
+            int[] b1 = Arrays.copyOf(b, n1);
+            int[] b2 = n1b>=b.length ? new int[0] : Arrays.copyOfRange(b, n1b, n);
+            
+            int[] A = addExpand(a1, a2);
+            int[] B = addExpand(b1, b2);
+            
+            int[] c1 = multKaratsuba(a1, b1);
+            int[] c2 = multKaratsuba(a2, b2);
+            int[] c3 = multKaratsuba(A, B);
+            c3 = subExpand(c3, c1);   // c3-c1>0 because a and b are positive
+            c3 = subExpand(c3, c2);   // c3-c2>0 because a and b are positive
+            
+            int[] c = Arrays.copyOf(c1, Math.max(n1+c3.length, 2*n1+c2.length));
+            addShifted(c, c3, n1);
+            addShifted(c, c2, 2*n1);
+            
+            return c;
+        }
+    }
+    
+    /**
+     * Adds two <b>positive</b> numbers (meaning they are interpreted as unsigned) that are given as
+     * <code>int</code> arrays and returns the result in a new array. The result may be one longer
+     * than the input due to a carry.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     * @return the sum
+     */
+    private static int[] addExpand(int[] a, int[] b) {
+        int[] c = Arrays.copyOf(a, Math.max(a.length, b.length));
+        boolean carry = false;
+        int i = 0;
+        while (i < Math.min(b.length, a.length)) {
+            int sum = a[i] + b[i];
+            if (carry)
+                sum++;
+            carry = ((sum>>>31) < (a[i]>>>31)+(b[i]>>>31));   // carry if signBit(sum) < signBit(a)+signBit(b)
+            c[i] = sum;
+            i++;
+        }
+        while (carry) {
+            if (i == c.length)
+                c = Arrays.copyOf(c, c.length+1);
+            c[i]++;
+            carry = c[i] == 0;
+            i++;
+        }
+        return c;
+    }
+    
+    /**
+     * Subtracts two <b>positive</b> numbers (meaning they are interpreted as unsigned) that are given as
+     * <code>int</code> arrays and returns the result in a new array.<br/>
+     * <code>a</code> must be greater than or equal to <code>b</code>.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     * @return the difference
+     */
+    private static int[] subExpand(int[] a, int[] b) {
+        int[] c = Arrays.copyOf(a, Math.max(a.length, b.length));
+        boolean carry = false;
+        int i = 0;
+        while (i < Math.min(b.length, a.length)) {
+            int diff = a[i] - b[i];
+            if (carry)
+                diff--;
+            carry = ((diff>>>31) > (a[i]>>>31)-(b[i]>>>31));   // carry if signBit(diff) > signBit(a)-signBit(b)
+            c[i] = diff;
+            i++;
+        }
+        while (carry) {
+            c[i]--;
+            carry = c[i] == -1;
+            i++;
+        }
+        return c;
+    }
+    
+    /**
+     * Multiplies two <b>positive</b> numbers (meaning they are interpreted as unsigned) represented as
+     * <code>int</code> arrays using the simple O(n²) algorithm.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     * @return the product
+     */
+    static int[] multSimple(int[] a, int[] b) {
+        int[] c = new int[a.length+b.length];
+        long carry = 0;
+        for (int i=0; i<c.length; i++) {
+            long ci = c[i] & 0xFFFFFFFFL;
+            for (int k=Math.max(0,i-b.length+1); k<a.length&&k<=i; k++) {
+                long prod = (a[k]&0xFFFFFFFFL) * (b[i-k]&0xFFFFFFFFL);
+                ci += prod;
+                carry += ci >>> 32;
+                ci = ci << 32 >>> 32;
+            }
+            c[i] = (int)ci;
+            if (i < c.length-1)
+                c[i+1] = (int)carry;
+            carry >>>= 32;
+        }
+        return c;
+    }
+    
     
     /**
      * Converts a {@link BigInteger} to an <code>int</code> array.

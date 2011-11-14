@@ -106,17 +106,6 @@ public class SchönhageStrassenTest {
     }
     
     @Test
-    public void testModFn() {
-        int[] a = new int[] {50593286, 151520511};
-        SchönhageStrassen.modFn(a);
-        assertArrayEquals(new int[] {-100927224, 0}, a);
-        
-        a = new int[] {1157041776, -1895306073, -1094584616, -218513495};
-        SchönhageStrassen.modFn(a);
-        assertArrayEquals(new int[] {-2043340903, -1676792579, 0, 0}, a);
-    }
-    
-    @Test
     public void testDftIdft() {
         for (int i=0; i<10; i++)
             testInversion();
@@ -150,7 +139,6 @@ public class SchönhageStrassenTest {
     public void testAddModFn() {
         Random rng = new Random();
         int n = 5 + rng.nextInt(10);
-n=5;
         int len = 1 << (n+1-5);
         int[] aArr = new int[len];
         for (int i=0; i<aArr.length; i++)
@@ -173,11 +161,14 @@ n=5;
     }
     
     @Test
-    public void testSubModPow2() {
-        int[] a = new int[] {3844, 0, 0};
-        int[] b = new int[] {627199739, 1091992276, 2332};
-        SchönhageStrassen.subModPow2(a, b, 12);
-        assertArrayEquals(new int[] {9, 0, 0}, a);
+    public void testModFn() {
+        int[] a = new int[] {50593286, 151520511};
+        SchönhageStrassen.modFn(a);
+        assertArrayEquals(new int[] {-100927224, 0}, a);
+        
+        a = new int[] {1157041776, -1895306073, -1094584616, -218513495};
+        SchönhageStrassen.modFn(a);
+        assertArrayEquals(new int[] {-2043340903, -1676792579, 0, 0}, a);
     }
     
     @Test
@@ -227,20 +218,11 @@ n=5;
     }
     
     @Test
-    public void testAppendBits() {
-        int[] a = new int[] {3615777, 0};
-        SchönhageStrassen.appendBits(a, 22, new int[] {-77, 61797}, 1, 13);
-        assertArrayEquals(new int[] {1500982305, 4}, a);
-    }
-    
-    @Test
-    public void testToBigInteger() {
-        Random rng = new Random();
-        byte[] a = new byte[1+rng.nextInt(100)];
-        rng.nextBytes(a);
-        int[] b = SchönhageStrassen.toIntArray(new BigInteger(1, a));
-        BigInteger c = SchönhageStrassen.toBigInteger(b);
-        assertEquals(new BigInteger(1, a), c);
+    public void testSubModPow2() {
+        int[] a = new int[] {3844, 0, 0};
+        int[] b = new int[] {627199739, 1091992276, 2332};
+        SchönhageStrassen.subModPow2(a, b, 12);
+        assertArrayEquals(new int[] {9, 0, 0}, a);
     }
     
     @Test
@@ -259,5 +241,22 @@ n=5;
         b = new int[] {980775637, 1136222341};
         SchönhageStrassen.addShifted(a, b, 1);
         assertArrayEquals(a, new int[] {-1135845471, -1939677853, 1527693848});
+    }
+    
+    @Test
+    public void testAppendBits() {
+        int[] a = new int[] {3615777, 0};
+        SchönhageStrassen.appendBits(a, 22, new int[] {-77, 61797}, 1, 13);
+        assertArrayEquals(new int[] {1500982305, 4}, a);
+    }
+    
+    @Test
+    public void testToBigInteger() {
+        Random rng = new Random();
+        byte[] a = new byte[1+rng.nextInt(100)];
+        rng.nextBytes(a);
+        int[] b = SchönhageStrassen.toIntArray(new BigInteger(1, a));
+        BigInteger c = SchönhageStrassen.toBigInteger(b);
+        assertEquals(new BigInteger(1, a), c);
     }
 }
