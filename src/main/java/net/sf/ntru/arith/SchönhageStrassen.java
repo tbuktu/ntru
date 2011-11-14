@@ -327,8 +327,6 @@ public class SchönhageStrassen {
             i++;
         }
         while (carry) {
-            if (i == c.length)
-                c = Arrays.copyOf(c, c.length+1);
             c[i]--;
             carry = c[i] == -1;
             i++;
