@@ -123,14 +123,14 @@ public class SchönhageStrassenTest {
         for (int i=0; i<a.length; i++)
             for (int j=0; j<a[i].length; j++)
                 a[i][j] = rng.nextInt();
-        SchönhageStrassen.modFnFull(a);
+        SchönhageStrassen.modFn(a);
         
         int[][] aOrig = new int[a.length][];
         for (int i=0; i<a.length; i++)
             aOrig[i] = a[i].clone();
         SchönhageStrassen.dft(a, m, n);
         SchönhageStrassen.idft(a, m, n);
-        SchönhageStrassen.modFnFull(a);
+        SchönhageStrassen.modFn(a);
         for (int j=0; j<aOrig.length; j++)
             assertArrayEquals(aOrig[j], a[j]);
     }
