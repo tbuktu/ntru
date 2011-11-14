@@ -215,8 +215,7 @@ public class NtruEncrypt {
             
             Polynomial r = generateBlindingPoly(sData, M);
             IntegerPolynomial R = r.mult(pub, q);
-            IntegerPolynomial R4 = R.clone();
-            byte[] oR4 = R4.toBinary4();
+            byte[] oR4 = R.toBinary4();
             IntegerPolynomial mask = MGF(oR4, N, minCallsMask, hashSeed);
             mTrin.add(mask);
             mTrin.mod3();
@@ -410,11 +409,10 @@ public class NtruEncrypt {
         if (ci.count(1) < dm0)
             throw new NtruException("Less than dm0 coefficients equal 1");
         
-        IntegerPolynomial cR = e.clone();
+        IntegerPolynomial cR = e;
         cR.sub(ci);
         cR.modPositive(q);
-        IntegerPolynomial cR4 = cR.clone();
-        byte[] coR4 = cR4.toBinary4();
+        byte[] coR4 = cR.toBinary4();
         IntegerPolynomial mask = MGF(coR4, N, minCallsMask, hashSeed);
         IntegerPolynomial cMTrin = ci;
         cMTrin.sub(mask);
