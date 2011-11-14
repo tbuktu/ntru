@@ -208,15 +208,11 @@ public class SchönhageStrassen {
      */
     private static boolean shouldUseSchönhageStrassen(int bitLength) {
         // The following values were determined experimentally on a 32-bit JVM.
-        if (bitLength < 113000)
+        if (bitLength < 93600)
             return false;
         if (bitLength < 131072)
             return true;
-        if (bitLength < 182000)
-            return false;
-        if (bitLength < 262144)
-            return true;
-        if (bitLength < 292000)
+        if (bitLength < 159300)
             return false;
         return true;
     }
