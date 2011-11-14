@@ -43,11 +43,12 @@ public class SchönhageStrassen {
     private static final int KARATSUBA_THRESHOLD = 32;   // min #ints for Karatsuba
     
     /**
-     * Multiplies two {@link BigInteger}s using Schönhage-Strassen if the numbers are above a certain size.
-     * Otherwise, Karatsuba or O(n²) multiplication is used.
+     * Multiplies two {@link BigInteger}s using the Schönhage-Strassen algorithm.<br/>
+     * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba</a> is used instead of
+     * Schönhage-Strassen if the numbers are in a range where Karatsuba is more efficient.
      * @param a
      * @param b
-     * @return
+     * @return a <code>BigInteger</code> equal to <code>a.multiply(b)</code>
      */
     public static BigInteger mult(BigInteger a, BigInteger b) {
         // remove any minus signs, multiply, then fix sign
@@ -75,17 +76,54 @@ public class SchönhageStrassen {
     /**
      * Multiplies two <b>positive</b> numbers represented as int arrays, i.e. in base <code>2^32</code>.
      * Positive means an int is always interpreted as an unsigned number, regardless of the sign bit.<br/>
-     * The upper <code>a.length/2</code> and <code>b.length/2</code> digits must be zeros.<br/>
      * The arrays must be ordered least significant to most significant,
-     * so the least significant digit must be at index 0.<br/>
+     * so the least significant digit must be at index 0.</br>
+     * Schönhage-Strassen is used unless the numbers are in a range where
+     * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba</a> is more efficient.
      * @param a
      * @param b
-     * @return
+     * @return a*b
      */
     public static int[] mult(int[] a, int[] b) {
         return mult(a, a.length*32, b, b.length*32);
     }
     
+    /**
+     * This is the core method. It multiplies two <b>positive</b> numbers of length <code>aBitLen</code>
+     * and </code>bBitLen</code> that are represented as int arrays, i.e. in base 2^32.
+     * Positive means an int is always interpreted as an unsigned number, regardless of the sign bit.<br/>
+     * The arrays must be ordered least significant to most significant, so the least significant digit
+     * must be at index 0.</br>
+     * Schönhage-Strassen is used unless the numbers are in a range where
+     * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba</a> is more efficient.
+     * <p/>
+     * The Schönhage-Strassen algorithm works as follows:
+     * <ol>
+     *   <li>Given numbers a and b, split both numbers into pieces of length 2^(n-1) bits.</li>
+     *   <li>Take the low n+2 bits of each piece of a, zero-pad them to 3n+5 bits,
+     *       and concatenate them to a new number u.</li>
+     *   <li>Do the same for b to obtain v.</li>
+     *   <li>Calculate all pieces of z' by multiplying u and v (using Schönhage-Strassen or another
+     *       algorithm). The product will contain all pieces of a*b mod n+2.</li>
+     *   <li>Pad the pieces of a and b from step 1 to 2^(n+1) bits.</li>
+     *   <li>Perform a
+     *       <a href="http://en.wikipedia.org/wiki/Discrete_Fourier_transform_%28general%29#Number-theoretic_transform">
+     *       Discrete Fourier Transform</a> (DFT) on the padded pieces.</li>
+     *   <li>Calculate all pieces of z" by multiplying the i-th piece of a by the i-th piece of b.</li>
+     *   <li>Perform an Inverse Discrete Fourier Transform (IDFT) on z". z" will contain all pieces of
+     *       a*b mod Fn where Fn=2^2^n+1.</li>
+     *   <li>Calculate all pieces of z such that each piece is congruent to z' modulo n+2 and congruent to
+     *       z" modulo Fn. This is done using the
+     *       <a href="http://en.wikipedia.org/wiki/Chinese_remainder_theorem">Chinese remainder theorem</a>.</li>
+     *   <li>Calculate c by adding z_i * 2^(i*2^(n-1)) for all i, where z_i is the i-th piece of z.</li>
+     *   <li>Return c reduced modulo 2^2^m+1.</li>
+     * </ol>
+     * @param a
+     * @param aBitLen
+     * @param b
+     * @param bBitLen
+     * @return a*b
+     */
     private static int[] mult(int[] a, int aBitLen, int[] b, int bBitLen) {
         if (!shouldUseSchönhageStrassen(Math.max(aBitLen, bBitLen)))
             return multKaratsuba(a, b);
@@ -103,7 +141,7 @@ public class SchönhageStrassen {
         int numPieces = even ? 1<<n : 1<<(n+1);
         int pieceSize = 1 << (n-1-5);   // in ints
         
-        // build u and v from a and b, allocating 3n+5 bits in u and v for each n+2 bits from a and b, resp.
+        // build u and v from a and b, allocating 3n+5 bits in u and v per n+2 bits from a and b, resp.
         int numPiecesA = (a.length+pieceSize) / pieceSize;
         int[] u = new int[(numPiecesA*(3*n+5)+31)/32];
         int uBitLength = 0;
@@ -186,7 +224,10 @@ public class SchönhageStrassen {
         return true;
     }
     
-    /** Multiplies two <b>positive</b> numbers represented as <code>int</code> arrays. */
+    /**
+     * Multiplies two <b>positive</b> numbers represented as <code>int</code> arrays using the
+     * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba algorithm</a>.
+     */
     static int[] multKaratsuba(int[] a, int[] b) {
         int n = Math.max(a.length, b.length);
         if (n <= KARATSUBA_THRESHOLD)
@@ -218,6 +259,15 @@ public class SchönhageStrassen {
         }
     }
     
+    /**
+     * Splits an <code>int</code> array into pieces of <code>pieceSize ints</code> each, and
+     * pads each piece to <code>targetPieceSize ints</code>.
+     * @param a the input array
+     * @param numPieces the number of pieces to split the array into
+     * @param pieceSize the size of each piece in the input array in <code>ints</code>
+     * @param targetPieceSize the size of each piece in the output array in <code>ints</code>
+     * @return an array of length <code>numPieces</code> containing subarrays of length <code>targetPieceSize</code>
+     */
     private static int[][] split(int[] a, int numPieces, int pieceSize, int targetPieceSize) {
         int[][] ai = new int[numPieces][targetPieceSize];
         for (int i=0; i<a.length/pieceSize; i++)
@@ -226,6 +276,14 @@ public class SchönhageStrassen {
         return ai;
     }
     
+    /**
+     * Adds two <b>positive</b> numbers (meaning they are interpreted as unsigned) that are given as
+     * <code>int</code> arrays and returns the result in a new array. The result may be one longer
+     * than the input due to a carry.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     * @return the sum
+     */
     private static int[] addExpand(int[] a, int[] b) {
         int[] c = Arrays.copyOf(a, Math.max(a.length, b.length));
         boolean carry = false;
@@ -248,6 +306,14 @@ public class SchönhageStrassen {
         return c;
     }
     
+    /**
+     * Subtracts two <b>positive</b> numbers (meaning they are interpreted as unsigned) that are given as
+     * <code>int</code> arrays and returns the result in a new array.<br/>
+     * <code>a</code> must be greater than or equal to <code>b</code>.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     * @return the difference
+     */
     private static int[] subExpand(int[] a, int[] b) {
         int[] c = Arrays.copyOf(a, Math.max(a.length, b.length));
         boolean carry = false;
@@ -270,7 +336,13 @@ public class SchönhageStrassen {
         return c;
     }
     
-    /** O(n²) convolution */
+    /**
+     * Multiplies two <b>positive</b> numbers (meaning they are interpreted as unsigned) represented as
+     * <code>int</code> arrays using the simple O(n²) algorithm.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     * @return the product
+     */
     static int[] multSimple(int[] a, int[] b) {
         int[] c = new int[a.length+b.length];
         long carry = 0;
@@ -290,7 +362,18 @@ public class SchönhageStrassen {
         return c;
     }
     
-    /** drops elements of b that are shifted outside the valid range */
+    
+    /**
+     * Adds two numbers, <code>a</code> and <code>b</code>, after shifting <code>b</code> by
+     * <code>numElements</code> elements.<br/>
+     * Both numbers are given as <code>int</code> arrays and must be <b>positive</b> numbers
+     * (meaning they are interpreted as unsigned).</br> The result is returned in the first
+     * argument.
+     * If any elements of b are shifted outside the valid range for <code>a</code>, they are dropped.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     * @param numElements
+     */
     static void addShifted(int[] a, int[] b, int numElements) {
         boolean carry = false;
         int i = 0;
@@ -338,14 +421,27 @@ public class SchönhageStrassen {
     }
     
     /**
-     * Reduces all elements in the outer array modulo <code>2^2^n+1</code>.
-     * @param aTrans byte arrays of length <code>2^(n+1)</code> bits; n must be 6 or greater
+     * Reduces all subarrays modulo 2^2^n+1 where n=<code>a[i].length*32/2</code> for all i;
+     * in other words, n is half the number of bits in the subarray.
+     * @param a int arrays whose length is a power of 2
      */
     static void modFnFull(int[][] a) {
         for (int i=0; i<a.length; i++)
             modFn(a[i]);
     }
     
+    /**
+     * Performs a
+     * <a href="http://en.wikipedia.org/wiki/Discrete_Fourier_transform_%28general%29#Number-theoretic_transform">
+     * Fermat Number Transform</a> on an array whose elements are <code>int</code> arrays.<br/>
+     * <code>A</code> is assumed to be the lower half of the full array and the upper half is assumed to be all zeros.
+     * The number of subarrays in <code>A</code> must be 2^(n+1) if m is even and 2^n if m is odd.<br/>
+     * Each subarray must be ceil(2^(n-1)) bits in length.<br/>
+     * n must be equal to m/2-1.
+     * @param A
+     * @param m
+     * @param n
+     */
     static void dft(int[][] A, int m, int n) {
         boolean even = m%2 == 0;
         int len = A.length;
@@ -374,6 +470,16 @@ public class SchönhageStrassen {
         }
     }
     
+    /**
+     * Returns the power to which to raise omega in a DFT.<br/>
+     * Omega itself is either 2 or 4 depending on m, but when omega=4 this method
+     * doubles the exponent so omega can be assumed always to be 2 in a DFT.
+     * @param n
+     * @param v
+     * @param idx
+     * @param even
+     * @return
+     */
     private static int getOmegaExponent(int n, int v, int idx, boolean even) {
         int x;
         if (even) {
@@ -389,6 +495,20 @@ public class SchönhageStrassen {
         return x;
     }
     
+    /**
+     * Performs a modified
+     * <a href="http://en.wikipedia.org/wiki/Discrete_Fourier_transform_%28general%29#Number-theoretic_transform">
+     * Inverse Fermat Number Transform</a> on an array whose elements are <code>int</code> arrays.
+     * The modification is that the last step (the one where the upper half is subtracted from the lower half)
+     * is omitted.<br/>
+     * <code>A</code> is assumed to be the upper half of the full array and the upper half is assumed to be all zeros.
+     * The number of subarrays in <code>A</code> must be 2^(n+1) if m is even and 2^n if m is odd.<br/>
+     * Each subarray must be ceil(2^(n-1)) bits in length.<br/>
+     * n must be equal to m/2-1.
+     * @param A
+     * @param m
+     * @param n
+     */
     static void idft(int[][] A, int m, int n) {
         boolean even = m%2 == 0;
         int len = A.length;
@@ -433,6 +553,15 @@ public class SchönhageStrassen {
         }
     }
     
+    /**
+     * Adds two <b>positive</b> numbers (meaning they are interpreted as unsigned) modulo 2^2^n+1.
+     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
+     * <code>a</code>.<br/>
+     * Both input values are given as <code>int</code> arrays; they must be the same length.
+     * The result is returned in the first argument.
+     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     * @param b a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     */
     static void addModFn(int[] a, int[] b) {
         boolean carry = false;
         for (int i=0; i<a.length; i++) {
@@ -456,10 +585,26 @@ public class SchönhageStrassen {
         }
     }
     
+    /**
+     * Subtracts two <b>positive</b> numbers (meaning they are interpreted as unsigned) modulo 2^2^n+1.
+     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
+     * <code>a</code>.<br/>
+     * Both input values are given as <code>int</code> arrays; they must be the same length.
+     * The result is returned in the first argument.
+     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     * @param b a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     */
     private static void subModFn(int[] a, int[] b, int pow2n) {
         addModFn(a, cyclicShiftLeftElements(b, pow2n/32));
     }
     
+    /**
+     * Adds two <b>positive</b> numbers (meaning they are interpreted as unsigned) modulo 2^numBits.
+     * Both input values are given as <code>int</code> arrays.
+     * The result is returned in the first argument.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     */
     private static void addModPow2(int[] a, int[] b, int numBits) {
         int numElements = (numBits+31) / 32;
         boolean carry = false;
@@ -476,6 +621,13 @@ public class SchönhageStrassen {
             a[i] = 0;
     }
     
+    /**
+     * Subtracts two <b>positive</b> numbers (meaning they are interpreted as unsigned) modulo 2^numBits.
+     * Both input values are given as <code>int</code> arrays.
+     * The result is returned in the first argument.
+     * @param a a number in base 2^32 starting with the lowest digit
+     * @param b a number in base 2^32 starting with the lowest digit
+     */
     static void subModPow2(int[] a, int[] b, int numBits) {
         int numElements = (numBits+31) / 32;
         boolean carry = false;
@@ -492,6 +644,18 @@ public class SchönhageStrassen {
             a[i] = 0;
     }
     
+    /**
+     * Cyclicly shifts a number to the right modulo 2^2^n+1 and returns the result in a new array.
+     * "Right" means towards the lower array indices and the lower bits; this is equivalent to
+     * a multiplication by 2^(-numBits) modulo 2^2^n+1.<br/>
+     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
+     * <code>a</code>.<br/>
+     * Both input values are given as <code>int</code> arrays; they must be the same length.
+     * The result is returned in the first argument.
+     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     * @param numBits the shift amount in bits
+     * @return the shifted number
+     */
     static int[] cyclicShiftRight(int[] a, int numBits) {
         int[] b = new int[a.length];
         int numElements = numBits / 32;
@@ -511,7 +675,16 @@ public class SchönhageStrassen {
         return b;
     }
     
-    /** a and b are assumed to be reduced mod Fn, i.e. 0<=a<Fn and 0<=b<Fn */
+    /**
+     * Multiplies two <b>positive</b> numbers (meaning they are interpreted as unsigned) modulo Fn
+     * where Fn=2^2^n+1, and returns the result in a new array.<br/>
+     * <code>a</code> and <code>b</code> are assumed to be reduced mod Fn, i.e. 0<=a<Fn and 0<=b<Fn.
+     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
+     * <code>a</code>.<br/>
+     * Both input values are given as <code>int</code> arrays; they must be the same length.
+     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     * @param b a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     */
     static int[] multModFn(int[] a, int[] b) {
         int[] a0 = Arrays.copyOf(a, a.length/2);
         int[] b0 = Arrays.copyOf(b, b.length/2);
@@ -525,7 +698,18 @@ public class SchönhageStrassen {
         return c;
     }
     
-    /** left means towards the higher array indices and the higher bits */
+    /**
+     * Shifts a number to the left modulo 2^2^n+1 and returns the result in a new array.
+     * "Left" means towards the lower array indices and the lower bits; this is equivalent to
+     * a multiplication by 2^numBits modulo 2^2^n+1.<br/>
+     * The number n is <code>a.length*32/2</code>; in other words, n is half the number of bits in
+     * <code>a</code>.<br/>
+     * Both input values are given as <code>int</code> arrays; they must be the same length.
+     * The result is returned in the first argument.
+     * @param a a number in base 2^32 starting with the lowest digit; the length must be a power of 2
+     * @param numBits the shift amount in bits
+     * @return the shifted number
+     */
     static int[] cyclicShiftLeftBits(int[] a, int numBits) {
         int[] b = cyclicShiftLeftElements(a, numBits/32);
         
@@ -542,6 +726,13 @@ public class SchönhageStrassen {
         return b;
     }
     
+    /**
+     * Cyclicly shifts an array towards the higher indices by <code>numElements</code>
+     * elements and returns the result in a new array.
+     * @param a
+     * @param numElements
+     * @return
+     */
     static int[] cyclicShiftLeftElements(int[] a, int numElements) {
         int[] b = new int[a.length];
         System.arraycopy(a, 0, b, numElements, a.length-numElements);
@@ -549,6 +740,16 @@ public class SchönhageStrassen {
         return b;
     }
     
+    /**
+     * Reads <code>bBitLength</code> bits from <code>b</code>, starting at array index
+     * <code>bStart</code>, and copies them into <code>a</code>, starting at bit
+     * <code>aBitLength</code>. The result is returned in <code>a</code>.
+     * @param a
+     * @param aBitLength
+     * @param b
+     * @param bStart
+     * @param bBitLength
+     */
     static void appendBits(int[] a, int aBitLength, int[] b, int bStart, int bBitLength) {
         int aIdx = aBitLength / 32;
         int bit32 = aBitLength % 32;
@@ -575,7 +776,12 @@ public class SchönhageStrassen {
         }
     }
     
-    /** Divides a int array into pieces <code>bitLength</code> bits long */
+    /**
+     * Divides an <code>int</code> array into pieces <code>bitLength</code> bits long.
+     * @param a
+     * @param bitLength
+     * @return a new array containing <code>bitLength</code> bits from <code>a</code> in each subarray
+     */
     private static int[][] subdivide(int[] a, int bitLength) {
         int aIntIdx = 0;
         int aBitIdx = 0;
@@ -609,6 +815,12 @@ public class SchönhageStrassen {
         return b;
     }
     
+    /**
+     * Converts a <code>byte</code> array to an <code>int</code> array,
+     * copying four bytes into one <code>int</code> each.
+     * @param a
+     * @return
+     */
     public static int[] toIntArray(byte[] a) {
         int[] b = new int[(a.length+3)/4];
         for (int i=0; i<a.length; i++)
@@ -616,6 +828,12 @@ public class SchönhageStrassen {
         return b;
     }
     
+    /**
+     * Converts a <code>int</code> array to an <code>byte</code> array,
+     * creating four bytes for each <code>int</code>.
+     * @param a
+     * @return
+     */
     public static byte[] toByteArray(int[] a) {
         byte[] b = new byte[a.length*4];
         for (int i=0; i<a.length; i++) {
@@ -627,6 +845,12 @@ public class SchönhageStrassen {
         return b;
     }
     
+    /**
+     * Reverses the order of bytes in a <code>byte</code> array
+     * and returns the result in a new array.
+     * @param a
+     * @return
+     */
     public static byte[] reverse(byte[] a) {
         byte[] b = new byte[a.length];
         for (int i=0; i<a.length; i++)
