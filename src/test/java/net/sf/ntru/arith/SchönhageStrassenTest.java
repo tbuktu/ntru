@@ -150,20 +150,21 @@ public class SchönhageStrassenTest {
     public void testAddModFn() {
         Random rng = new Random();
         int n = 5 + rng.nextInt(10);
+n=5;
         int len = 1 << (n+1-5);
         int[] aArr = new int[len];
         for (int i=0; i<aArr.length; i++)
             aArr[i] = rng.nextInt();
-        BigInteger a = new BigInteger(1, SchönhageStrassen.reverse(SchönhageStrassen.toByteArray(aArr)));
+        BigInteger a = SchönhageStrassen.toBigInteger(aArr);
         int[] bArr = new int[len];
         for (int i=0; i<bArr.length; i++)
             bArr[i] = rng.nextInt();
-        BigInteger b = new BigInteger(1, SchönhageStrassen.reverse(SchönhageStrassen.toByteArray(bArr)));
+        BigInteger b = SchönhageStrassen.toBigInteger(bArr);
         SchönhageStrassen.addModFn(aArr, bArr);
         SchönhageStrassen.modFn(aArr);
         BigInteger Fn = BigInteger.valueOf(2).pow(1<<n).add(BigInteger.ONE);
         BigInteger c = a.add(b).mod(Fn);
-        assertEquals(c, new BigInteger(1, SchönhageStrassen.reverse(SchönhageStrassen.toByteArray(aArr))));
+        assertEquals(c, SchönhageStrassen.toBigInteger(aArr));
     }
     
     @Test
@@ -233,13 +234,13 @@ public class SchönhageStrassenTest {
     }
     
     @Test
-    public void testToIntArray() {
+    public void testToBigInteger() {
         Random rng = new Random();
         byte[] a = new byte[1+rng.nextInt(100)];
         rng.nextBytes(a);
-        int[] b = SchönhageStrassen.toIntArray(a);
-        byte[] c = SchönhageStrassen.toByteArray(b);
-        assertArrayEquals(Arrays.copyOf(a, (a.length+3)&0x7FFFFFFC), c);
+        int[] b = SchönhageStrassen.toIntArray(new BigInteger(1, a));
+        BigInteger c = SchönhageStrassen.toBigInteger(b);
+        assertEquals(new BigInteger(1, a), c);
     }
     
     @Test

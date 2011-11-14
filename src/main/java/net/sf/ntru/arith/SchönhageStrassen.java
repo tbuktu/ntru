@@ -58,15 +58,12 @@ public class SchönhageStrassen {
         if (b.signum() < 0)
             b = b.negate();
         
-        byte[] aByteArr = reverse(a.toByteArray());
-        int[] aIntArr = toIntArray(aByteArr);
-        byte[] bByteArr = reverse(b.toByteArray());
-        int[] bIntArr = toIntArray(bByteArr);
+        int[] aIntArr = toIntArray(a);
+        int[] bIntArr = toIntArray(b);
         
         int[] cIntArr = mult(aIntArr, a.bitLength(), bIntArr, b.bitLength());
         
-        byte[] cByteArr = toByteArray(cIntArr);
-        BigInteger c = new BigInteger(1, reverse(cByteArr));
+        BigInteger c = toBigInteger(cIntArr);
         if (signum < 0)
             c = c.negate();
         
@@ -829,45 +826,32 @@ public class SchönhageStrassen {
     }
     
     /**
-     * Converts a <code>byte</code> array to an <code>int</code> array,
-     * copying four bytes into one <code>int</code> each.
+     * Converts a {@link BigInteger} to an <code>int</code> array.
      * @param a
-     * @return
+     * @return an <code>int</code> array that is compatible with the <code>mult()</code> methods
      */
-    public static int[] toIntArray(byte[] a) {
-        int[] b = new int[(a.length+3)/4];
-        for (int i=0; i<a.length; i++)
-            b[i/4] += (a[i]&0xFF) << ((i%4)*8);
+    public static int[] toIntArray(BigInteger a) {
+        byte[] aArr = a.toByteArray();
+        int[] b = new int[(aArr.length+3)/4];
+        for (int i=0; i<aArr.length; i++)
+            b[i/4] += (aArr[aArr.length-1-i]&0xFF) << ((i%4)*8);
         return b;
     }
     
     /**
-     * Converts a <code>int</code> array to an <code>byte</code> array,
-     * creating four bytes for each <code>int</code>.
+     * Converts a <code>int</code> array to a {@link BigInteger}.
      * @param a
-     * @return
+     * @return the <code>BigInteger</code> representation of the array
      */
-    public static byte[] toByteArray(int[] a) {
+    public static BigInteger toBigInteger(int[] a) {
         byte[] b = new byte[a.length*4];
         for (int i=0; i<a.length; i++) {
-            b[i*4] = (byte)(a[i] & 0xFF);
-            b[i*4+1] = (byte)((a[i]>>>8) & 0xFF);
-            b[i*4+2] = (byte)((a[i]>>>16) & 0xFF);
-            b[i*4+3] = (byte)(a[i] >>> 24);
+            int iRev = a.length - 1 - i;
+            b[i*4] = (byte)(a[iRev] >>> 24);
+            b[i*4+1] = (byte)((a[iRev]>>>16) & 0xFF);
+            b[i*4+2] = (byte)((a[iRev]>>>8) & 0xFF);
+            b[i*4+3] = (byte)(a[iRev] & 0xFF);
         }
-        return b;
-    }
-    
-    /**
-     * Reverses the order of bytes in a <code>byte</code> array
-     * and returns the result in a new array.
-     * @param a
-     * @return
-     */
-    public static byte[] reverse(byte[] a) {
-        byte[] b = new byte[a.length];
-        for (int i=0; i<a.length; i++)
-            b[i] = a[a.length-1-i];
-        return b;
+        return new BigInteger(1, b);
     }
 }

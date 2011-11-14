@@ -138,7 +138,7 @@ public class BigIntPolynomial {
         BigIntPolynomial cPoly = new BigIntPolynomial(N);
         for (int i=0; i<2*N-1; i++) {
             int[] coeffInt = Arrays.copyOfRange(cInt, i*k, (i+1)*k);
-            BigInteger coeff = new BigInteger(1, SchönhageStrassen.reverse(SchönhageStrassen.toByteArray(coeffInt)));
+            BigInteger coeff = SchönhageStrassen.toBigInteger(coeffInt);
             if (coeffInt[k-1] < 0) {   // if coeff > 2^(k-1)
                 coeff = coeff.subtract(_2k);
                 
@@ -170,7 +170,7 @@ public class BigIntPolynomial {
         
         int[] aInt = new int[N*k];
         for (int i=N-1; i>=0; i--) {
-            int[] cArr = SchönhageStrassen.toIntArray(SchönhageStrassen.reverse(a.coeffs[i].abs().toByteArray()));
+            int[] cArr = SchönhageStrassen.toIntArray(a.coeffs[i].abs());
             if (a.coeffs[i].signum()*sign < 0)
                 subShifted(aInt, cArr, i*k);
             else
