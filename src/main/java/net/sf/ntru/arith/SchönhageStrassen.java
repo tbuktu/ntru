@@ -452,7 +452,7 @@ public class SchönhageStrassen {
             int nmask = ~mask;   // the inverted bit mask
             for (int j=0; j<len; j+=2*slen) {
                 int idx = j;
-                int x = getOmegaExponent(n, v, idx+len, even);
+                int x = getDftExponent(n, v, idx+len, even);
                 
                 for (int k=slen-1; k>=0; k--) {
                     int[] d = cyclicShiftLeftBits(A[idx|mask], x);
@@ -480,7 +480,7 @@ public class SchönhageStrassen {
      * @param even
      * @return
      */
-    private static int getOmegaExponent(int n, int v, int idx, boolean even) {
+    private static int getDftExponent(int n, int v, int idx, boolean even) {
         int x;
         if (even) {
             x = Integer.reverse(idx >>> (n-v)) >>> (32-v);
@@ -519,20 +519,7 @@ public class SchönhageStrassen {
             for (int j=0; j<len; j+=2*slen) {
                 int idx = j;
                 int idx2 = idx + slen;   // idx2 is always idx+slen
-                int x;
-                if (even) {
-                    x = (Integer.reverse((idx+len)>>>(n-v)) + 1) >>> (32-v);
-                    x <<= n - v - 1;
-                    // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
-                    x *= 2;
-                }
-                else {
-                    x = (Integer.reverse((idx+len)>>>(n-v)) + 1) >>> (32-v-1);
-                    x <<= n - v - 1;
-                    if (even)
-                        x *= 2;   // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
-                }
-                x++;
+                int x = getIdftExponent(n, len, v, idx, even);
                 
                 for (int k=slen-1; k>=0; k--) {
                     int[] c = A[idx&nmask].clone();
@@ -551,6 +538,34 @@ public class SchönhageStrassen {
             v--;
             mask *= 2;
         }
+    }
+    
+    /**
+     * Returns the power to which to raise omega in an IDFT.<br/>
+     * Omega itself is either 2 or 4 depending on m, but when omega=4 this method
+     * doubles the exponent so omega can be assumed always to be 2 in a IDFT.
+     * @param n
+     * @param len
+     * @param v
+     * @param idx
+     * @param even
+     * @return
+     */
+    private static int getIdftExponent(int n, int len, int v, int idx, boolean even) {
+        int x;
+        if (even) {
+            x = (Integer.reverse((idx+len)>>>(n-v)) + 1) >>> (32-v);
+            x <<= n - v - 1;
+            // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
+            x *= 2;
+        }
+        else {
+            x = (Integer.reverse((idx+len)>>>(n-v)) + 1) >>> (32-v-1);
+            x <<= n - v - 1;
+            if (even)
+                x *= 2;   // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
+        }
+        return x + 1;
     }
     
     /**
