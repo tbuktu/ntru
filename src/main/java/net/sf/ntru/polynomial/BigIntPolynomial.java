@@ -24,11 +24,7 @@ import static java.math.BigInteger.ZERO;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.security.SecureRandom;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import net.sf.ntru.arith.SchönhageStrassen;
 import net.sf.ntru.exception.NtruException;
@@ -70,30 +66,6 @@ public class BigIntPolynomial {
         coeffs = new BigInteger[p.coeffs.length];
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] = BigInteger.valueOf(p.coeffs[i]);
-    }
-    
-    /**
-     * Generates a random polynomial with <code>numOnes</code> coefficients equal to 1,
-     * <code>numNegOnes</code> coefficients equal to -1, and the rest equal to 0.
-     * @param N number of coefficients
-     * @param numOnes number of 1's
-     * @param numNegOnes number of -1's
-     * @return
-     */
-    static BigIntPolynomial generateRandomSmall(int N, int numOnes, int numNegOnes) {
-        List<BigInteger> coeffs = new ArrayList<BigInteger>();
-        for (int i=0; i<numOnes; i++)
-            coeffs.add(ONE);
-        for (int i=0; i<numNegOnes; i++)
-            coeffs.add(BigInteger.valueOf(-1));
-        while (coeffs.size() < N)
-            coeffs.add(ZERO);
-        Collections.shuffle(coeffs, new SecureRandom());
-        
-        BigIntPolynomial poly = new BigIntPolynomial(N);
-        for (int i=0; i<coeffs.size(); i++)
-            poly.coeffs[i] = coeffs.get(i);
-        return poly;
     }
     
     /**
@@ -290,16 +262,6 @@ public class BigIntPolynomial {
     }
     
     /**
-     * Adds another polynomial which can have a different number of coefficients,
-     * and takes the coefficient values mod <code>modulus</code>.
-     * @param b another polynomial
-     */
-    void add(BigIntPolynomial b, BigInteger modulus) {
-        add(b);
-        mod(modulus);
-    }
-    
-    /**
      * Adds another polynomial which can have a different number of coefficients.
      * @param b another polynomial
      */
@@ -336,14 +298,6 @@ public class BigIntPolynomial {
     public void mult(BigInteger factor) {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] = coeffs[i].multiply(factor);
-    }
-    
-    /**
-     * Multiplies each coefficient by a <code>int</code>. Does not return a new polynomial but modifies this polynomial.
-     * @param factor
-     */
-    void mult(int factor) {
-        mult(BigInteger.valueOf(factor));
     }
     
     /**
