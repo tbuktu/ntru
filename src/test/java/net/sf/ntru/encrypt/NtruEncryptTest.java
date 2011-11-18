@@ -20,6 +20,7 @@ package net.sf.ntru.encrypt;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.fail;
 import net.sf.ntru.encrypt.EncryptionParameters.TernaryPolynomialType;
 import net.sf.ntru.exception.NtruException;
@@ -156,5 +157,21 @@ public class NtruEncryptTest {
         byte[] encrypted = ntru.encrypt(plainText, kp.pub);
         byte[] decrypted = ntru.decrypt(encrypted, kp);
         assertArrayEquals(plainText, decrypted);
+    }
+    
+    // tests key pair generation from a passphrase
+    @Test
+    public void testGenerateKeyPair() {
+        EncryptionParameters params = EncryptionParameters.APR2011_743_FAST;
+        NtruEncrypt ntru = new NtruEncrypt(params);
+        char[] passphrase = "password123".toCharArray();
+        byte[] salt = ntru.generateSalt();
+        EncryptionKeyPair kp1 = ntru.generateKeyPair(passphrase, salt);
+        EncryptionKeyPair kp2 = ntru.generateKeyPair(passphrase, salt);
+        assertEquals(kp1, kp2);
+        
+        salt = ntru.generateSalt();
+        EncryptionKeyPair kp3 = ntru.generateKeyPair(passphrase, salt);
+        assertFalse(kp1.equals(kp3));
     }
 }

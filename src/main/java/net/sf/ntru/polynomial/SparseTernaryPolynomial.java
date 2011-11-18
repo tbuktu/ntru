@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.Random;
 
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.util.ArrayEncoder;
@@ -116,9 +117,10 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
      * @param N number of coefficients
      * @param numOnes number of 1's
      * @param numNegOnes number of -1's
+     * @param rng the random number generator to use
      */
-    public static SparseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes) {
-        int[] coeffs = PolynomialGenerator.generateRandomTernary(N, numOnes, numNegOnes);
+    public static SparseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes, Random rng) {
+        int[] coeffs = PolynomialGenerator.generateRandomTernary(N, numOnes, numNegOnes, rng);
         return new SparseTernaryPolynomial(coeffs);
     }
     

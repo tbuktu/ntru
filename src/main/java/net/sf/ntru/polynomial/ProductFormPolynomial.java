@@ -22,6 +22,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Random;
 
 import net.sf.ntru.exception.NtruException;
 
@@ -38,10 +39,10 @@ public class ProductFormPolynomial implements Polynomial {
         this.f3 = f3;
     }
     
-    public static ProductFormPolynomial generateRandom(int N, int df1, int df2, int df3Ones, int df3NegOnes) {
-        SparseTernaryPolynomial f1 = SparseTernaryPolynomial.generateRandom(N, df1, df1);
-        SparseTernaryPolynomial f2 = SparseTernaryPolynomial.generateRandom(N, df2, df2);
-        SparseTernaryPolynomial f3 = SparseTernaryPolynomial.generateRandom(N, df3Ones, df3NegOnes);
+    public static ProductFormPolynomial generateRandom(int N, int df1, int df2, int df3Ones, int df3NegOnes, Random rng) {
+        SparseTernaryPolynomial f1 = SparseTernaryPolynomial.generateRandom(N, df1, df1, rng);
+        SparseTernaryPolynomial f2 = SparseTernaryPolynomial.generateRandom(N, df2, df2, rng);
+        SparseTernaryPolynomial f3 = SparseTernaryPolynomial.generateRandom(N, df3Ones, df3NegOnes, rng);
         return new ProductFormPolynomial(f1, f2, f3);
     }
     

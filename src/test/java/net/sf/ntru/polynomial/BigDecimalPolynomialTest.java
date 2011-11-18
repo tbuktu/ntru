@@ -21,6 +21,8 @@ package net.sf.ntru.polynomial;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.security.SecureRandom;
+
 import net.sf.ntru.polynomial.BigDecimalPolynomial;
 import net.sf.ntru.polynomial.BigIntPolynomial;
 import net.sf.ntru.polynomial.DenseTernaryPolynomial;
@@ -39,8 +41,9 @@ public class BigDecimalPolynomialTest {
         
         // multiply a polynomial by its inverse modulo 2048 and check that the result is 1
         IntegerPolynomial d, dInv;
+        SecureRandom rng = new SecureRandom();
         do {
-            d = DenseTernaryPolynomial.generateRandom(1001, 333, 334);
+            d = DenseTernaryPolynomial.generateRandom(1001, 333, 334, rng);
             dInv = d.invertFq(2048);
         } while (dInv == null);
         d.mod(2048);

@@ -22,6 +22,8 @@ import static org.junit.Assert.assertEquals;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.security.SecureRandom;
+import java.util.Random;
 
 import org.junit.Test;
 
@@ -30,7 +32,8 @@ public class SparseTernaryPolynomialTest {
     /** tests mult(IntegerPolynomial) and mult(BigIntPolynomial) */
     @Test
     public void testMult() {
-        SparseTernaryPolynomial p1 = SparseTernaryPolynomial.generateRandom(1000, 500, 500);
+        Random rng = new SecureRandom();
+        SparseTernaryPolynomial p1 = SparseTernaryPolynomial.generateRandom(1000, 500, 500, rng);
         IntegerPolynomial p2 = DenseTernaryPolynomial.generateRandom(1000);
         
         IntegerPolynomial prod1 = p1.mult(p2);
@@ -45,7 +48,8 @@ public class SparseTernaryPolynomialTest {
     
     @Test
     public void testFromToBinary() throws IOException {
-        SparseTernaryPolynomial poly1 = SparseTernaryPolynomial.generateRandom(1000, 100, 101);
+        Random rng = new SecureRandom();
+        SparseTernaryPolynomial poly1 = SparseTernaryPolynomial.generateRandom(1000, 100, 101, rng);
         ByteArrayInputStream poly1Stream = new ByteArrayInputStream(poly1.toBinary());
         SparseTernaryPolynomial poly2 = SparseTernaryPolynomial.fromBinary(poly1Stream, 1000, 100, 101);
         assertEquals(poly1, poly2);

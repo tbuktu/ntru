@@ -19,6 +19,10 @@
 package net.sf.ntru.polynomial;
 
 import static org.junit.Assert.assertEquals;
+
+import java.security.SecureRandom;
+import java.util.Random;
+
 import net.sf.ntru.encrypt.EncryptionParameters;
 
 import org.junit.Before;
@@ -31,6 +35,7 @@ public class ProductFormPolynomialTest {
     private int df2;
     private int df3;
     private int q;
+    private Random rng;
     
     @Before
     public void setUp() {
@@ -40,11 +45,12 @@ public class ProductFormPolynomialTest {
         df2 = params.df2;
         df3 = params.df3;
         q = params.q;
+        rng = new SecureRandom();
     }
     
     @Test
     public void testFromToBinary() {
-        ProductFormPolynomial p1 = ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1);
+        ProductFormPolynomial p1 = ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1, rng);
         byte[] bin1 = p1.toBinary();
         ProductFormPolynomial p2 = ProductFormPolynomial.fromBinary(bin1, N, df1, df2, df3, df3-1);
         assertEquals(p1, p2);
@@ -52,7 +58,7 @@ public class ProductFormPolynomialTest {
     
     @Test
     public void testMult() {
-        ProductFormPolynomial p1 = ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1);
+        ProductFormPolynomial p1 = ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1, rng);
         IntegerPolynomial p2 = PolynomialGeneratorForTesting.generateRandom(N, q);
         IntegerPolynomial p3 = p1.mult(p2);
         IntegerPolynomial p4 = p1.toIntegerPolynomial().mult(p2);

@@ -20,6 +20,7 @@ package net.sf.ntru.polynomial;
 
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Random;
 
 import net.sf.ntru.exception.NtruException;
 
@@ -67,9 +68,10 @@ public class DenseTernaryPolynomial extends IntegerPolynomial implements Ternary
      * @param N number of coefficients
      * @param numOnes number of 1's
      * @param numNegOnes number of -1's
+     * @param rng the random number generator to use
      */
-    public static DenseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes) {
-        int[] coeffs = PolynomialGenerator.generateRandomTernary(N, numOnes, numNegOnes);
+    public static DenseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes, Random rng) {
+        int[] coeffs = PolynomialGenerator.generateRandomTernary(N, numOnes, numNegOnes, rng);
         return new DenseTernaryPolynomial(coeffs);
     }
     

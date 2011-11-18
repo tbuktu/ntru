@@ -18,10 +18,10 @@
 
 package net.sf.ntru.polynomial;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 /** Static utility class */
 public class PolynomialGenerator {
@@ -35,13 +35,14 @@ public class PolynomialGenerator {
      * @param numOnes
      * @param numNegOnes
      * @param sparse whether to create a {@link SparseTernaryPolynomial} or {@link DenseTernaryPolynomial}
+     * @param rng the random number generator to use
      * @return a ternary polynomial
      */
-    public static TernaryPolynomial generateRandomTernary(int N, int numOnes, int numNegOnes, boolean sparse) {
+    public static TernaryPolynomial generateRandomTernary(int N, int numOnes, int numNegOnes, boolean sparse, Random rng) {
         if (sparse)
-            return SparseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes);
+            return SparseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes, rng);
         else
-            return DenseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes);
+            return DenseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes, rng);
     }
     
     /**
@@ -50,9 +51,10 @@ public class PolynomialGenerator {
      * @param N
      * @param numOnes
      * @param numNegOnes
+     * @param rng the random number generator to use
      * @return an array of integers
      */
-    public static int[] generateRandomTernary(int N, int numOnes, int numNegOnes) {
+    public static int[] generateRandomTernary(int N, int numOnes, int numNegOnes, Random rng) {
         List<Integer> list = new ArrayList<Integer>();
         for (int i=0; i<numOnes; i++)
             list.add(1);
@@ -60,7 +62,7 @@ public class PolynomialGenerator {
             list.add(-1);
         while (list.size() < N)
             list.add(0);
-        Collections.shuffle(list, new SecureRandom());
+        Collections.shuffle(list, rng);
         
         int[] arr = new int[N];
         for (int i=0; i<N; i++)

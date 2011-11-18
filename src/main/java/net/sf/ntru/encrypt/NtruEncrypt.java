@@ -23,6 +23,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -57,7 +58,7 @@ public class NtruEncrypt {
      * @return a key pair
      */
     public EncryptionKeyPair generateKeyPair() {
-        return generateKeyPair(true);
+        return generateKeyPair(new SecureRandom(), true);
     }
     
     /**
@@ -65,15 +66,57 @@ public class NtruEncrypt {
      * @return a key pair
      */
     public EncryptionKeyPair generateKeyPairSingleThread() {
-        return generateKeyPair(false);
+        return generateKeyPair(new SecureRandom(), false);
+    }
+    
+    /**
+     * Generates an encryption key pair from a passphrase using two threads if possible.<br/>
+     * Invoking this method with the same passphrase and salt will always return the
+     * same key pair.
+     * @param passphrase
+     * @param salt salt for the passphrase; can be <code>null</code> but this is strongly discouraged
+     * @return a key pair
+     */
+    public EncryptionKeyPair generateKeyPair(char[] passphrase, byte[] salt) {
+        PassphraseBasedPRNG rng = new PassphraseBasedPRNG(passphrase, salt);
+        return generateKeyPair(rng, rng.createBranch(), true);
+    }
+    
+    /**
+     * Generates an encryption key pair from a passphrase in a single thread.<br/>
+     * Invoking this method with the same passphrase and salt will always return the
+     * same key pair.
+     * @param passphrase
+     * @param salt salt for the passphrase; can be <code>null</code> but this is strongly discouraged
+     * @return a key pair
+     */
+    public EncryptionKeyPair generateKeyPairSingleThread(char[] passphrase, byte[] salt) {
+        Random rng = new PassphraseBasedPRNG(passphrase, salt);
+        return generateKeyPair(rng, false);
+    }
+    
+    /**
+     * A convenience method that generates a random 128-bit salt vector for key pair generation.
+     * @return a new salt vector
+     */
+    public byte[] generateSalt() {
+        byte[] salt = new byte[16];
+        new SecureRandom().nextBytes(salt);
+        return salt;
+    }
+    
+    private EncryptionKeyPair generateKeyPair(Random rng, boolean multiThread) {
+        return generateKeyPair(rng, rng, multiThread);
     }
     
     /**
      * Generates a new encryption key pair.
+     * @param rngf the random number generator to use for generating the secret polynomial f
+     * @param rngg the random number generator to use for generating the secret polynomial g
      * @param multiThread whether to use two threads; only has an effect if more than one virtual processor is available
      * @return a key pair
      */
-    private EncryptionKeyPair generateKeyPair(boolean multiThread) {
+    private EncryptionKeyPair generateKeyPair(Random rngf, final Random rngg, boolean multiThread) {
         int N = params.N;
         int q = params.q;
         int df = params.df;
@@ -94,7 +137,7 @@ public class NtruEncrypt {
             Callable<IntegerPolynomial> gTask = new Callable<IntegerPolynomial>() {
                 @Override
                 public IntegerPolynomial call() {
-                    return generateG();
+                    return generateG(rngg);
                 }
             };
             ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -102,7 +145,7 @@ public class NtruEncrypt {
             executor.shutdown();
         }
         else
-            g = generateG();
+            g = generateG(rngg);
 
         // choose a random f that is invertible mod 3 and q
         while (true) {
@@ -111,13 +154,13 @@ public class NtruEncrypt {
             // choose random t, calculate f and fp
             if (fastFp) {
                 // if fastFp=true, f is always invertible mod 3
-                t = params.polyType==TernaryPolynomialType.SIMPLE ? PolynomialGenerator.generateRandomTernary(N, df, df, sparse) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3);
+                t = params.polyType==TernaryPolynomialType.SIMPLE ? PolynomialGenerator.generateRandomTernary(N, df, df, sparse, rngf) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3, rngf);
                 f = t.toIntegerPolynomial();
                 f.mult(3);
                 f.coeffs[0] += 1;
             }
             else {
-                t = params.polyType==TernaryPolynomialType.SIMPLE ? PolynomialGenerator.generateRandomTernary(N, df, df-1, sparse) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1);
+                t = params.polyType==TernaryPolynomialType.SIMPLE ? PolynomialGenerator.generateRandomTernary(N, df, df-1, sparse, rngf) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1, rngf);
                 f = t.toIntegerPolynomial();
                 fp = f.invertF3();
                 if (fp == null)
@@ -159,13 +202,13 @@ public class NtruEncrypt {
      * Generates the ephemeral secret polynomial <code>g</code>.
      * @return
      */
-    private IntegerPolynomial generateG() {
+    private IntegerPolynomial generateG(Random rng) {
         final int N = params.N;
         final int q = params.q;
         int dg = params.dg;
         
         while (true) {
-            DenseTernaryPolynomial g = DenseTernaryPolynomial.generateRandom(N, dg, dg-1);
+            DenseTernaryPolynomial g = DenseTernaryPolynomial.generateRandom(N, dg, dg-1, rng);
             if (g.invertFq(q) != null)
                 return g;
         }

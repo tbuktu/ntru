@@ -26,8 +26,10 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -375,9 +377,10 @@ public class NtruSign {
         int _2n1 = 2*N+1;
         boolean primeCheck = params.primeCheck;
         
+        Random rng = new SecureRandom();
         do {
             do {
-                f = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, d+1, d) : ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3);
+                f = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, d+1, d, rng) : ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3, rng);
                 fInt = f.toIntegerPolynomial();
             } while (primeCheck && fInt.resultant(_2n1).res.equals(ZERO));
             fq = fInt.invertFq(q);
@@ -387,7 +390,7 @@ public class NtruSign {
         do {
             do {
                 do {
-                    g = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, d+1, d) : ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3);
+                    g = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, d+1, d, rng) : ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3, rng);
                     gInt = g.toIntegerPolynomial();
                 } while (primeCheck && gInt.resultant(_2n1).res.equals(ZERO));
             } while (gInt.invertFq(q) == null);

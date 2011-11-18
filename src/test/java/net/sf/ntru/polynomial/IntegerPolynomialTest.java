@@ -24,11 +24,9 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.math.BigInteger;
+import java.security.SecureRandom;
 import java.util.Arrays;
 
-import net.sf.ntru.polynomial.BigIntPolynomial;
-import net.sf.ntru.polynomial.DenseTernaryPolynomial;
-import net.sf.ntru.polynomial.IntegerPolynomial;
 import net.sf.ntru.sign.SignatureParameters;
 
 import org.junit.Test;
@@ -162,7 +160,7 @@ public class IntegerPolynomialTest {
     @Test
     public void testResultant() {
         SignatureParameters params = SignatureParameters.APR2011_439;
-        IntegerPolynomial a = DenseTernaryPolynomial.generateRandom(params.N, params.d, params.d);
+        IntegerPolynomial a = DenseTernaryPolynomial.generateRandom(params.N, params.d, params.d, new SecureRandom());
         verifyResultant(a, a.resultant());
         
         a = new IntegerPolynomial(new int[] {0, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, 0, 0, 0, 0, 1, -1, 0, 0, -1, 0, 0, 0, 1, 0, 0, 0, -1, -1, 0, -1, 1, -1, 0, -1, 0, -1, -1, -1, 0, 0, 0, 1, 1, -1, -1, -1, 0, -1, -1, 0, 0, 1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 1, 1, -1, 0, 1, -1, 0, 1, 0, 1, 0, -1, -1, 0, 1, 0, -1, 1, 1, 1, 1, 0, 0, -1, -1, 1, 0, 0, -1, -1, 0, -1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, 0, 0, -1, 0, 0, 0, 1, 0, 1, 0, 1, -1, 0, 0, 1, 1, 1, 0, 0, 0, -1, 0, 0, 0, 0, 1, 0, 1, 0, -1, -1, 0, -1, -1, -1, 0, -1, -1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 1, -1, 0, 1, 0, -1, 0, 0, 0, 0, 0, 0, -1, -1, 0, -1, -1, 1, 1, 0, 0, -1, 1, 0, 0, 0, -1, 1, -1, 0, -1, 0, 0, 0, -1, 0, 0, 0, 0, 0, -1, 1, 1, 0, 0, -1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 1, -1, 0, 1, 0, -1, -1, 0, 0, 0, 0, 0, 1, -1, 0, 0, 0, 1, -1, 1, -1, -1, 1, -1, 0, 1, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, -1, 0, 1, 0, -1, 0, 1, -1, 0, 0, 1, 1, 0, 0, 1, 1, 0, -1, 0, -1, 1, -1, -1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, -1, 0, 0, 1, -1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, -1, 1, 0, -1, -1, 0, 0, -1, 0, 1, 1, -1, 1, -1, 0, 0, 0, 1});

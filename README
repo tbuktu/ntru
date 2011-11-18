@@ -104,6 +104,14 @@ Key Import / Export
   like keys they have a constructor that takes an InputStream.
 
   Keys can also be converted to and from byte arrays.
+  
+  NTRUEncrypt keys (but not NTRUSign keys) can be created from a passphrase
+  by calling generateKeyPair(char[], byte[]) with a passphrase and a salt
+  value. The passphrase is a char array rather than a string so it can be
+  cleared from memory when it is no longer needed.
+  The salt parameter makes attacks using precomputed keys harder. It should be
+  a random value that is generated once and stored. The method generateSalt()
+  can be used to generate a salt value.
 
 
 Parameter Sets
