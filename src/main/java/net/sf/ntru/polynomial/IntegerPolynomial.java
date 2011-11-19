@@ -867,7 +867,7 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Multiplies each coefficient by a 2 and applies a modulus. Does not return a new polynomial but modifies this polynomial.
+     * Multiplies each coefficient by 2 and applies a modulus. Does not return a new polynomial but modifies this polynomial.
      * @param modulus a modulus
      */
     private void mult2(int modulus) {
@@ -878,10 +878,14 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Multiplies each coefficient by a 2 and applies a modulus. Does not return a new polynomial but modifies this polynomial.
+     * Multiplies each coefficient by 3 and applies a modulus. Does not return a new polynomial but modifies this polynomial.
      * @param modulus a modulus
      */
     public void mult3(int modulus) {
+        if (modulus == 2048)
+          for (int i=0; i<coeffs.length; i++)
+              coeffs[i] = (coeffs[i]*3) & 2047;
+
         for (int i=0; i<coeffs.length; i++) {
             coeffs[i] *= 3;
             coeffs[i] %= modulus;
@@ -918,18 +922,32 @@ public class IntegerPolynomial implements Polynomial {
      * @param modulus a modulus
      */
     public void modPositive(int modulus) {
-        mod(modulus);
-        ensurePositive(modulus);
+        if (modulus == 2048)
+            for (int i=0; i<coeffs.length; i++)
+                coeffs[i] &= 2047;
+        else {
+            mod(modulus);
+            ensurePositive(modulus);
+        }
     }
     
     /** Reduces all coefficients to the interval [-modulus/2, modulus/2) */
     void modCenter(int modulus) {
-        mod(modulus);
-        for (int j=0;j<coeffs.length;j++){
-            while (coeffs[j] < modulus/2)
-                coeffs[j] += modulus;
-            while (coeffs[j] >= modulus/2)
-                coeffs[j]-=modulus;
+        if (modulus == 2048)
+            for (int i=0; i<coeffs.length; i++) {
+                int c = coeffs[i] & 2047;
+                if (c >= 1024)
+                    c -= 2048;
+                coeffs[i] = c;
+            }
+        else {
+            mod(modulus);
+            for (int j=0;j<coeffs.length;j++){
+                while (coeffs[j] < modulus/2)
+                    coeffs[j] += modulus;
+                while (coeffs[j] >= modulus/2)
+                    coeffs[j]-=modulus;
+            }
         }
     }
     
@@ -937,8 +955,12 @@ public class IntegerPolynomial implements Polynomial {
      * Takes each coefficient modulo <code>modulus</code>.
      */
     void mod(int modulus) {
-        for (int i=0; i<coeffs.length; i++)
-            coeffs[i] %= modulus;
+        if (modulus == 2048)
+            for (int i=0; i<coeffs.length; i++)
+                coeffs[i] &= 2047;
+        else
+            for (int i=0; i<coeffs.length; i++)
+                coeffs[i] %= modulus;
     }
     
     /**
@@ -954,9 +976,13 @@ public class IntegerPolynomial implements Polynomial {
      * @param modulus a modulus
      */
     public void ensurePositive(int modulus) {
-        for (int i=0; i<coeffs.length; i++)
-            while (coeffs[i] < 0)
-                coeffs[i] += modulus;
+        if (modulus == 2048)
+            for (int i=0; i<coeffs.length; i++)
+                coeffs[i] &= 2047;
+        else
+            for (int i=0; i<coeffs.length; i++)
+                while (coeffs[i] < 0)
+                    coeffs[i] += modulus;
     }
     
     /**
@@ -1017,12 +1043,20 @@ public class IntegerPolynomial implements Polynomial {
      * @param q a modulus
      */
     public void center0(int q) {
-        for (int i=0; i<coeffs.length; i++) {
-            while (coeffs[i] < -q/2)
-                coeffs[i] += q;
-            while (coeffs[i] > q/2)
-                coeffs[i] -= q;
-        }
+        if (q == 2048)
+            for (int i=0; i<coeffs.length; i++) {
+                int c = coeffs[i] & 2047;
+                if (c >= 1024)
+                    c -= 2048;
+                coeffs[i] = c;
+            }
+        else
+            for (int i=0; i<coeffs.length; i++) {
+                while (coeffs[i] < -q/2)
+                    coeffs[i] += q;
+                while (coeffs[i] > q/2)
+                    coeffs[i] -= q;
+            }
     }
     
     /**
