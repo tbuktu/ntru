@@ -233,18 +233,15 @@ public class SchönhageStrassen {
         boolean even = m%2 == 0;
         int len = A.length;
         int v = 1;
-        int mask = len / 2;   // masks the current bit
         
         for (int slen=len/2; slen>0; slen/=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
-            int nmask = ~mask;   // the inverted bit mask
             for (int j=0; j<len; j+=2*slen) {
                 int idx = j;
                 int x = getDftExponent(n, v, idx+len, even);
                 
                 for (int k=slen-1; k>=0; k--) {
-                    int[] d = cyclicShiftLeftBits(A[idx|mask], x);
-                    int[] c = A[idx&nmask];
-                    A[idx] = c.clone();
+                    int[] d = cyclicShiftLeftBits(A[idx+slen], x);
+                    int[] c = A[idx].clone();
                     addModFn(A[idx], d);
                     subModFn(c, d, 1<<n);
                     A[idx+slen] = c;
@@ -253,7 +250,6 @@ public class SchönhageStrassen {
             }
             
             v++;
-            mask /= 2;
         }
     }
     
@@ -300,30 +296,25 @@ public class SchönhageStrassen {
         boolean even = m%2 == 0;
         int len = A.length;
         int v = n - 1;
-        int mask = 1;   // masks the current bit
         for (int slen=1; slen<=len/2; slen*=2) {   // slen = #consecutive coefficients for which the sign (add/sub) and x are constant
-            int nmask = ~mask;   // the inverted bit mask
             for (int j=0; j<len; j+=2*slen) {
                 int idx = j;
                 int idx2 = idx + slen;   // idx2 is always idx+slen
                 int x = getIdftExponent(n, len, v, idx, even);
                 
                 for (int k=slen-1; k>=0; k--) {
-                    int[] c = A[idx&nmask].clone();
-                    int[] d = A[idx|mask];
-                    addModFn(A[idx], d);
+                    int[] c = A[idx].clone();
+                    addModFn(A[idx], A[idx2]);
                     A[idx] = cyclicShiftRight(A[idx], 1);
                     
-                    subModFn(c, d, 1<<n);
-                    A[idx2] = c;
-                    A[idx2] = cyclicShiftRight(A[idx2], x);
+                    subModFn(c, A[idx2], 1<<n);
+                    A[idx2] = cyclicShiftRight(c, x);
                     idx++;
                     idx2++;
                 }
             }
             
             v--;
-            mask *= 2;
         }
     }
     
