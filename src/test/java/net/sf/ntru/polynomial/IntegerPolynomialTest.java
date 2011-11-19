@@ -34,6 +34,12 @@ import org.junit.Test;
 public class IntegerPolynomialTest {
     
     @Test
+    public void testToBinary4() {
+        IntegerPolynomial a = PolynomialGeneratorForTesting.generateRandom(743, 2048);
+        assertArrayEquals(a.toBinary(4), a.toBinary4());
+    }
+    
+    @Test
     public void testMult() {
         // multiplication modulo q
         IntegerPolynomial a = new IntegerPolynomial(new int[] {-1, 1, 1, 0, -1, 0, 1, 0, 0, 1, -1});
