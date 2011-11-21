@@ -42,13 +42,17 @@ public class SchönhageStrassenTest {
         testMult(BigInteger.valueOf(415338904376L), BigInteger.valueOf(527401434558L));
         testMult(new BigInteger("9145524700683826415"), new BigInteger("1786442289234590209543"));
         
-        testMult(BigInteger.valueOf(1).shiftLeft(524287), BigInteger.valueOf(1).shiftLeft(1024).subtract(BigInteger.ONE));
-        testMult(BigInteger.valueOf(1).shiftLeft(524287), BigInteger.valueOf(1).shiftLeft(524287));
-        testMult(BigInteger.valueOf(1).shiftLeft(524287), BigInteger.valueOf(1).shiftLeft(524287).subtract(BigInteger.ONE));
-        testMult(BigInteger.valueOf(1).shiftLeft(524287), BigInteger.valueOf(1).shiftLeft(524287).add(BigInteger.ONE));
-        testMult(BigInteger.valueOf(1).shiftLeft(524288), BigInteger.valueOf(1).shiftLeft(524288));
-        testMult(BigInteger.valueOf(1).shiftLeft(524288), BigInteger.valueOf(1).shiftLeft(524288).subtract(BigInteger.ONE));
-        testMult(BigInteger.valueOf(1).shiftLeft(524288), BigInteger.valueOf(1).shiftLeft(524288).add(BigInteger.ONE));
+        BigInteger pow19_1 = BigInteger.valueOf(1).shiftLeft((1<<19)-1);   // 2^(2^19-1)
+        BigInteger pow20_2 = BigInteger.valueOf(1).shiftLeft((1<<20)-2);   // 2^(2^20-2)
+        BigInteger pow19 = BigInteger.valueOf(1).shiftLeft(1<<19);   // 2^2^19
+        BigInteger pow20 = BigInteger.valueOf(1).shiftLeft(1<<20);   // 2^2^20
+        assertEquals(pow19_1.shiftLeft(1024).subtract(pow19_1), SchönhageStrassen.mult(pow19_1, BigInteger.valueOf(1).shiftLeft(1024).subtract(BigInteger.ONE)));
+        assertEquals(pow20_2, SchönhageStrassen.mult(pow19_1, pow19_1));
+        assertEquals(pow20_2.subtract(pow19_1), SchönhageStrassen.mult(pow19_1, pow19_1.subtract(BigInteger.ONE)));
+        assertEquals(pow20_2.add(pow19_1), SchönhageStrassen.mult(pow19_1, pow19_1.add(BigInteger.ONE)));
+        assertEquals(pow20, SchönhageStrassen.mult(pow19, pow19));
+        assertEquals(pow20.subtract(pow19), SchönhageStrassen.mult(pow19, pow19.subtract(BigInteger.ONE)));
+        assertEquals(pow20.add(pow19), SchönhageStrassen.mult(pow19, pow19.add(BigInteger.ONE)));
         
         Random rng = new Random();
         testMult(BigInteger.valueOf(rng.nextInt(1000000000)+524288), BigInteger.valueOf(rng.nextInt(1000000000)+524288));
