@@ -29,11 +29,6 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import net.sf.ntru.arith.BigIntEuclidean;
 import net.sf.ntru.arith.IntEuclidean;
@@ -625,77 +620,6 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Multithreaded version of {@link #resultant()}.
-     * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1)</code> for some integer <code>t</code>.
-     */
-    public Resultant resultantMultiThread() {
-        int N = coeffs.length;
-        
-        // upper bound for resultant(f, g) = ||f, 2||^deg(g) * ||g, 2||^deg(f) = squaresum(f)^(N/2) * 2^(deg(f)/2) because g(x)=x^N-1
-        // see http://jondalon.mathematik.uni-osnabrueck.de/staff/phpages/brunsw/CompAlg.pdf chapter 3
-        BigInteger max = squareSum().pow((N+1)/2);
-        max = max.multiply(BigInteger.valueOf(2).pow((degree()+1)/2));
-        BigInteger max2 = max.multiply(BigInteger.valueOf(2));
-        
-        // compute resultants modulo prime numbers
-        BigInteger prime = BigInteger.valueOf(10000);
-        BigInteger pProd = ONE;
-        LinkedBlockingQueue<Future<ModularResultant>> resultantTasks = new LinkedBlockingQueue<Future<ModularResultant>>();
-        Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        while (pProd.compareTo(max2) < 0) {
-            if (primes.hasNext())
-                prime = primes.next();
-            else
-                prime = prime.nextProbablePrime();
-            Future<ModularResultant> task = executor.submit(new ModResultantTask(prime.intValue()));
-            resultantTasks.add(task);
-            pProd = pProd.multiply(prime);
-        }
-        
-        // Combine modular resultants to obtain the resultant.
-        // For efficiency, first combine all pairs of small resultants to bigger resultants,
-        // then combine pairs of those, etc. until only one is left.
-        ModularResultant overallResultant = null;
-        while (!resultantTasks.isEmpty()) {
-            try {
-                Future<ModularResultant> modRes1 = resultantTasks.take();
-                Future<ModularResultant> modRes2 = resultantTasks.poll();
-                if (modRes2 == null) {
-                    // modRes1 is the only one left
-                    overallResultant = modRes1.get();
-                    break;
-                }
-                Future<ModularResultant> newTask = executor.submit(new CombineTask(modRes1.get(), modRes2.get()));
-                resultantTasks.add(newTask);
-            } catch (Exception e) {
-                throw new NtruException(e);
-            }
-        }
-        executor.shutdown();
-        BigInteger res = overallResultant.res;
-        BigIntPolynomial rhoP = overallResultant.rho;
-        
-        BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
-        BigInteger pProd2n = pProd2.negate();
-        
-        if (res.compareTo(pProd2) > 0)
-            res = res.subtract(pProd);
-        if (res.compareTo(pProd2n) < 0)
-            res = res.add(pProd);
-        
-        for (int i=0; i<N; i++) {
-            BigInteger c = rhoP.coeffs[i];
-            if (c.compareTo(pProd2) > 0)
-                rhoP.coeffs[i] = c.subtract(pProd);
-            if (c.compareTo(pProd2n) < 0)
-                rhoP.coeffs[i] = c.add(pProd);
-        }
-
-        return new Resultant(rhoP, res);
-    }
-    
-    /**
      * Resultant of this polynomial with <code>x^n-1 mod p</code>.<br/>
      * @return <code>(rho, res)</code> satisfying <code>res = rho*this + t*(x^n-1) mod p</code> for some integer <code>t</code>.
      */
@@ -1147,35 +1071,5 @@ public class IntegerPolynomial implements Polynomial {
             return Arrays.equals(coeffs, ((IntegerPolynomial)obj).coeffs);
         else
             return false;
-    }
-    
-    /** Calls {@link IntegerPolynomial#resultant(int) */
-    private class ModResultantTask implements Callable<ModularResultant> {
-        private int modulus;
-        
-        private ModResultantTask(int modulus) {
-            this.modulus = modulus;
-        }
-
-        @Override
-        public ModularResultant call() {
-            return resultant(modulus);
-        }
-    }
-    
-    /** Calls {@link IntegerPolynomial#combine(ModularResultant, ModularResultant) */
-    private class CombineTask implements Callable<ModularResultant> {
-        private ModularResultant modRes1;
-        private ModularResultant modRes2;
-
-        private CombineTask(ModularResultant modRes1, ModularResultant modRes2) {
-            this.modRes1 = modRes1;
-            this.modRes2 = modRes2;
-        }
-        
-        @Override
-        public ModularResultant call() {
-            return ModularResultant.combineRho(modRes1, modRes2);
-        }
     }
 }
