@@ -60,6 +60,8 @@ public class Timings {
         
         NtruEncrypt ntruEncrypt = new NtruEncrypt(EncryptionParameters.APR2011_439_FAST);
         NtruSign ntruSign = new NtruSign(SignatureParameters.APR2011_439_PROD);
+        System.out.printf(" %10dx%10dx%10dx%10dx%10dx%10dx", NUM_ENC_KEY_GEN, NUM_ENCRYPT, NUM_DECRYPT, NUM_SIG_KEY_GEN, NUM_SIGN, NUM_VERIFY);
+        System.out.println();
         System.out.println("   EncKeyGen    Encrypt    Decrypt  SigKeyGen       Sign     Verify      Total");
         System.out.println();
         for (int i=0; i<iterations; i++) {
