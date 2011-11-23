@@ -43,10 +43,10 @@ public class BigIntPolynomialTest {
         BigInteger[] bCoeffs = new BigInteger[aCoeffs.length];
         for (int i=0; i<3; i++) {
             for (int j=0; j<aCoeffs.length; j++) {
-                byte[] aArr = new byte[400+rng.nextInt(100)];
+                byte[] aArr = new byte[600+rng.nextInt(100)];
                 rng.nextBytes(aArr);
                 aCoeffs[j] = new BigInteger(aArr);
-                byte[] bArr = new byte[400+rng.nextInt(100)];
+                byte[] bArr = new byte[600+rng.nextInt(100)];
                 rng.nextBytes(bArr);
                 bCoeffs[j] = new BigInteger(bArr);
             }
