@@ -113,7 +113,7 @@ public class BigDecimalPolynomial {
         return c;
     }
     
-    /** Karazuba multiplication */
+    /** Karatsuba multiplication */
     private BigDecimalPolynomial multRecursive(BigDecimalPolynomial poly2) {
         BigDecimal[] a = coeffs;
         BigDecimal[] b = poly2.coeffs;

@@ -219,7 +219,7 @@ public class BigIntPolynomial {
         return c;
     }
     
-    /** Karazuba multiplication */
+    /** Karatsuba multiplication */
     private BigIntPolynomial multRecursive(BigIntPolynomial poly2) {
         BigInteger[] a = coeffs;
         BigInteger[] b = poly2.coeffs;

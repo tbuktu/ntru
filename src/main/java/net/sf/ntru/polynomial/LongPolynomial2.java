@@ -100,7 +100,7 @@ class LongPolynomial2 {
         return new IntegerPolynomial(intCoeffs);
     }
 
-    /** Karazuba multiplication */
+    /** Karatsuba multiplication */
     private LongPolynomial2 multRecursive(LongPolynomial2 poly2) {
         long[] a = coeffs;
         long[] b = poly2.coeffs;

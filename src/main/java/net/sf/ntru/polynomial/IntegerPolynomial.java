@@ -321,7 +321,7 @@ public class IntegerPolynomial implements Polynomial {
         return new BigIntPolynomial(this).multSmall(poly2);
     }
     
-    /** Karazuba multiplication */
+    /** Karatsuba multiplication */
     private IntegerPolynomial multRecursive(IntegerPolynomial poly2) {
         int[] a = coeffs;
         int[] b = poly2.coeffs;
