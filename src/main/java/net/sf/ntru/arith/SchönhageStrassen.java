@@ -222,7 +222,7 @@ public class SchönhageStrassen {
      * <a href="http://en.wikipedia.org/wiki/Discrete_Fourier_transform_%28general%29#Number-theoretic_transform">
      * Fermat Number Transform</a> on an array whose elements are <code>int</code> arrays.<br/>
      * <code>A</code> is assumed to be the lower half of the full array and the upper half is assumed to be all zeros.
-     * The number of subarrays in <code>A</code> must be 2^(n+1) if m is even and 2^n if m is odd.<br/>
+     * The number of subarrays in <code>A</code> must be 2^n if m is even and 2^(n+1) if m is odd.<br/>
      * Each subarray must be ceil(2^(n-1)) bits in length.<br/>
      * n must be equal to m/2-1.
      * @param A
@@ -281,7 +281,7 @@ public class SchönhageStrassen {
      * The modification is that the last step (the one where the upper half is subtracted from the lower half)
      * is omitted.<br/>
      * <code>A</code> is assumed to be the upper half of the full array and the upper half is assumed to be all zeros.
-     * The number of subarrays in <code>A</code> must be 2^(n+1) if m is even and 2^n if m is odd.<br/>
+     * The number of subarrays in <code>A</code> must be 2^n if m is even and 2^(n+1) if m is odd.<br/>
      * Each subarray must be ceil(2^(n-1)) bits in length.<br/>
      * n must be equal to m/2-1.
      * @param A
