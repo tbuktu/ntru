@@ -264,17 +264,13 @@ public class SchönhageStrassen {
      * @return
      */
     private static int getDftExponent(int n, int v, int idx, boolean even) {
-        int x;
-        if (even) {
-            x = Integer.reverse(idx >>> (n-v)) >>> (32-v);
-            x <<= n - v - 1;
-            // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
-            x *= 2;
-        }
-        else {
-            x = Integer.reverse(idx >>> (n+1-v)) >>> (32-v);
-            x <<= n - v;
-        }
+        // take bits n-v..n-1 of idx, reverse them, shift left by n-v-1
+        int x = Integer.reverse(idx) << (n-v) >>> (31-n);
+        
+        // if m is even, divide by two
+        if (even)
+            x >>>= 1;
+        
         return x;
     }
     
@@ -300,7 +296,7 @@ public class SchönhageStrassen {
             for (int j=0; j<len; j+=2*slen) {
                 int idx = j;
                 int idx2 = idx + slen;   // idx2 is always idx+slen
-                int x = getIdftExponent(n, len, v, idx, even);
+                int x = getIdftExponent(n, v, idx, even);
                 
                 for (int k=slen-1; k>=0; k--) {
                     int[] c = A[idx].clone();
@@ -323,26 +319,14 @@ public class SchönhageStrassen {
      * Omega itself is either 2 or 4 depending on m, but when omega=4 this method
      * doubles the exponent so omega can be assumed always to be 2 in a IDFT.
      * @param n
-     * @param len
      * @param v
      * @param idx
      * @param even
      * @return
      */
-    private static int getIdftExponent(int n, int len, int v, int idx, boolean even) {
-        int x;
-        if (even) {
-            x = (Integer.reverse((idx+len)>>>(n-v)) + 1) >>> (32-v);
-            x <<= n - v - 1;
-            // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
-            x *= 2;
-        }
-        else {
-            x = (Integer.reverse((idx+len)>>>(n-v)) + 1) >>> (32-v-1);
-            x <<= n - v - 1;
-            if (even)
-                x *= 2;   // if m is odd, omega=2; if m is even, omega=4 which means double the shift amount
-        }
+    private static int getIdftExponent(int n, int v, int idx, boolean even) {
+        int x = Integer.reverse(idx) << (n-v) >>> (32-n);
+        x += even ? 1<<(n-v) : 1<<(n-1-v);
         return x + 1;
     }
     
