@@ -74,85 +74,30 @@ public class BigDecimalPolynomial {
     }
     
     /**
-     * Multiplies the polynomial by another. Does not change this polynomial
-     * but returns the result as a new polynomial.</br>
-     * This implementation calls {@link #mult(BigDecimalPolynomial)}.
-     * @param poly2 the polynomial to multiply by
-     * @return a new polynomial
-     */
-    public BigDecimalPolynomial mult(BigIntPolynomial poly2) {
-        return mult(new BigDecimalPolynomial(poly2));
-    }
-    
-    /**
      * Multiplies the polynomial by another, taking the indices mod N. Does not
      * change this polynomial but returns the result as a new polynomial.<br/>
+     * Both polynomials must have the same number of coefficients.<br/>
      * This method uses the
-     * <a href="http://en.wikipedia.org/wiki/Karatsuba_algorithm">Karatsuba algorithm</a>
-     * algorithm. Although polynomial sizes are technically big enough for
-     * Schönhage–Strassen (over a million bits for
-     * {@link net.sf.ntru.sign.SignatureParameters#APR2011_439}, Karatsuba is still
-     * faster, probably because the two polynomials differ too much in the lengths of
-     * their coefficients.
-     * @param poly2 the polynomial to multiply by
+     * <a href="http://en.wikipedia.org/wiki/Schönhage–Strassen_algorithm">
+     * Schönhage–Strassen algorithm</a>.
+     * @param poly2
      * @return a new polynomial
      * @throws NtruException if the two polynomials differ in the number of coefficients
      */
-    BigDecimalPolynomial mult(BigDecimalPolynomial poly2) {
-        int N = coeffs.length;
-        if (poly2.coeffs.length != N)
+    public BigDecimalPolynomial mult(BigIntPolynomial poly2) {
+        if (poly2.coeffs.length != coeffs.length)
             throw new NtruException("Number of coefficients must be the same");
         
-        BigDecimalPolynomial c = multRecursive(poly2);
+        BigIntPolynomial poly1 = new BigIntPolynomial(coeffs.length);
+        for (int i=0; i<coeffs.length; i++)
+            poly1.coeffs[i] = coeffs[i].unscaledValue();
+        int scale = coeffs[0].scale();
         
-        if (c.coeffs.length > N) {
-            for (int k=N; k<c.coeffs.length; k++)
-                c.coeffs[k-N] = c.coeffs[k-N].add(c.coeffs[k]);
-            c.coeffs = Arrays.copyOf(c.coeffs, N);
-        }
+        BigIntPolynomial cBigInt = poly1.multBig(poly2);
+        BigDecimalPolynomial c = new BigDecimalPolynomial(cBigInt.coeffs.length);
+        for (int i=0; i<c.coeffs.length; i++)
+            c.coeffs[i] = new BigDecimal(cBigInt.coeffs[i], scale);
         return c;
-    }
-    
-    /** Karatsuba multiplication */
-    private BigDecimalPolynomial multRecursive(BigDecimalPolynomial poly2) {
-        BigDecimal[] a = coeffs;
-        BigDecimal[] b = poly2.coeffs;
-        
-        int n = poly2.coeffs.length;
-        if (n <= 1) {
-            BigDecimal[] c = coeffs.clone();
-            for (int i=0; i<coeffs.length; i++)
-                c[i] = c[i].multiply(poly2.coeffs[0]);
-            return new BigDecimalPolynomial(c);
-        }
-        else {
-            int n1 = n / 2;
-            
-            BigDecimalPolynomial a1 = new BigDecimalPolynomial(Arrays.copyOf(a, n1));
-            BigDecimalPolynomial a2 = new BigDecimalPolynomial(Arrays.copyOfRange(a, n1, n));
-            BigDecimalPolynomial b1 = new BigDecimalPolynomial(Arrays.copyOf(b, n1));
-            BigDecimalPolynomial b2 = new BigDecimalPolynomial(Arrays.copyOfRange(b, n1, n));
-            
-            BigDecimalPolynomial A = a1.clone();
-            A.add(a2);
-            BigDecimalPolynomial B = b1.clone();
-            B.add(b2);
-            
-            BigDecimalPolynomial c1 = a1.multRecursive(b1);
-            BigDecimalPolynomial c2 = a2.multRecursive(b2);
-            BigDecimalPolynomial c3 = A.multRecursive(B);
-            c3.sub(c1);
-            c3.sub(c2);
-            
-            BigDecimalPolynomial c = new BigDecimalPolynomial(2*n-1);
-            for (int i=0; i<c1.coeffs.length; i++)
-                c.coeffs[i] = c1.coeffs[i];
-            for (int i=0; i<c3.coeffs.length; i++)
-                c.coeffs[n1+i] = c.coeffs[n1+i].add(c3.coeffs[i]);
-            for (int i=0; i<c2.coeffs.length; i++)
-                c.coeffs[2*n1+i] = c.coeffs[2*n1+i].add(c2.coeffs[i]);
-            return c;
-        }
     }
     
     /**
@@ -170,21 +115,6 @@ public class BigDecimalPolynomial {
           coeffs[i] = coeffs[i].add(b.coeffs[i]);
     }
 
-    /**
-     * Subtracts another polynomial which can have a different number of coefficients.
-     * @param b
-     */
-    void sub(BigDecimalPolynomial b) {
-        if (b.coeffs.length > coeffs.length) {
-            int N = coeffs.length;
-            coeffs = Arrays.copyOf(coeffs, b.coeffs.length);
-            for (int i=N; i<coeffs.length; i++)
-                coeffs[i] = ZERO;
-        }
-        for (int i=0; i<b.coeffs.length; i++)
-            coeffs[i] = coeffs[i].subtract(b.coeffs[i]);
-    }
-    
     /**
      * Rounds all coefficients to the nearest integer.
      * @return a new polynomial with <code>BigInteger</code> coefficients
