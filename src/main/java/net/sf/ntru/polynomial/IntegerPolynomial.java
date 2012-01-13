@@ -709,17 +709,6 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Adds the squares of all coefficients.
-     * @return the sum of squares
-     */
-    private BigInteger squareSum() {
-        BigInteger sum = ZERO;
-        for (int i=0; i<coeffs.length; i++)
-            sum = sum.add(BigInteger.valueOf(coeffs[i]*coeffs[i]));
-        return sum;
-    }
-    
-    /**
      * Returns the degree of the polynomial
      * @return the degree
      */
