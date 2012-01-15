@@ -380,7 +380,9 @@ public class NtruSign {
         Random rng = new SecureRandom();
         do {
             do {
-                f = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, d+1, d, rng) : ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3, rng);
+                f = params.polyType==TernaryPolynomialType.SIMPLE ?
+                        DenseTernaryPolynomial.generateRandom(N, d+1, d, rng) :
+                        ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3, rng);
                 fInt = f.toIntegerPolynomial();
             } while (primeCheck && fInt.resultant(_2n1).res.equals(ZERO));
             fq = fInt.invertFq(q);
@@ -390,7 +392,9 @@ public class NtruSign {
         do {
             do {
                 do {
-                    g = params.polyType==TernaryPolynomialType.SIMPLE ? DenseTernaryPolynomial.generateRandom(N, d+1, d, rng) : ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3, rng);
+                    g = params.polyType==TernaryPolynomialType.SIMPLE ?
+                            DenseTernaryPolynomial.generateRandom(N, d+1, d, rng) :
+                            ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3, rng);
                     gInt = g.toIntegerPolynomial();
                 } while (primeCheck && gInt.resultant(_2n1).res.equals(ZERO));
             } while (gInt.invertFq(q) == null);

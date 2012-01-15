@@ -371,7 +371,7 @@ public class IntegerPolynomial implements Polynomial {
      * The algorithm is described in <a href="http://www.securityinnovation.com/uploads/Crypto/NTRUTech014.pdf">
      * Almost Inverses and Fast NTRU Key Generation</a>.
      * @param q the modulus
-     * @return a new polynomial
+     * @return a new polynomial, or <code>null</code> if no inverse exists
      */
     public IntegerPolynomial invertFq(int q) {
         int N = coeffs.length;
@@ -379,9 +379,8 @@ public class IntegerPolynomial implements Polynomial {
         IntegerPolynomial b = new IntegerPolynomial(N+1);
         b.coeffs[0] = 1;
         IntegerPolynomial c = new IntegerPolynomial(N+1);
-        IntegerPolynomial f = new IntegerPolynomial(N+1);
-        f.coeffs = Arrays.copyOf(coeffs, N+1);
-        f.modPositive(2);
+        IntegerPolynomial f = new IntegerPolynomial(Arrays.copyOf(coeffs, N+1));
+        f.mod(2);
         // set g(x) = x^N − 1
         IntegerPolynomial g = new IntegerPolynomial(N+1);
         g.coeffs[0] = 1;
@@ -472,7 +471,7 @@ public class IntegerPolynomial implements Polynomial {
      * Returns <code>null</code> if the polynomial is not invertible.<br/>
      * The algorithm is described in <a href="http://www.securityinnovation.com/uploads/Crypto/NTRUTech014.pdf">
      * Almost Inverses and Fast NTRU Key Generation</a>.
-     * @return a new polynomial
+     * @return a new polynomial, or <code>null</code> if no inverse exists
      */
     public IntegerPolynomial invertF3() {
         int N = coeffs.length;
@@ -482,7 +481,7 @@ public class IntegerPolynomial implements Polynomial {
         IntegerPolynomial c = new IntegerPolynomial(N+1);
         IntegerPolynomial f = new IntegerPolynomial(N+1);
         f.coeffs = Arrays.copyOf(coeffs, N+1);
-        f.modPositive(3);
+        f.mod(3);
         // set g(x) = x^N − 1
         IntegerPolynomial g = new IntegerPolynomial(N+1);
         g.coeffs[0] = -1;
@@ -738,6 +737,13 @@ public class IntegerPolynomial implements Polynomial {
             coeffs = Arrays.copyOf(coeffs, b.coeffs.length);
         for (int i=0; i<b.coeffs.length; i++)
             coeffs[i] += b.coeffs[i];
+    }
+    
+    public void add(TernaryPolynomial b) {
+        for (int i: b.getOnes())
+            coeffs[i]++;
+        for (int i: b.getNegOnes())
+            coeffs[i]--;
     }
     
     /**

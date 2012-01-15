@@ -154,13 +154,17 @@ public class NtruEncrypt {
             // choose random t, calculate f and fp
             if (fastFp) {
                 // if fastFp=true, f is always invertible mod 3
-                t = params.polyType==TernaryPolynomialType.SIMPLE ? PolynomialGenerator.generateRandomTernary(N, df, df, sparse, rngf) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3, rngf);
+                t = params.polyType==TernaryPolynomialType.SIMPLE ?
+                        PolynomialGenerator.generateRandomTernary(N, df, df, sparse, rngf) :
+                        ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3, rngf);
                 f = t.toIntegerPolynomial();
                 f.mult(3);
                 f.coeffs[0] += 1;
             }
             else {
-                t = params.polyType==TernaryPolynomialType.SIMPLE ? PolynomialGenerator.generateRandomTernary(N, df, df-1, sparse, rngf) : ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1, rngf);
+                t = params.polyType==TernaryPolynomialType.SIMPLE ?
+                        PolynomialGenerator.generateRandomTernary(N, df, df-1, sparse, rngf) :
+                        ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1, rngf);
                 f = t.toIntegerPolynomial();
                 fp = f.invertF3();
                 if (fp == null)
@@ -168,9 +172,8 @@ public class NtruEncrypt {
             }
             
             fq = f.invertFq(q);
-            if (fq == null)
-                continue;
-            break;
+            if (fq != null)
+                break;
         }
         
         // if fastFp=true, fp=1
@@ -494,15 +497,17 @@ public class NtruEncrypt {
      * @return
      */
     IntegerPolynomial decrypt(IntegerPolynomial e, Polynomial priv_t, IntegerPolynomial priv_fp) {
+        int q = params.q;
+        
         IntegerPolynomial a;
         if (params.fastFp) {
-            a = priv_t.mult(e, params.q);
+            a = priv_t.mult(e, q);
             a.mult(3);
             a.add(e);
         }
         else
-            a = priv_t.mult(e, params.q);
-        a.center0(params.q);
+            a = priv_t.mult(e, q);
+        a.center0(q);
         a.mod3();
         
         IntegerPolynomial c = params.fastFp ? a : new DenseTernaryPolynomial(a).mult(priv_fp, 3);

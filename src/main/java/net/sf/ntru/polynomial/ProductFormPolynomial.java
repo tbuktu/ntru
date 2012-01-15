@@ -99,7 +99,7 @@ public class ProductFormPolynomial implements Polynomial {
     @Override
     public IntegerPolynomial toIntegerPolynomial() {
         IntegerPolynomial i = f1.mult(f2.toIntegerPolynomial());
-        i.add(f3.toIntegerPolynomial());
+        i.add(f3);
         return i;
     }
 

@@ -27,6 +27,7 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
 
+import net.sf.ntru.encrypt.EncryptionParameters;
 import net.sf.ntru.sign.SignatureParameters;
 
 import org.junit.Test;
@@ -211,5 +212,20 @@ public class IntegerPolynomialTest {
         else
             assertEquals(BigInteger.ZERO, (b.coeffs[0].subtract(b.coeffs[b.coeffs.length-1]).subtract(r.res).mod(BigInteger.valueOf(p))));
         assertEquals(BigInteger.ZERO, b.coeffs[0].subtract(r.res).subtract(b.coeffs[b.coeffs.length-1].negate()).mod(BigInteger.valueOf(p)));
+    }
+    
+    @Test
+    public void testAdd() {
+        EncryptionParameters params = EncryptionParameters.EES1087EP2;
+        IntegerPolynomial a = PolynomialGeneratorForTesting.generateRandom(params.N, params.q);
+        TernaryPolynomial b = DenseTernaryPolynomial.generateRandom(1087);
+        
+        IntegerPolynomial c1 = a.clone();
+        c1.add(b.toIntegerPolynomial());
+        
+        IntegerPolynomial c2 = a.clone();
+        c2.add(b);
+        
+        assertEquals(c1, c2);
     }
 }
