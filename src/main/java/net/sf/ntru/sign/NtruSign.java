@@ -475,7 +475,7 @@ public class NtruSign {
      * Implementation of the optional steps 20 through 26 in EESS1v2.pdf, section 3.5.1.1.
      * This doesn't seem to have much of an effect and sometimes actually increases the
      * norm of F, but on average it slightly reduces the norm.<br/>
-     * This method changes <code>F</code> and <code>g</code> but leaves <code>f</code> and
+     * This method changes <code>F</code> and <code>G</code> but leaves <code>f</code> and
      * <code>g</code> unchanged.
      * @param f
      * @param g
