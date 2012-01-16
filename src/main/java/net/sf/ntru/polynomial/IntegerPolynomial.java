@@ -740,6 +740,11 @@ public class IntegerPolynomial implements Polynomial {
             coeffs[i] += b.coeffs[i];
     }
     
+    /**
+     * Adds a <code>TernaryPolynomial</code> which must not have more coefficients
+     * than <code>this</code> polynomial.
+     * @param b another polynomial
+     */
     public void add(TernaryPolynomial b) {
         for (int i: b.getOnes())
             coeffs[i]++;
@@ -769,7 +774,7 @@ public class IntegerPolynomial implements Polynomial {
     
     /**
      * Subtracts a <code>int</code> from each coefficient. Does not return a new polynomial but modifies this polynomial.
-     * @param b
+     * @param b a number to subtract from each coefficient
      */
     void sub(int b) {
         for (int i=0; i<coeffs.length; i++)
