@@ -343,9 +343,11 @@ public class IntegerPolynomial implements Polynomial {
             IntegerPolynomial b1 = new IntegerPolynomial(Arrays.copyOf(b, n1));
             IntegerPolynomial b2 = new IntegerPolynomial(Arrays.copyOfRange(b, n1, n));
             
-            IntegerPolynomial A = a1.clone();
+            // make a copy of a1 that is the same length as a2
+            IntegerPolynomial A = new IntegerPolynomial(Arrays.copyOf(a1.coeffs, a2.coeffs.length));
             A.add(a2);
-            IntegerPolynomial B = b1.clone();
+            // make a copy of b1 that is the same length as b2
+            IntegerPolynomial B = new IntegerPolynomial(Arrays.copyOf(b1.coeffs, b2.coeffs.length));
             B.add(b2);
             
             IntegerPolynomial c1 = a1.multRecursive(b1);
@@ -719,8 +721,8 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Adds another polynomial which can have a different number of coefficients,
-     * and takes the coefficient values mod <code>modulus</code>.
+     * Adds another polynomial which must not have more coefficients than <code>this</code>
+     * polynomial, and takes the coefficient values mod <code>modulus</code>.
      * @param b another polynomial
      */
     public void add(IntegerPolynomial b, int modulus) {
@@ -729,12 +731,11 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Adds another polynomial which can have a different number of coefficients.
+     * Adds another <code>IntegerPolynomial</code> which must not have more coefficients
+     * than <code>this</code> polynomial.
      * @param b another polynomial
      */
     public void add(IntegerPolynomial b) {
-        if (b.coeffs.length > coeffs.length)
-            coeffs = Arrays.copyOf(coeffs, b.coeffs.length);
         for (int i=0; i<b.coeffs.length; i++)
             coeffs[i] += b.coeffs[i];
     }
@@ -757,12 +758,11 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Subtracts another polynomial which can have a different number of coefficients.
+     * Subtracts another polynomial which must not have more coefficients than <code>this</code>
+     * polynomial.
      * @param b another polynomial
      */
     public void sub(IntegerPolynomial b) {
-        if (b.coeffs.length > coeffs.length)
-            coeffs = Arrays.copyOf(coeffs, b.coeffs.length);
         for (int i=0; i<b.coeffs.length; i++)
             coeffs[i] -= b.coeffs[i];
     }
