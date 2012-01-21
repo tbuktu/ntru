@@ -67,28 +67,44 @@ public class NtruSign {
     }
     
     /**
-     * Generates a new signature key pair. Starts <code>B+1</code> threads.
+     * Generates a new signature key pair. Uses up to <code>B+1</code> threads
+     * if multiple processors are available.
      * @return a key pair
      */
     public SignatureKeyPair generateKeyPair() {
+        int processors = Runtime.getRuntime().availableProcessors();
         SignaturePrivateKey priv = new SignaturePrivateKey();
-        SignaturePublicKey pub = null;
-        ExecutorService executor = Executors.newCachedThreadPool();
-        List<Future<Basis>> bases = new ArrayList<Future<Basis>>();
-        for (int k=params.B; k>=0; k--)
-            bases.add(executor.submit(new BasisGenerationTask()));
-        executor.shutdown();
         
-        for (int k=params.B; k>=0; k--) {
-            Future<Basis> basis = bases.get(k);
-            try {
-                priv.add(basis.get());
-            if (k == 0)
-                pub = new SignaturePublicKey(basis.get().h, params);
-            } catch (Exception e) {
-                throw new NtruException(e);
+        if (processors == 1)
+            // generate all B+1 bases in the current thread
+            for (int k=params.B; k>=0; k--)
+                priv.add(generateBoundedBasis());
+        else {
+            List<Future<Basis>> bases = new ArrayList<Future<Basis>>();
+            
+            // start up to processors-1 new threads and generate B bases
+            int numThreads = Math.min(params.B, processors-1);
+            if (numThreads > 0) {
+                ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+                for (int k=params.B-1; k>=0; k--)
+                    bases.add(executor.submit(new BasisGenerationTask()));
+                executor.shutdown();
             }
+            
+            // generate the remaining basis in the current thread
+            Basis basis0 = generateBoundedBasis();
+            
+            // build the private key
+            priv.add(basis0);
+            for (Future<Basis> basis: bases)
+                try {
+                    priv.add(basis.get());
+                } catch (Exception e) {
+                    throw new NtruException(e);
+                }
         }
+        
+        SignaturePublicKey pub = new SignaturePublicKey(priv.getBasis(0).h, params);
         SignatureKeyPair kp = new SignatureKeyPair(priv, pub);
         return kp;
     }
