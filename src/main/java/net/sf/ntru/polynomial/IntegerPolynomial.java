@@ -382,7 +382,7 @@ public class IntegerPolynomial implements Polynomial {
         b.coeffs[0] = 1;
         IntegerPolynomial c = new IntegerPolynomial(N+1);
         IntegerPolynomial f = new IntegerPolynomial(Arrays.copyOf(coeffs, N+1));
-        f.modPositive(2);
+        f.mod2();
         // set g(x) = x^N − 1
         IntegerPolynomial g = new IntegerPolynomial(N+1);
         g.coeffs[0] = 1;
@@ -826,6 +826,14 @@ public class IntegerPolynomial implements Polynomial {
             coeffs[i] += coeffs[i]>0 ? k2 : -k2;
             coeffs[i] /= k;
         }
+    }
+    
+    /**
+     * Optimized version of <code>modPositive(2)</code>.
+     */
+    private void mod2() {
+        for (int i=0; i<coeffs.length; i++)
+            coeffs[i] &= 1;
     }
     
     /**
