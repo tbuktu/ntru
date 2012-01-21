@@ -458,7 +458,7 @@ public class IntegerPolynomial implements Polynomial {
             int v = 2;
             while (v < q) {
                 v *= 2;
-                IntegerPolynomial temp = new IntegerPolynomial(Arrays.copyOf(Fq.coeffs, Fq.coeffs.length));
+                IntegerPolynomial temp = Fq.clone();
                 temp.mult2(v);
                 Fq = mult(Fq, v).mult(Fq, v);
                 temp.sub(Fq, v);
