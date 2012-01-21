@@ -138,6 +138,21 @@ Sample Programs
   Timings          Similar to Benchmark but only NTRUEncrypt and NTRUSign are
                    benchmarked, and the output is in table format.
 
+  The net.sf.ntru.demo.android package contains a simple Android app similar
+  to SimpleExample. It has been tested with Android 4.0.3.
+  To build and run the app, follow these steps:
+   1) Start Eclipse and make sure you have the ADT plugin installed
+   2) Create a new Android project. Enter net.sf.ntru.demo for the package
+      name and NtruActivity for the activity.
+   3) Replace the generated AndroidManifest.xml with the NTRU version from
+      src/main/android/AndroidManifest.xml
+   4) Replace the generated NtruActivity.java with the NTRU version from
+      src/main/android/net/sf/ntru/demo/NtruActivity.java
+   5) Go to Project -> Properties -> Java Build Path, and either add the NTRU
+      sources on the Source tab, or add the NTRU .jar on the Libraries tab.
+   6) In the package explorer, right click on your project and select
+      Run As -> Android Application.
+
 
 Maven Artifact
 
