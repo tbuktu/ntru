@@ -44,7 +44,7 @@ public class Benchmark {
     private static final int PLAIN_TEXT_SIZE = 32;
     
     private static void printUsage() {
-        System.out.println("Usage: Benchmark [alg]");
+        System.out.println("Usage: Benchmark [alg] [alg]...");
         System.out.println();
         System.out.println("alg can be one of:");
         System.out.println("  rsa3072gen");
@@ -88,26 +88,39 @@ public class Benchmark {
             ntru743enc();
             ntru743dec();
         }
-        else if ("rsa3072gen".equals(args[0]))  rsa3072gen();
-        else if ("rsa3072enc".equals(args[0]))  rsa3072enc();
-        else if ("rsa3072dec".equals(args[0]))  rsa3072dec();
-        else if ("rsa15360gen".equals(args[0])) rsa15360gen();
-        else if ("rsa15360enc".equals(args[0])) rsa15360enc();
-        else if ("rsa15360dec".equals(args[0])) rsa15360dec();
-        else if ("ecc256gen".equals(args[0]))   ecc256gen();
-        else if ("ecc256enc".equals(args[0]))   ecc256enc();
-        else if ("ecc256dec".equals(args[0]))   ecc256dec();
-        else if ("ecc521gen".equals(args[0]))   ecc521gen();
-        else if ("ecc521enc".equals(args[0]))   ecc521enc();
-        else if ("ecc521dec".equals(args[0]))   ecc521dec();
-        else if ("ntru439gen".equals(args[0]))  ntru439gen();
-        else if ("ntru439enc".equals(args[0]))  ntru439enc();
-        else if ("ntru439dec".equals(args[0]))  ntru439dec();
-        else if ("ntru743gen".equals(args[0]))  ntru743gen();
-        else if ("ntru743enc".equals(args[0]))  ntru743enc();
-        else if ("ntru743dec".equals(args[0]))  ntru743dec();
-        else
-            printUsage();
+        else {
+            boolean allArgsInvalid = true;
+            
+            for (String arg: args) {
+                boolean argInvalid = false;
+                
+                if ("rsa3072gen".equals(arg))       rsa3072gen();
+                else if ("rsa3072enc".equals(arg))  rsa3072enc();
+                else if ("rsa3072dec".equals(arg))  rsa3072dec();
+                else if ("rsa15360gen".equals(arg)) rsa15360gen();
+                else if ("rsa15360enc".equals(arg)) rsa15360enc();
+                else if ("rsa15360dec".equals(arg)) rsa15360dec();
+                else if ("ecc256gen".equals(arg))   ecc256gen();
+                else if ("ecc256enc".equals(arg))   ecc256enc();
+                else if ("ecc256dec".equals(arg))   ecc256dec();
+                else if ("ecc521gen".equals(arg))   ecc521gen();
+                else if ("ecc521enc".equals(arg))   ecc521enc();
+                else if ("ecc521dec".equals(arg))   ecc521dec();
+                else if ("ntru439gen".equals(arg))  ntru439gen();
+                else if ("ntru439enc".equals(arg))  ntru439enc();
+                else if ("ntru439dec".equals(arg))  ntru439dec();
+                else if ("ntru743gen".equals(arg))  ntru743gen();
+                else if ("ntru743enc".equals(arg))  ntru743enc();
+                else if ("ntru743dec".equals(arg))  ntru743dec();
+                else
+                    argInvalid = true;
+                
+                allArgsInvalid &= argInvalid;
+            }
+            
+            if (allArgsInvalid)
+                printUsage();
+        }
     }
     
     private static void rsa3072gen() throws Exception {
