@@ -45,10 +45,10 @@ NtruEncrypt Usage
   as the ones used to encrypt the message; the same goes for the public key.
 
   Like all public-key encryption schemes, NtruEncrypt can only encrypt a
-  limited number of characters. To encrypt larger amounts of data, use
-  symmetric encryption and encrypt the symmetric key with NTRU (symmetric keys
-  are well below the size limit). To find out how long a NTRU message can be,
-  use the method EncryptionParameters.getMaxMessageLength().
+  limited number of data. To find out how long a NTRU message can be, use the
+  method EncryptionParameters.getMaxMessageLength().
+  To encrypt larger amounts of data, use symmetric encryption and encrypt the
+  symmetric key with NTRU. The sample program AesExample shows how to do this.
 
 
 NtruSign Usage
@@ -134,6 +134,8 @@ Sample Programs
 
   SimpleExample    A minimal example showing how to use NTRUEncrypt and
                    NTRUSign
+  AesExample       Demonstrates how to encrypt arbitrary-length messages
+                   using NTRUEncrypt and AES
   Benchmark        Benchmarks NTRUEncrypt against RSA and ECC
   Timings          Similar to Benchmark but only NTRUEncrypt and NTRUSign are
                    benchmarked, and the output is in table format.
