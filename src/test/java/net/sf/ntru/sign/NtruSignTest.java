@@ -18,7 +18,11 @@
 
 package net.sf.ntru.sign;
 
+import static net.sf.ntru.sign.SignatureParameters.APR2011_439_PROD;
+import static net.sf.ntru.sign.SignatureParameters.TEST157;
+import static net.sf.ntru.sign.SignatureParameters.TEST157_PROD;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -36,7 +40,7 @@ public class NtruSignTest {
     
     @Test
     public void testCreateBasis() {
-        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157.clone(), SignatureParameters.TEST157_PROD.clone()})
+        for (SignatureParameters params: new SignatureParameters[] {TEST157.clone(), TEST157_PROD.clone()})
             testCreateBasis(params);
     }
     
@@ -66,7 +70,7 @@ public class NtruSignTest {
     /** a test for the one-method-call variants: sign(byte, SignatureKeyPair) and verify(byte[], byte[], SignatureKeyPair) */
     @Test
     public void testSignVerify() {
-        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157.clone(), SignatureParameters.TEST157_PROD.clone()})
+        for (SignatureParameters params: new SignatureParameters[] {TEST157.clone(), TEST157_PROD.clone()})
             testSignVerify(params);
     }
     
@@ -142,7 +146,7 @@ public class NtruSignTest {
     /** test for the initSign/update/sign and initVerify/update/verify variant */
     @Test
     public void testInitUpdateSign() {
-        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157.clone(), SignatureParameters.TEST157_PROD.clone()})
+        for (SignatureParameters params: new SignatureParameters[] {TEST157.clone(), TEST157_PROD.clone()})
             testInitUpdateSign(params);
     }
     
@@ -182,7 +186,7 @@ public class NtruSignTest {
     
     @Test
     public void testCreateMsgRep() {
-        for (SignatureParameters params: new SignatureParameters[] {SignatureParameters.TEST157.clone(), SignatureParameters.TEST157_PROD.clone()})
+        for (SignatureParameters params: new SignatureParameters[] {TEST157.clone(), TEST157_PROD.clone()})
             testCreateMsgRep(params);
     }
     
@@ -201,5 +205,18 @@ public class NtruSignTest {
         i1 = ntru.createMsgRep(msgHash, 2);
         i2 = ntru.createMsgRep(msgHash, 3);
         assertFalse(Arrays.equals(i1.coeffs, i2.coeffs));
+    }
+    
+    @Test
+    public void testGetOutputLength() {
+        SignatureParameters[] paramSets = new SignatureParameters[] {TEST157, TEST157_PROD, APR2011_439_PROD};
+        byte[] msg = "test message 12345".getBytes();
+        
+        for (SignatureParameters params: paramSets) {
+            NtruSign ntru = new NtruSign(params);
+            SignatureKeyPair kp = ntru.generateKeyPair();
+            byte[] s = ntru.sign(msg, kp);
+            assertEquals(params.getOutputLength(), s.length);
+        }
     }
 }

@@ -170,6 +170,17 @@ public class SignatureParameters implements Cloneable {
     }
     
     /**
+     * Returns the length of a signature made with this parameter set.<br/>
+     * The length does not depend on the message size.
+     * @return the length in bytes
+     */
+    public int getOutputLength() {
+        int logq = 32 - Integer.numberOfLeadingZeros(q - 1);   // ceil(log q)
+        int polyLen = (N*logq+7) / 8;   // length of a polynomial in bytes
+        return polyLen + 4;   // add 4 for the retry count
+    }
+    
+    /**
      * Writes the parameter set to an output stream
      * @param os an output stream
      * @throws IOException

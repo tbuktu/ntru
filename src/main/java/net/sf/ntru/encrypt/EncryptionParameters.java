@@ -193,6 +193,16 @@ public class EncryptionParameters implements Cloneable {
     }
     
     /**
+     * Returns the length of a message after encryption with this parameter set.<br/>
+     * The length does not depend on the input size.
+     * @return the length in bytes
+     */
+    public int getOutputLength() {
+        int logq = 32 - Integer.numberOfLeadingZeros(q - 1);   // ceil(log q)
+        return (N*logq+7) / 8;
+    }
+    
+    /**
      * Writes the parameter set to an output stream
      * @param os an output stream
      * @throws IOException
