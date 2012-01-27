@@ -140,7 +140,7 @@ Sample Programs
   Timings          Similar to Benchmark but only NTRUEncrypt and NTRUSign are
                    benchmarked, and the output is in table format.
 
-  The net.sf.ntru.demo.android package contains a simple Android app similar
+  The src/main/android directory contains a simple Android app similar
   to SimpleExample. It has been tested with Android 4.0.3.
   To build and run the app, follow these steps:
    1) Start Eclipse and make sure you have the ADT plugin installed
