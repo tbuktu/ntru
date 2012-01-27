@@ -95,16 +95,16 @@ public class NtruSign {
             Basis basis0 = generateBoundedBasis();
             
             // build the private key
-            priv.add(basis0);
             for (Future<Basis> basis: bases)
                 try {
                     priv.add(basis.get());
                 } catch (Exception e) {
                     throw new NtruException(e);
                 }
+            priv.add(basis0);
         }
         
-        SignaturePublicKey pub = new SignaturePublicKey(priv.getBasis(0).h, params);
+        SignaturePublicKey pub = new SignaturePublicKey(priv.getBasis(params.B).h, params);
         SignatureKeyPair kp = new SignatureKeyPair(priv, pub);
         return kp;
     }
