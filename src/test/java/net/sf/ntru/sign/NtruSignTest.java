@@ -123,7 +123,7 @@ public class NtruSignTest {
         
         // decrease NormBound to force multiple signing attempts
         SignatureParameters params2 = params.clone();
-        params2.normBoundSq *= 4.0 / 9;
+        params2.normBoundSq *= 4.0 / 9;   // works for APR2011_439_PROD but may need to be increased for different params
         params2.signFailTolerance = 10000;
         ntru = new NtruSign(params2);
         s = ntru.sign(msg, kp);
