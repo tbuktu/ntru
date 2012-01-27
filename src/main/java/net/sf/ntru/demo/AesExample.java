@@ -16,6 +16,8 @@
  * USA
  */
 
+package net.sf.ntru.demo;
+
 import java.util.Arrays;
 
 import javax.crypto.Cipher;
