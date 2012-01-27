@@ -74,19 +74,20 @@ public class NtruSign {
     public SignatureKeyPair generateKeyPair() {
         int processors = Runtime.getRuntime().availableProcessors();
         SignaturePrivateKey priv = new SignaturePrivateKey();
+        int B = params.B;
         
         if (processors == 1)
             // generate all B+1 bases in the current thread
-            for (int k=params.B; k>=0; k--)
+            for (int k=B; k>=0; k--)
                 priv.add(generateBoundedBasis());
         else {
             List<Future<Basis>> bases = new ArrayList<Future<Basis>>();
             
             // start up to processors-1 new threads and generate B bases
-            int numThreads = Math.min(params.B, processors-1);
+            int numThreads = Math.min(B, processors-1);
             if (numThreads > 0) {
                 ExecutorService executor = Executors.newFixedThreadPool(numThreads);
-                for (int k=params.B-1; k>=0; k--)
+                for (int k=B-1; k>=0; k--)
                     bases.add(executor.submit(new BasisGenerationTask()));
                 executor.shutdown();
             }
@@ -104,7 +105,7 @@ public class NtruSign {
             priv.add(basis0);
         }
         
-        SignaturePublicKey pub = new SignaturePublicKey(priv.getBasis(params.B).h, params);
+        SignaturePublicKey pub = new SignaturePublicKey(priv.getBasis(B).h, params);
         SignatureKeyPair kp = new SignatureKeyPair(priv, pub);
         return kp;
     }
