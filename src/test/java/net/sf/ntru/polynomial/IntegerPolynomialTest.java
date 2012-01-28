@@ -81,7 +81,14 @@ public class IntegerPolynomialTest {
         for (int i=0; i<10; i++) {
             IntegerPolynomial poly = PolynomialGeneratorForTesting.generateRandom(439, 10000);
             
+            // test special case: division by 2048
             IntegerPolynomial a = poly.clone();
+            a.div(2048);
+            for (int j=0; j<poly.coeffs.length; j++)
+                assertEquals(Math.round(((double)poly.coeffs[j])/2048), a.coeffs[j]);
+            
+            // test the general case
+            a = poly.clone();
             int k = rng.nextInt(2047) + 1;
             a.div(k);
             for (int j=0; j<poly.coeffs.length; j++)

@@ -823,10 +823,15 @@ public class IntegerPolynomial implements Polynomial {
      */
     public void div(int k) {
         int ka = k / 2;
-        int kb = (1-k) / 2;
-        for (int i=0; i<coeffs.length; i++) {
-            coeffs[i] += coeffs[i]>0 ? ka : kb;
-            coeffs[i] /= k;
+        if (k == 2048)
+            for (int i=0; i<coeffs.length; i++)
+                coeffs[i] = (coeffs[i]+ka) >> 11;
+        else {
+            int kb = (1-k) / 2;
+            for (int i=0; i<coeffs.length; i++) {
+                coeffs[i] += coeffs[i]>0 ? ka : kb;
+                coeffs[i] /= k;
+            }
         }
     }
     
