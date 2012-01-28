@@ -71,6 +71,7 @@ public class ArrayEncoder {
     private static final int[] BIT1_TABLE = {1, 1, 1, 0, 0, 0, 1, 0, 1};
     private static final int[] BIT2_TABLE = {1, 1, 1, 1, 0, 0, 0, 1, 0};
     private static final int[] BIT3_TABLE = {1, 0, 1, 0, 0, 1, 1, 1, 0};
+    private static final BigInteger THREE = BigInteger.valueOf(3);
     
     /**
      * Encodes an int array whose elements are between 0 and <code>q</code>,
@@ -209,11 +210,11 @@ public class ArrayEncoder {
     public static byte[] encodeMod3Tight(int[] intArray) {
         BigInteger sum = BigInteger.ZERO;
         for (int i=intArray.length-1; i>=0; i--) {
-            sum = sum.multiply(BigInteger.valueOf(3));
+            sum = sum.multiply(THREE);
             sum = sum.add(BigInteger.valueOf(intArray[i]+1));
         }
         
-        int size = (BigInteger.valueOf(3).pow(intArray.length).bitLength()+7) / 8;
+        int size = (THREE.pow(intArray.length).bitLength()+7) / 8;
         byte[] arr = sum.toByteArray();
         
         if (arr.length < size) {
@@ -239,10 +240,10 @@ public class ArrayEncoder {
         BigInteger sum = new BigInteger(1, b);
         int[] coeffs = new int[N];
         for (int i=0; i<N; i++) {
-            coeffs[i] = sum.mod(BigInteger.valueOf(3)).intValue() - 1;
+            coeffs[i] = sum.mod(THREE).intValue() - 1;
             if (coeffs[i] > 1)
                 coeffs[i] -= 3;
-            sum = sum.divide(BigInteger.valueOf(3));
+            sum = sum.divide(THREE);
         }
         return coeffs;
     }
