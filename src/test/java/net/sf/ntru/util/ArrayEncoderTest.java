@@ -32,7 +32,7 @@ public class ArrayEncoderTest {
     
     @Test
     public void testEncodeDecodeModQ() {
-        int[] coeffs = PolynomialGeneratorForTesting.generateRandom(1000, 2048).coeffs;
+        int[] coeffs = PolynomialGeneratorForTesting.generateRandomPositive(1000, 2048).coeffs;
         byte[] data = ArrayEncoder.encodeModQ(coeffs, 2048);
         int[] coeffs2 = ArrayEncoder.decodeModQ(data, 1000, 2048);
         assertArrayEquals(coeffs, coeffs2);

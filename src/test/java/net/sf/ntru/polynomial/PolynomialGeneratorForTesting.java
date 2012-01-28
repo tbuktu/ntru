@@ -26,12 +26,27 @@ public class PolynomialGeneratorForTesting {
     
     /**
      * Creates a random polynomial with <code>N</code> coefficients
-     * between <code>0</code> and <code>q-1</code>.
+     * such that <code>-q/2 &le; c &lt; q/2</code> for each coefficient <code>c</code>.
+     * @param N length of the polynomial
+     * @param q coefficients will all be between -q/2 and q/2
+     * @return a random polynomial
+     */
+    public static IntegerPolynomial generateRandom(int N, int q) {
+        Random rng = new Random();
+        int[] coeffs = new int[N];
+        for (int i=0; i<N; i++)
+            coeffs[i] = rng.nextInt(q) - q/2;
+        return new IntegerPolynomial(coeffs);
+    }
+    
+    /**
+     * Creates a random polynomial with <code>N</code> coefficients
+     * such that <code>0 &le; c &lt; q</code> for each coefficient <code>c</code>.
      * @param N length of the polynomial
      * @param q coefficients will all be below this number
      * @return a random polynomial
      */
-    public static IntegerPolynomial generateRandom(int N, int q) {
+    public static IntegerPolynomial generateRandomPositive(int N, int q) {
         Random rng = new Random();
         int[] coeffs = new int[N];
         for (int i=0; i<N; i++)
