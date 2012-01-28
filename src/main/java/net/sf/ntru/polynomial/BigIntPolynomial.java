@@ -306,7 +306,7 @@ public class BigIntPolynomial {
      * @param divisor the number to divide by
      */
     public void div(BigInteger divisor) {
-        BigInteger d = divisor.add(ONE).divide(BigInteger.valueOf(2));
+        BigInteger d = divisor.add(ONE).shiftRight(1);   // d = ceil(divisor/2)
         for (int i=0; i<coeffs.length; i++) {
             coeffs[i] = coeffs[i].signum()>0 ? coeffs[i].add(d) : coeffs[i].add(d.negate());
             coeffs[i] = coeffs[i].divide(divisor);

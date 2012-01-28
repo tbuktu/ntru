@@ -559,6 +559,8 @@ public class IntegerPolynomial implements Polynomial {
         LinkedList<ModularResultant> modResultants = new LinkedList<ModularResultant>();
         BigInteger prime = null;
         BigInteger pProd = ONE;
+        BigInteger pProd2 = null;
+        BigInteger pProd2n = null;
         BigInteger res = ONE;
         int numEqual = 1;   // number of consecutive modular resultants equal to each other
         Iterator<BigInteger> primes = BIGINT_PRIMES.iterator();
@@ -575,8 +577,8 @@ public class IntegerPolynomial implements Polynomial {
             res = res.add(res2).mod(temp);
             pProd = temp;
             
-            BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
-            BigInteger pProd2n = pProd2.negate();
+            pProd2 = pProd.shiftRight(1);
+            pProd2n = pProd2.negate();
             if (res.compareTo(pProd2) > 0)
                 res = res.subtract(pProd);
             else if (res.compareTo(pProd2n) < 0)
@@ -602,8 +604,6 @@ public class IntegerPolynomial implements Polynomial {
         }
         BigIntPolynomial rhoP = modResultants.getFirst().rho;
         
-        BigInteger pProd2 = pProd.divide(BigInteger.valueOf(2));
-        BigInteger pProd2n = pProd2.negate();
         if (res.compareTo(pProd2) > 0)
             res = res.subtract(pProd);
         if (res.compareTo(pProd2n) < 0)
