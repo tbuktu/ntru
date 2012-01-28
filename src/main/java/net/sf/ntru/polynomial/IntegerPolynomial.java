@@ -817,13 +817,15 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Divides each coefficient by <code>k</code> and rounds to the nearest integer. Does not return a new polynomial but modifies this polynomial.
+     * Divides each coefficient by <code>k</code> and rounds to the nearest integer.
+     * Does not return a new polynomial but modifies this polynomial.
      * @param k the divisor
      */
     public void div(int k) {
-        int k2 = (k+1) / 2;
+        int ka = k / 2;
+        int kb = (1-k) / 2;
         for (int i=0; i<coeffs.length; i++) {
-            coeffs[i] += coeffs[i]>0 ? k2 : -k2;
+            coeffs[i] += coeffs[i]>0 ? ka : kb;
             coeffs[i] /= k;
         }
     }

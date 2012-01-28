@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.Random;
 
 import net.sf.ntru.encrypt.EncryptionParameters;
 import net.sf.ntru.sign.SignatureParameters;
@@ -72,6 +73,20 @@ public class IntegerPolynomialTest {
         assertEquals(arr1.length, arr2.length);
         for (int i=0; i<arr1.length; i++)
             assertEquals((arr1[i]+m)%m, (arr2[i]+m)%m);
+    }
+    
+    @Test
+    public void testDiv() {
+        Random rng = new Random();
+        for (int i=0; i<10; i++) {
+            IntegerPolynomial poly = PolynomialGeneratorForTesting.generateRandom(439, 10000);
+            
+            IntegerPolynomial a = poly.clone();
+            int k = rng.nextInt(2047) + 1;
+            a.div(k);
+            for (int j=0; j<poly.coeffs.length; j++)
+                assertEquals(Math.round(((double)poly.coeffs[j])/k), a.coeffs[j]);
+        }
     }
     
     @Test
