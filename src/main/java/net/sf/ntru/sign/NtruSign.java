@@ -414,7 +414,7 @@ public class NtruSign {
                             ProductFormPolynomial.generateRandom(N, d1, d2, d3+1, d3, rng);
                     gInt = g.toIntegerPolynomial();
                 } while (primeCheck && gInt.resultant(_2n1).res.equals(ZERO));
-            } while (gInt.invertFq(q) == null);
+            } while (!gInt.isInvertiblePow2());
             rg = gInt.resultant();
             r = BigIntEuclidean.calculate(rf.res, rg.res);
         } while (!r.gcd.equals(ONE));

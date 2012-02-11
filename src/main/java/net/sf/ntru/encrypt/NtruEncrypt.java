@@ -207,12 +207,11 @@ public class NtruEncrypt {
      */
     private IntegerPolynomial generateG(Random rng) {
         final int N = params.N;
-        final int q = params.q;
         int dg = params.dg;
         
         while (true) {
             DenseTernaryPolynomial g = DenseTernaryPolynomial.generateRandom(N, dg, dg-1, rng);
-            if (g.invertFq(q) != null)
+            if (g.isInvertiblePow2())
                 return g;
         }
     }

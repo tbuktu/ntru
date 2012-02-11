@@ -368,6 +368,15 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
+     * Tests if this polynomial is invertible modulo 2.
+     * If a polynomial is invertible modulo 2, it is invertible modulo any power of 2.
+     * @return <code>true</code> if an inverse mod 2<sup>k</sup> for all k exists, <code>false</code> otherwise
+     */
+    public boolean isInvertiblePow2() {
+        return invertF2() != null;
+    }
+    
+    /**
      * Computes the inverse mod <code>q; q</code> must be a power of 2.<br/>
      * Returns <code>null</code> if the polynomial is not invertible.<br/>
      * The algorithm is described in <a href="http://www.securityinnovation.com/uploads/Crypto/NTRUTech014.pdf">
@@ -376,6 +385,20 @@ public class IntegerPolynomial implements Polynomial {
      * @return a new polynomial, or <code>null</code> if no inverse exists
      */
     public IntegerPolynomial invertFq(int q) {
+        IntegerPolynomial Fq = invertF2();
+        if (Fq == null)
+            return null;
+        return mod2ToModq(Fq, q);
+    }
+    
+    /**
+     * Computes the inverse mod 2.
+     * Returns <code>null</code> if the polynomial is not invertible.<br/>
+     * The algorithm is described in <a href="http://www.securityinnovation.com/uploads/Crypto/NTRUTech014.pdf">
+     * Almost Inverses and Fast NTRU Key Generation</a>.
+     * @return a new polynomial, or <code>null</code> if no inverse exists
+     */
+    public IntegerPolynomial invertF2() {
         int N = coeffs.length;
         int k = 0;
         IntegerPolynomial b = new IntegerPolynomial(N+1);
@@ -428,7 +451,7 @@ public class IntegerPolynomial implements Polynomial {
             Fq.coeffs[j] = b.coeffs[i];
         }
         
-        return mod2ToModq(Fq, q);
+        return Fq;
     }
     
     /**
