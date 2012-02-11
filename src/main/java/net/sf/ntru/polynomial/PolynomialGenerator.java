@@ -18,9 +18,6 @@
 
 package net.sf.ntru.polynomial;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
 /** Static utility class */
@@ -43,30 +40,5 @@ public class PolynomialGenerator {
             return SparseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes, rng);
         else
             return DenseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes, rng);
-    }
-    
-    /**
-     * Generates an array containing numOnes ints equal to 1,
-     * numNegOnes int equal to -1, and the rest equal to 0.
-     * @param N
-     * @param numOnes
-     * @param numNegOnes
-     * @param rng the random number generator to use
-     * @return an array of integers
-     */
-    public static int[] generateRandomTernary(int N, int numOnes, int numNegOnes, Random rng) {
-        List<Integer> list = new ArrayList<Integer>();
-        for (int i=0; i<numOnes; i++)
-            list.add(1);
-        for (int i=0; i<numNegOnes; i++)
-            list.add(-1);
-        while (list.size() < N)
-            list.add(0);
-        Collections.shuffle(list, rng);
-        
-        int[] arr = new int[N];
-        for (int i=0; i<N; i++)
-            arr[i] = list.get(i);
-        return arr;
     }
 }

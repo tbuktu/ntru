@@ -19,7 +19,10 @@
 package net.sf.ntru.polynomial;
 
 import java.security.SecureRandom;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -61,8 +64,19 @@ public class DenseTernaryPolynomial extends IntegerPolynomial implements Ternary
      * @param rng the random number generator to use
      */
     public static DenseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes, Random rng) {
-        int[] coeffs = PolynomialGenerator.generateRandomTernary(N, numOnes, numNegOnes, rng);
-        return new DenseTernaryPolynomial(coeffs);
+        List<Integer> list = new ArrayList<Integer>();
+        for (int i=0; i<numOnes; i++)
+            list.add(1);
+        for (int i=0; i<numNegOnes; i++)
+            list.add(-1);
+        while (list.size() < N)
+            list.add(0);
+        Collections.shuffle(list, rng);
+        
+        int[] arr = new int[N];
+        for (int i=0; i<N; i++)
+            arr[i] = list.get(i);
+        return new DenseTernaryPolynomial(arr);
     }
     
     /**

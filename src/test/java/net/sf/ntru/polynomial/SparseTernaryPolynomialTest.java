@@ -19,6 +19,7 @@
 package net.sf.ntru.polynomial;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -53,5 +54,25 @@ public class SparseTernaryPolynomialTest {
         ByteArrayInputStream poly1Stream = new ByteArrayInputStream(poly1.toBinary());
         SparseTernaryPolynomial poly2 = SparseTernaryPolynomial.fromBinary(poly1Stream, 1000, 100, 101);
         assertEquals(poly1, poly2);
+    }
+    
+    @Test
+    public void testGenerateRandom() {
+        Random rng = new Random();
+        verify(SparseTernaryPolynomial.generateRandom(743, 248, 248, rng));
+        
+        for (int i=0; i<10; i++) {
+            int N = rng.nextInt(2000) + 10;
+            int numOnes = rng.nextInt(N);
+            int numNegOnes = rng.nextInt(N-numOnes);
+            verify(SparseTernaryPolynomial.generateRandom(N, numOnes, numNegOnes, rng));
+        }
+    }
+    
+    private void verify(SparseTernaryPolynomial poly) {
+        // make sure ones and negative ones don't share indices
+        for (int i: poly.getOnes())
+            for (int j: poly.getNegOnes())
+                assertTrue(i != j);
     }
 }

@@ -41,8 +41,8 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
     /**
      * Constructs a new polynomial.
      * @param N total number of coefficients including zeros
-     * @param ones indices of coefficients equal to 1
-     * @param negOnes indices of coefficients equal to -1
+     * @param ones indices of coefficients equal to 1 <b>in ascending order</b>
+     * @param negOnes indices of coefficients equal to -1 <b>in ascending order</b>
      */
     SparseTernaryPolynomial(int N, int[] ones, int[] negOnes) {
         this.N = N;
@@ -120,8 +120,33 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
      * @param rng the random number generator to use
      */
     public static SparseTernaryPolynomial generateRandom(int N, int numOnes, int numNegOnes, Random rng) {
-        int[] coeffs = PolynomialGenerator.generateRandomTernary(N, numOnes, numNegOnes, rng);
-        return new SparseTernaryPolynomial(coeffs);
+        int[] coeffs = new int[N];   // an IntegerPolynomial-style representation of the new polynomial
+        
+        int[] ones = new int[numOnes];
+        int i = 0;
+        while (i < numOnes) {
+            int r = rng.nextInt(N);
+            if (coeffs[r] == 0) {
+                ones[i] = r;
+                coeffs[r] = 1;
+                i++;
+            }
+        }
+        Arrays.sort(ones);
+        
+        int[] negOnes = new int[numNegOnes];
+        i = 0;
+        while (i < numNegOnes) {
+            int r = rng.nextInt(N);
+            if (coeffs[r] == 0) {
+                negOnes[i] = r;
+                coeffs[r] = -1;
+                i++;
+            }
+        }
+        Arrays.sort(negOnes);
+        
+        return new SparseTernaryPolynomial(N, ones, negOnes);
     }
     
     @Override
