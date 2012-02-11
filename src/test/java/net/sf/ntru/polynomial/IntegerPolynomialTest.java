@@ -56,8 +56,9 @@ public class IntegerPolynomialTest {
         
         // multiplication without a modulus
         a = new IntegerPolynomial(new int[] {1, 1, 0, 0, -1, -1, 0, 0, -1, 0, 1});
-        b = new IntegerPolynomial(new int[] {704, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0});
+        b = new IntegerPolynomial(new int[] {2, 14, -10, 10, -4, -10, 2, 12, 11, -2, 8});
         c = a.mult(b);
+        assertArrayEquals(new int[] {0, -13, 15, -12, -26, -39, 2, 17, 13, 17, 26}, c.coeffs);
         
         // mult(p, modulus) should give the same result as mult(p) followed by modulus
         a = new IntegerPolynomial(new int[] {1, 0, -1, 1, 0, 1, 1, 1, -1, 1, -1});
