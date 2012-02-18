@@ -19,6 +19,7 @@
 package net.sf.ntru.sign;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -55,5 +56,6 @@ public class SignatureKeyTest {
         SignatureKeyPair kp3 = new SignatureKeyPair(new SignaturePrivateKey(bis1, params), new SignaturePublicKey(bis2, params));
         assertEquals(kp.pub, kp3.pub);
         assertEquals(kp.priv, kp3.priv);
+        assertNull(kp3.priv.getBasis(0).h);
     }
 }

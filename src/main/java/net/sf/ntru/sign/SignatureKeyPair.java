@@ -62,7 +62,7 @@ public class SignatureKeyPair {
             Basis basis = priv.getBasis(i);
             if (!basis.params.equals(params))
                 return false;
-            if (!basis.isValid(i==params.B ? pub.h : basis.h))
+            if (!basis.isValid(i==0 ? pub.h : basis.h))
                 return false;
         }
         

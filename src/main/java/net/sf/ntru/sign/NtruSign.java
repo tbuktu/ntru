@@ -105,7 +105,9 @@ public class NtruSign {
             priv.add(basis0);
         }
         
-        SignaturePublicKey pub = new SignaturePublicKey(priv.getBasis(B).h, params);
+        SignaturePublicKey pub = new SignaturePublicKey(priv.getBasis(0).h, params);
+        priv.getBasis(0).h = null;   // remove the public polynomial h from the private key
+        
         SignatureKeyPair kp = new SignatureKeyPair(priv, pub);
         return kp;
     }
