@@ -18,7 +18,6 @@
 
 package net.sf.ntru.polynomial;
 
-import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,14 +28,6 @@ import java.util.Random;
  * A <code>TernaryPolynomial</code> with a "high" number of nonzero coefficients.
  */
 public class DenseTernaryPolynomial extends IntegerPolynomial implements TernaryPolynomial {
-    
-    /**
-     * Constructs a new <code>DenseTernaryPolynomial</code> with <code>N</code> coefficients.
-     * @param N the number of coefficients
-     */
-    DenseTernaryPolynomial(int N) {
-        super(N);
-    }
     
     /**
      * Constructs a <code>DenseTernaryPolynomial</code> from a <code>IntegerPolynomial</code>. The two polynomials are
@@ -79,18 +70,6 @@ public class DenseTernaryPolynomial extends IntegerPolynomial implements Ternary
         return new DenseTernaryPolynomial(arr);
     }
     
-    /**
-     * Generates a polynomial with coefficients randomly selected from <code>{-1, 0, 1}</code>.
-     * @param N number of coefficients
-     */
-    public static DenseTernaryPolynomial generateRandom(int N) {
-        SecureRandom rng = new SecureRandom();
-        DenseTernaryPolynomial poly = new DenseTernaryPolynomial(N);
-        for (int i=0; i<N; i++)
-            poly.coeffs[i] = rng.nextInt(3) - 1;
-        return poly;
-    }
-
     @Override
     public IntegerPolynomial mult(IntegerPolynomial poly2, int modulus) {
         // even on 32-bit systems, LongPolynomial5 multiplies faster than IntegerPolynomial

@@ -68,16 +68,16 @@ public class EncryptionPublicKey {
      * @return the encoded key
      * @see #EncryptionPublicKey(byte[], EncryptionParameters)
      */
-   public byte[] getEncoded() {
+    public byte[] getEncoded() {
         return h.toBinary(params.q);
     }
     
-   /**
-    * Writes the key to an output stream
-    * @param os an output stream
-    * @throws IOException
-    * @see #EncryptionPublicKey(InputStream, EncryptionParameters)
-    */
+    /**
+     * Writes the key to an output stream
+     * @param os an output stream
+     * @throws IOException
+     * @see #EncryptionPublicKey(InputStream, EncryptionParameters)
+     */
     public void writeTo(OutputStream os) throws IOException {
         os.write(getEncoded());
     }

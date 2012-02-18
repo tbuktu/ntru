@@ -21,6 +21,7 @@ package net.sf.ntru.polynomial;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.math.BigDecimal;
 import java.security.SecureRandom;
 
 import net.sf.ntru.polynomial.BigDecimalPolynomial;
@@ -34,10 +35,10 @@ public class BigDecimalPolynomialTest {
     
     @Test
     public void testMult() {
-        BigDecimalPolynomial a = new BigDecimalPolynomial(new BigIntPolynomial(new IntegerPolynomial(new int[] {4, -1, 9, 2, 1, -5, 12, -7, 0, -9, 5})));
+        BigDecimalPolynomial a = createBigDecimalPolynomial(new int[] {4, -1, 9, 2, 1, -5, 12, -7, 0, -9, 5});
         BigIntPolynomial b = new BigIntPolynomial(new IntegerPolynomial(new int[] {-6, 0, 0, 13, 3, -2, -4, 10, 11, 2, -1}));
         BigDecimalPolynomial c = a.mult(b);
-        assertArrayEquals(c.coeffs, new BigDecimalPolynomial(new BigIntPolynomial(new IntegerPolynomial(new int[] {2, -189, 77, 124, -29, 0, -75, 124, -49, 267, 34}))).coeffs);
+        assertArrayEquals(c.coeffs, createBigDecimalPolynomial(new int[] {2, -189, 77, 124, -29, 0, -75, 124, -49, 267, 34}).coeffs);
         
         // multiply a polynomial by its inverse modulo 2048 and check that the result is 1
         IntegerPolynomial d, dInv;
@@ -47,10 +48,18 @@ public class BigDecimalPolynomialTest {
             dInv = d.invertFq(2048);
         } while (dInv == null);
         d.mod(2048);
-        BigDecimalPolynomial e = new BigDecimalPolynomial(new BigIntPolynomial(d));
+        BigDecimalPolynomial e = createBigDecimalPolynomial(d.coeffs);
         BigIntPolynomial f = new BigIntPolynomial(dInv);
         IntegerPolynomial g = new IntegerPolynomial(e.mult(f).round());
         g.modPositive(2048);
         assertTrue(g.equalsOne());
+    }
+    
+    private BigDecimalPolynomial createBigDecimalPolynomial(int[] coeffs) {
+        int N = coeffs.length;
+        BigDecimalPolynomial poly = new BigDecimalPolynomial(N);
+        for (int i=0; i<N; i++)
+            poly.coeffs[i] = new BigDecimal(coeffs[i]);
+        return poly;
     }
 }

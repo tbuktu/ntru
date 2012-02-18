@@ -18,6 +18,7 @@
 
 package net.sf.ntru.polynomial;
 
+import java.security.SecureRandom;
 import java.util.Random;
 
 import net.sf.ntru.polynomial.IntegerPolynomial;
@@ -52,5 +53,17 @@ public class PolynomialGeneratorForTesting {
         for (int i=0; i<N; i++)
             coeffs[i] = rng.nextInt(q);
         return new IntegerPolynomial(coeffs);
+    }
+
+    /**
+     * Generates a polynomial with coefficients randomly selected from <code>{-1, 0, 1}</code>.
+     * @param N number of coefficients
+     */
+    public static DenseTernaryPolynomial generateRandom(int N) {
+        SecureRandom rng = new SecureRandom();
+        int[] coeffs = new int[N];
+        for (int i=0; i<N; i++)
+            coeffs[i] = rng.nextInt(3) - 1;
+        return new DenseTernaryPolynomial(coeffs);
     }
 }

@@ -46,7 +46,7 @@ public class LongPolynomial5Test {
         Random rng = new Random();
         for (int i=0; i<10; i++) {
             int[] coeffs1 = new int[rng.nextInt(2000)+1];
-            int[] coeffs2 = DenseTernaryPolynomial.generateRandom(coeffs1.length).coeffs;
+            int[] coeffs2 = PolynomialGeneratorForTesting.generateRandom(coeffs1.length).coeffs;
             testMult(coeffs1, coeffs2);
         }
     }

@@ -62,7 +62,7 @@ public class BigIntPolynomial {
      * independent of each other.
      * @param p the original polynomial
      */
-    public BigIntPolynomial(IntegerPolynomial p) {
+    BigIntPolynomial(IntegerPolynomial p) {
         coeffs = new BigInteger[p.coeffs.length];
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] = BigInteger.valueOf(p.coeffs[i]);
@@ -153,7 +153,7 @@ public class BigIntPolynomial {
     }
     
     /** drops elements of b that are shifted outside the valid range */
-    static void addShifted(int[] a, int[] b, int numElements) {
+    private void addShifted(int[] a, int[] b, int numElements) {
         boolean carry = false;
         int i = 0;
         while (i < Math.min(b.length, a.length-numElements)) {
@@ -174,7 +174,7 @@ public class BigIntPolynomial {
     }
     
     /** drops elements of b that are shifted outside the valid range */
-    static void subShifted(int[] a, int[] b, int numElements) {
+    private void subShifted(int[] a, int[] b, int numElements) {
         boolean carry = false;
         int i = 0;
         while (i < Math.min(b.length, a.length-numElements)) {
@@ -204,7 +204,7 @@ public class BigIntPolynomial {
      * @return a new polynomial
      * @throws NtruException if the two polynomials have a different number of coefficients
      */
-    public BigIntPolynomial multSmall(BigIntPolynomial poly2) {
+    BigIntPolynomial multSmall(BigIntPolynomial poly2) {
         int N = coeffs.length;
         if (poly2.coeffs.length != N)
             throw new NtruException("Number of coefficients must be the same");

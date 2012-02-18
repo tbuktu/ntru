@@ -50,19 +50,8 @@ public class BigDecimalPolynomial {
      * Constructs a new polynomial with a given set of coefficients.
      * @param coeffs the coefficients
      */
-    BigDecimalPolynomial(BigDecimal[] coeffs) {
+    private BigDecimalPolynomial(BigDecimal[] coeffs) {
         this.coeffs = coeffs;
-    }
-    
-    /**
-     * Constructs a <code>BigDecimalPolynomial</code> from a <code>BigIntPolynomial</code>. The two polynomials are independent of each other.
-     * @param p the original polynomial
-     */
-    BigDecimalPolynomial(BigIntPolynomial p) {
-        int N = p.coeffs.length;
-        coeffs = new BigDecimal[N];
-        for (int i=0; i<N; i++)
-            coeffs[i] = new BigDecimal(p.coeffs[i]);
     }
     
     /**

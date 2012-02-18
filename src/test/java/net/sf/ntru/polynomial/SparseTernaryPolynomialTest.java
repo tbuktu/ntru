@@ -35,7 +35,7 @@ public class SparseTernaryPolynomialTest {
     public void testMult() {
         Random rng = new SecureRandom();
         SparseTernaryPolynomial p1 = SparseTernaryPolynomial.generateRandom(1000, 500, 500, rng);
-        IntegerPolynomial p2 = DenseTernaryPolynomial.generateRandom(1000);
+        IntegerPolynomial p2 = PolynomialGeneratorForTesting.generateRandom(1000);
         
         IntegerPolynomial prod1 = p1.mult(p2);
         prod1 = p1.mult(p2);

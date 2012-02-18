@@ -120,14 +120,14 @@ class IndexGenerator {
      */
     static class BitString {
         byte[] bytes = new byte[4];
-        int numBytes;   // includes the last byte even if only some of its bits are used
-        int lastByteBits;   // lastByteBits <= 8
+        private int numBytes;   // includes the last byte even if only some of its bits are used
+        private int lastByteBits;   // lastByteBits <= 8
         
         /**
          * Appends all bits in a byte array to the end of the bit string.
          * @param bytes a byte array
          */
-        void appendBits(byte[] bytes) {
+        private void appendBits(byte[] bytes) {
             for (byte b: bytes)
                 appendBits(b);
         }

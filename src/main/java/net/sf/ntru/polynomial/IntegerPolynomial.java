@@ -19,7 +19,6 @@
 package net.sf.ntru.polynomial;
 
 import static java.math.BigInteger.ONE;
-import static java.math.BigInteger.ZERO;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -220,26 +219,7 @@ public class IntegerPolynomial implements Polynomial {
      * @return the encoded polynomial
      */
     public byte[] toBinary3Tight() {
-        BigInteger sum = ZERO;
-        for (int i=coeffs.length-1; i>=0; i--) {
-            sum = sum.multiply(BigInteger.valueOf(3));
-            sum = sum.add(BigInteger.valueOf(coeffs[i]+1));
-        }
-        
-        int size = (BigInteger.valueOf(3).pow(coeffs.length).bitLength()+7) / 8;
-        byte[] arr = sum.toByteArray();
-        
-        if (arr.length < size) {
-            // pad with leading zeros so arr.length==size
-            byte[] arr2 = new byte[size];
-            System.arraycopy(arr, 0, arr2, size-arr.length, arr.length);
-            return arr2;
-        }
-        
-        if (arr.length > size)
-            // drop sign bit
-            arr = Arrays.copyOfRange(arr, 1, arr.length);
-        return arr;
+        return ArrayEncoder.encodeMod3Tight(coeffs);
     }
     
     /**
@@ -398,7 +378,7 @@ public class IntegerPolynomial implements Polynomial {
      * Almost Inverses and Fast NTRU Key Generation</a>.
      * @return a new polynomial, or <code>null</code> if no inverse exists
      */
-    public IntegerPolynomial invertF2() {
+    private IntegerPolynomial invertF2() {
         int N = coeffs.length;
         int k = 0;
         IntegerPolynomial b = new IntegerPolynomial(N+1);
@@ -736,7 +716,7 @@ public class IntegerPolynomial implements Polynomial {
      * Returns the degree of the polynomial
      * @return the degree
      */
-    int degree() {
+    private int degree() {
         int degree = coeffs.length - 1;
         while (degree>0 && coeffs[degree]==0)
             degree--;
@@ -780,7 +760,7 @@ public class IntegerPolynomial implements Polynomial {
      * and takes the coefficient values mod <code>modulus</code>.
      * @param b another polynomial
      */
-    public void sub(IntegerPolynomial b, int modulus) {
+    private void sub(IntegerPolynomial b, int modulus) {
         sub(b);
         mod(modulus);
     }
@@ -799,7 +779,7 @@ public class IntegerPolynomial implements Polynomial {
      * Subtracts a <code>int</code> from each coefficient. Does not return a new polynomial but modifies this polynomial.
      * @param b a number to subtract from each coefficient
      */
-    void sub(int b) {
+    private void sub(int b) {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] -= b;
     }
@@ -972,7 +952,7 @@ public class IntegerPolynomial implements Polynomial {
      * Shifts all coefficients so the largest gap is centered around <code>-q/2</code>.
      * @param q a modulus
      */
-    void shiftGap(int q) {
+    private void shiftGap(int q) {
         modCenter(q);
         
         int[] sorted = coeffs.clone();
@@ -1022,7 +1002,7 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
-     * Returns the sum of all coefficients, i.e. evaluates the polynomial at 0.
+     * Returns the sum of all coefficients, i.e. evaluates the polynomial at 1.
      * @return the sum of all coefficients
      */
     public int sumCoeffs() {

@@ -28,7 +28,7 @@ public class DenseTernaryPolynomialTest {
     
     @Test
     public void testGenerateRandom() {
-        checkTernarity(DenseTernaryPolynomial.generateRandom(1499));
+        checkTernarity(PolynomialGeneratorForTesting.generateRandom(1499));
         
         Random rng = new Random();
         for (int i=0; i<10; i++) {

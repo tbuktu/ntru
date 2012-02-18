@@ -22,7 +22,6 @@ import static org.junit.Assert.assertArrayEquals;
 
 import java.util.Random;
 
-import net.sf.ntru.polynomial.DenseTernaryPolynomial;
 import net.sf.ntru.polynomial.PolynomialGeneratorForTesting;
 import net.sf.ntru.util.ArrayEncoder;
 
@@ -50,7 +49,7 @@ public class ArrayEncoderTest {
     
     @Test
     public void testEncodeDecodeMod3Tight() {
-        int[] coeffs = DenseTernaryPolynomial.generateRandom(1000).coeffs;
+        int[] coeffs = PolynomialGeneratorForTesting.generateRandom(1000).coeffs;
         byte[] data = ArrayEncoder.encodeMod3Tight(coeffs);
         int[] coeffs2 = ArrayEncoder.decodeMod3Tight(data, 1000);
         assertArrayEquals(coeffs, coeffs2);

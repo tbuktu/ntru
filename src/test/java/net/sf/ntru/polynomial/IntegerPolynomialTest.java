@@ -108,7 +108,7 @@ public class IntegerPolynomialTest {
         // test 3 random polynomials
         int numInvertible = 0;
         while (numInvertible < 3) {
-            a = DenseTernaryPolynomial.generateRandom(853);
+            a = PolynomialGeneratorForTesting.generateRandom(853);
             b = a.invertFq(2048);
             if (b != null) {
                 numInvertible++;
@@ -180,7 +180,7 @@ public class IntegerPolynomialTest {
         assertArrayEquals(poly5.coeffs, poly6.coeffs);
 
         for(int i=0; i<100; i++){
-            IntegerPolynomial poly7 = DenseTernaryPolynomial.generateRandom(157);
+            IntegerPolynomial poly7 = PolynomialGeneratorForTesting.generateRandom(157);
             arr = poly7.toBinary3Tight();
             IntegerPolynomial poly8 = IntegerPolynomial.fromBinary3Tight(arr, 157);
             assertArrayEquals(poly7.coeffs, poly8.coeffs);
@@ -218,7 +218,7 @@ public class IntegerPolynomialTest {
         verifyResultant(a, a.resultant(p), p);
         
         for (int i=0; i<10; i++) {
-            a = DenseTernaryPolynomial.generateRandom(853);
+            a = PolynomialGeneratorForTesting.generateRandom(853);
             verifyResultant(a, a.resultant(p), p);
         }
     }
@@ -241,7 +241,7 @@ public class IntegerPolynomialTest {
     public void testAdd() {
         EncryptionParameters params = EncryptionParameters.EES1087EP2;
         IntegerPolynomial a = PolynomialGeneratorForTesting.generateRandom(params.N, params.q);
-        TernaryPolynomial b = DenseTernaryPolynomial.generateRandom(1087);
+        TernaryPolynomial b = PolynomialGeneratorForTesting.generateRandom(1087);
         
         IntegerPolynomial c1 = a.clone();
         c1.add(b.toIntegerPolynomial());
