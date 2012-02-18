@@ -18,6 +18,8 @@
 
 package net.sf.ntru.sign;
 
+import net.sf.ntru.sign.SignaturePrivateKey.Basis;
+
 /** Contains a public and a private signature key */
 public class SignatureKeyPair {
     SignaturePrivateKey priv;
@@ -49,6 +51,24 @@ public class SignatureKeyPair {
         return pub;
     }
 
+    /**
+     * Tests if the key pair is valid.
+     * @return <code>true</code> if the key pair is valid, <code>false</code> otherwise
+     */
+    public boolean isValid() {
+        SignatureParameters params = pub.params;
+
+        for (int i=0; i<=params.B; i++) {
+            Basis basis = priv.getBasis(i);
+            if (!basis.params.equals(params))
+                return false;
+            if (!basis.isValid(i==params.B ? pub.h : basis.h))
+                return false;
+        }
+        
+        return true;
+    }
+    
     @Override
     public int hashCode() {
         final int prime = 31;

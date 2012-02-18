@@ -38,7 +38,7 @@ import net.sf.ntru.polynomial.SparseTernaryPolynomial;
  * The inverse of <code>f</code> modulo <code>p</code> is precomputed on initialization.
  */
 public class EncryptionPrivateKey {
-    private EncryptionParameters params;
+    EncryptionParameters params;
     Polynomial t;
     IntegerPolynomial fp;
 

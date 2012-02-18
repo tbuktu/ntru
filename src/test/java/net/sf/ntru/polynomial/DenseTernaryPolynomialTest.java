@@ -40,7 +40,6 @@ public class DenseTernaryPolynomialTest {
     }
     
     private void checkTernarity(DenseTernaryPolynomial poly) {
-        for (int c: poly.coeffs)
-            assertTrue(c>=-1 && c<=1);
+        assertTrue(poly.isTernary());
     }
 }

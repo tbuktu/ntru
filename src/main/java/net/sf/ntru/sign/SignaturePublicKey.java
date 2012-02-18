@@ -28,7 +28,7 @@ import net.sf.ntru.polynomial.IntegerPolynomial;
  * A NtruSign public key is essentially a polynomial named <code>h</code>.
  */
 public class SignaturePublicKey {
-    private SignatureParameters params;
+    SignatureParameters params;
     IntegerPolynomial h;
 
     /**

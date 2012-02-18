@@ -556,7 +556,7 @@ public class NtruSign {
     /**
      * A subclass of Basis that additionally contains the polynomials <code>F</code> and <code>G</code>.
      */
-    class FGBasis extends Basis {
+    static class FGBasis extends Basis {
         IntegerPolynomial F, G;
         
         FGBasis(Polynomial f, Polynomial fPrime, IntegerPolynomial h, IntegerPolynomial F, IntegerPolynomial G, SignatureParameters params) {

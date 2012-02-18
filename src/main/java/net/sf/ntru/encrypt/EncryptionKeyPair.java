@@ -18,6 +18,11 @@
 
 package net.sf.ntru.encrypt;
 
+import net.sf.ntru.arith.IntEuclidean;
+import net.sf.ntru.encrypt.EncryptionParameters.TernaryPolynomialType;
+import net.sf.ntru.polynomial.IntegerPolynomial;
+import net.sf.ntru.polynomial.ProductFormPolynomial;
+
 /** Contains a public and a private encryption key */
 public class EncryptionKeyPair {
     EncryptionPrivateKey priv;
@@ -49,6 +54,56 @@ public class EncryptionKeyPair {
         return pub;
     }
 
+    /**
+     * Tests if the key pair is valid.<br/>
+     * See IEEE 1363.1 section 9.2.4.1.
+     * @return <code>true</code> if the key pair is valid, <code>false</code> otherwise
+     */
+    public boolean isValid() {
+        EncryptionParameters params = priv.params;
+        if (!params.equals(pub.params))
+            return false;
+        
+        int N = params.N;
+        int q = params.q;
+        
+        if (priv.t.toIntegerPolynomial().coeffs.length != params.N)
+            return false;
+        IntegerPolynomial h = pub.h.toIntegerPolynomial();
+        if (h.coeffs.length != N)
+            return false;
+        
+        if (!h.isReduced(q))
+            return false;
+        
+        IntegerPolynomial f = priv.t.toIntegerPolynomial();
+        if (params.polyType==TernaryPolynomialType.SIMPLE && !f.isTernary())
+            return false;
+        // if t is a ProductFormPolynomial, ternarity of f1,f2,f3 doesn't need to be verified
+        if (params.polyType==TernaryPolynomialType.PRODUCT && !(priv.t instanceof ProductFormPolynomial))
+            return false;
+        
+        if (params.polyType == TernaryPolynomialType.PRODUCT) {
+            f.mult(3);
+            f.coeffs[0] += 1;
+            f.modPositive(q);
+        }
+        
+        // the key generator pre-multiplies h by 3, so divide by 9 instead of 3
+        int inv9 = IntEuclidean.calculate(9, q).x;   // 9^-1 mod q
+        
+        IntegerPolynomial g = f.mult(h, q);
+        g.mult(inv9);
+        g.modCenter(q);
+        if (!g.isTernary())
+            return false;
+        if (g.count(1) != params.dg)
+            return false;
+        if (g.count(-1) != params.dg-1)
+            return false;
+        return true;
+    }
+    
     @Override
     public int hashCode() {
         final int prime = 31;

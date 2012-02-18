@@ -32,6 +32,7 @@ import net.sf.ntru.polynomial.IntegerPolynomial;
 import net.sf.ntru.polynomial.Polynomial;
 import net.sf.ntru.polynomial.ProductFormPolynomial;
 import net.sf.ntru.polynomial.SparseTernaryPolynomial;
+import net.sf.ntru.sign.NtruSign.FGBasis;
 import net.sf.ntru.sign.SignatureParameters.BasisType;
 import net.sf.ntru.sign.SignatureParameters.TernaryPolynomialType;
 
@@ -245,6 +246,60 @@ public class SignaturePrivateKey {
                 return ((ProductFormPolynomial)p).toBinary();
             else
                 return p.toIntegerPolynomial().toBinary3Tight();
+        }
+        
+        /**
+         * Tests if the basis is valid.
+         * @param h the polynomial h (either from the public key or from this basis)
+         * @return <code>true</code> if the basis is valid, <code>false</code> otherwise
+         */
+        boolean isValid(IntegerPolynomial h) {
+            int N = params.N;
+            int q = params.q;
+            
+            if (f.toIntegerPolynomial().coeffs.length != N)
+                return false;
+            if (fPrime.toIntegerPolynomial().coeffs.length != N)
+                return false;
+            
+            if (h.coeffs.length!=N || !h.isReduced(q))
+                return false;
+            
+            // determine F, G, g from f, fPrime, h using the eqn. fG-Fg=q
+            Polynomial FPoly = params.basisType==BasisType.STANDARD ? fPrime : f.mult(h, q);
+            IntegerPolynomial F = FPoly.toIntegerPolynomial();
+            IntegerPolynomial fq = f.toIntegerPolynomial().invertFq(q);
+            Polynomial g = params.basisType==BasisType.STANDARD ? f.mult(h, q) : fPrime;
+            IntegerPolynomial G = g.mult(F);
+            G.coeffs[0] -= q;
+            G = G.mult(fq, q);
+            G.modCenter(q);
+            
+            // check norms of F and G
+            if (!new FGBasis(f, fPrime, h, F, G, params).isNormOk())
+                return false;
+            // check norms of f and g
+            int factor = N / 24;
+            if (f.toIntegerPolynomial().centeredNormSq(q)*factor >= F.centeredNormSq(q))
+                return false;
+            if (g.toIntegerPolynomial().centeredNormSq(q)*factor >= G.centeredNormSq(q))
+                return false;
+            
+            // check ternarity
+            if (params.polyType == TernaryPolynomialType.SIMPLE) {
+                if (!f.toIntegerPolynomial().isTernary())
+                    return false;
+                if (!g.toIntegerPolynomial().isTernary())
+                    return false;
+            }
+            else {
+                if (!(f instanceof ProductFormPolynomial))
+                    return false;
+                if (!(g instanceof ProductFormPolynomial))
+                    return false;
+            }
+            
+            return true;
         }
         
         @Override

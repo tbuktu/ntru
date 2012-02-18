@@ -894,7 +894,7 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /** Reduces all coefficients to the interval [-modulus/2, modulus/2) */
-    void modCenter(int modulus) {
+    public void modCenter(int modulus) {
         if (modulus == 2048)
             for (int i=0; i<coeffs.length; i++) {
                 int c = coeffs[i] & 2047;
@@ -1076,6 +1076,26 @@ public class IntegerPolynomial implements Polynomial {
             if (coeff == value)
                 count++;
         return count;
+    }
+    
+    public boolean isTernary() {
+        for (int c: coeffs)
+            if (c<-1 || c>1)
+                return false;
+        return true;
+    }
+    
+    /**
+     * Tests whether all coefficients are between 0 and <code>modulus</code>
+     * @param modulus the modulus
+     * @return <code>true</code> if <code>0 &le; c &lt; modulus</code> for all coefficients
+     *         <code>c</code>, <code>false</code> otherwise
+     */
+    public boolean isReduced(int modulus) {
+        for (int c: coeffs)
+            if (c<0 || c>=modulus)
+                return false;
+        return true;
     }
     
     /**

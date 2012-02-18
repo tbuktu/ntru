@@ -28,7 +28,7 @@ import net.sf.ntru.polynomial.IntegerPolynomial;
  * A NtruEncrypt public key is essentially a polynomial named <code>h</code>.
  */
 public class EncryptionPublicKey {
-    private EncryptionParameters params;
+    EncryptionParameters params;
     IntegerPolynomial h;
 
     /**
