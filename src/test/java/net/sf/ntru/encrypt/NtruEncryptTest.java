@@ -23,6 +23,7 @@ import static net.sf.ntru.encrypt.EncryptionParameters.APR2011_439_FAST;
 import static net.sf.ntru.encrypt.EncryptionParameters.APR2011_743;
 import static net.sf.ntru.encrypt.EncryptionParameters.APR2011_743_FAST;
 import static net.sf.ntru.encrypt.EncryptionParameters.EES1087EP2;
+import static net.sf.ntru.encrypt.EncryptionParameters.EES1087EP2_FAST;
 import static net.sf.ntru.encrypt.EncryptionParameters.EES1171EP1;
 import static net.sf.ntru.encrypt.EncryptionParameters.EES1499EP1;
 import static org.junit.Assert.assertArrayEquals;
@@ -47,7 +48,21 @@ public class NtruEncryptTest {
         params.dr1 = APR2011_743_FAST.dr1;
         params.dr2 = APR2011_743_FAST.dr2;
         params.dr3 = APR2011_743_FAST.dr3;
+        testEncryptDecrypt(params);
         
+        params = EES1087EP2.clone();
+        // set df1..df3 and dr1..dr3 so params can be used for SIMPLE as well as PRODUCT
+        params.df1 = EES1087EP2_FAST.df1;
+        params.df2 = EES1087EP2_FAST.df2;
+        params.df3 = EES1087EP2_FAST.df3;
+        params.dr1 = EES1087EP2_FAST.dr1;
+        params.dr2 = EES1087EP2_FAST.dr2;
+        params.dr3 = EES1087EP2_FAST.dr3;
+        testEncryptDecrypt(params);
+    }
+    
+    /** params must have df1..df3 and dr1..dr3 set as well as df and dr */
+    private void testEncryptDecrypt(EncryptionParameters params) {
         for (TernaryPolynomialType polyType: TernaryPolynomialType.values())
             for (boolean fastP: new boolean[] {true, false}) {
                 params.polyType = polyType;

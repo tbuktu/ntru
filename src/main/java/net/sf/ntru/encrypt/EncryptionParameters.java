@@ -35,11 +35,20 @@ public class EncryptionParameters implements Cloneable {
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for key size. */
     public static final EncryptionParameters EES1087EP2 = new EncryptionParameters(1087, 2048, 120, 120, 256, 13, 25, 14, true, new byte[] {0, 6, 3}, true, false, "SHA-512");
     
+    /** A product-form version of <code>EES1087EP2</code> */
+    public static final EncryptionParameters EES1087EP2_FAST = new EncryptionParameters(1087, 2048, 8, 8, 11, 120, 256, 13, 25, 14, true, new byte[] {0, 6, 3}, true, true, "SHA-512");
+    
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is a tradeoff between key size and encryption/decryption speed. */
     public static final EncryptionParameters EES1171EP1 = new EncryptionParameters(1171, 2048, 106, 106, 256, 13, 20, 15, true, new byte[] {0, 6, 4}, true, false, "SHA-512");
     
+    /** A product-form version of <code>EES1171EP1</code> */
+    public static final EncryptionParameters EES1171EP1_FAST = new EncryptionParameters(1171, 2048, 8, 7, 11, 106, 256, 13, 20, 15, true, new byte[] {0, 6, 4}, true, true, "SHA-512");
+    
     /** A conservative (in terms of security) parameter set that gives 256 bits of security and is optimized for encryption/decryption speed. */
     public static final EncryptionParameters EES1499EP1 = new EncryptionParameters(1499, 2048, 79, 79, 256, 13, 17, 19, true, new byte[] {0, 6, 5}, true, false, "SHA-512");
+    
+    /** A product-form version of <code>EES1499EP1</code> */
+    public static final EncryptionParameters EES1499EP1_FAST = new EncryptionParameters(1499, 2048, 7, 6, 11, 79, 256, 13, 17, 19, true, new byte[] {0, 6, 5}, true, true, "SHA-512");
     
     /** A parameter set that gives 128 bits of security and uses simple ternary polynomials. */
     public static final EncryptionParameters APR2011_439 = new EncryptionParameters(439, 2048, 146, 130, 128, 9, 32, 9, true, new byte[] {0, 7, 101}, true, false, "SHA-256");
