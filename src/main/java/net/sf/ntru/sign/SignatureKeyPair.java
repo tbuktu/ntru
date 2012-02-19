@@ -18,6 +18,13 @@
 
 package net.sf.ntru.sign;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+
+import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.sign.SignaturePrivateKey.Basis;
 
 /** Contains a public and a private signature key */
@@ -33,6 +40,36 @@ public class SignatureKeyPair {
     public SignatureKeyPair(SignaturePrivateKey priv, SignaturePublicKey pub) {
         this.priv = priv;
         this.pub = pub;
+    }
+    
+    /**
+     * Constructs a new key pair from a byte array
+     * @param b an encoded key pair
+     * @param params the NtruSign parameters to use
+     */
+    public SignatureKeyPair(byte[] b, SignatureParameters params) {
+        ByteArrayInputStream is = new ByteArrayInputStream(b);
+        try {
+            pub = new SignaturePublicKey(is, params);
+            priv = new SignaturePrivateKey(is, params);
+        } catch (IOException e) {
+            throw new NtruException(e);
+        }
+    }
+    
+    /**
+     * Constructs a new key pair from an input stream
+     * @param is an input stream
+     * @param params the NtruSign parameters to use
+     * @throws IOException
+     */
+    public SignatureKeyPair(InputStream is, SignatureParameters params) throws IOException {
+        try {
+            pub = new SignaturePublicKey(is, params);
+            priv = new SignaturePrivateKey(is, params);
+        } catch (IOException e) {
+            throw new NtruException(e);
+        }
     }
     
     /**
@@ -67,6 +104,27 @@ public class SignatureKeyPair {
         }
         
         return true;
+    }
+    
+    /**
+     * Converts the key pair to a byte array
+     * @return the encoded key pair
+     */
+    public byte[] getEncoded() {
+        byte[] pubArr = pub.getEncoded();
+        byte[] privArr = priv.getEncoded();
+        byte[] kpArr = Arrays.copyOf(pubArr, pubArr.length+privArr.length);
+        System.arraycopy(privArr, 0, kpArr, pubArr.length, privArr.length);
+        return kpArr;
+    }
+    
+    /**
+     * Writes the key pair to an output stream
+     * @param os an output stream
+     * @throws IOException
+     */
+    public void writeTo(OutputStream os) throws IOException {
+        os.write(getEncoded());
     }
     
     @Override

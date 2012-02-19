@@ -18,8 +18,15 @@
 
 package net.sf.ntru.encrypt;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+
 import net.sf.ntru.arith.IntEuclidean;
 import net.sf.ntru.encrypt.EncryptionParameters.TernaryPolynomialType;
+import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.polynomial.IntegerPolynomial;
 import net.sf.ntru.polynomial.ProductFormPolynomial;
 
@@ -36,6 +43,36 @@ public class EncryptionKeyPair {
     public EncryptionKeyPair(EncryptionPrivateKey priv, EncryptionPublicKey pub) {
         this.priv = priv;
         this.pub = pub;
+    }
+    
+    /**
+     * Constructs a new key pair from a byte array
+     * @param b an encoded key pair
+     * @param params the NtruEncrypt parameters to use
+     */
+    public EncryptionKeyPair(byte[] b, EncryptionParameters params) {
+        ByteArrayInputStream is = new ByteArrayInputStream(b);
+        try {
+            pub = new EncryptionPublicKey(is, params);
+            priv = new EncryptionPrivateKey(is, params);
+        } catch (IOException e) {
+            throw new NtruException(e);
+        }
+    }
+    
+    /**
+     * Constructs a new key pair from an input stream
+     * @param is an input stream
+     * @param params the NtruEncrypt parameters to use
+     * @throws IOException
+     */
+    public EncryptionKeyPair(InputStream is, EncryptionParameters params) throws IOException {
+        try {
+            pub = new EncryptionPublicKey(is, params);
+            priv = new EncryptionPrivateKey(is, params);
+        } catch (IOException e) {
+            throw new NtruException(e);
+        }
     }
     
     /**
@@ -102,6 +139,27 @@ public class EncryptionKeyPair {
         if (g.count(-1) != params.dg-1)
             return false;
         return true;
+    }
+    
+    /**
+     * Converts the key pair to a byte array
+     * @return the encoded key pair
+     */
+    public byte[] getEncoded() {
+        byte[] pubArr = pub.getEncoded();
+        byte[] privArr = priv.getEncoded();
+        byte[] kpArr = Arrays.copyOf(pubArr, pubArr.length+privArr.length);
+        System.arraycopy(privArr, 0, kpArr, pubArr.length, privArr.length);
+        return kpArr;
+    }
+    
+    /**
+     * Writes the key pair to an output stream
+     * @param os an output stream
+     * @throws IOException
+     */
+    public void writeTo(OutputStream os) throws IOException {
+        os.write(getEncoded());
     }
     
     @Override

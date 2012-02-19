@@ -23,8 +23,13 @@ import static net.sf.ntru.encrypt.EncryptionParameters.APR2011_439_FAST;
 import static net.sf.ntru.encrypt.EncryptionParameters.APR2011_743_FAST;
 import static net.sf.ntru.encrypt.EncryptionParameters.EES1087EP2;
 import static net.sf.ntru.encrypt.EncryptionParameters.EES1499EP1;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 import net.sf.ntru.polynomial.IntegerPolynomial;
 
@@ -54,5 +59,29 @@ public class EncryptionKeyPairTest {
         t.coeffs[66]++;
         kp.priv.t = t;
         assertFalse(kp.isValid());
+    }
+    
+    @Test
+    public void testEncode() throws IOException {
+        EncryptionParameters[] paramSets = new EncryptionParameters[] {APR2011_439, APR2011_439_FAST, APR2011_743_FAST, EES1087EP2, EES1499EP1};
+        for (EncryptionParameters params: paramSets)
+            testEncode(params);
+    }
+    
+    private void testEncode(EncryptionParameters params) throws IOException {
+        NtruEncrypt ntru = new NtruEncrypt(params);
+        EncryptionKeyPair kp = ntru.generateKeyPair();
+        
+        // encode to byte[] and reconstruct
+        byte[] enc = kp.getEncoded();
+        EncryptionKeyPair kp2 = new EncryptionKeyPair(enc, params);
+        assertEquals(kp, kp2);
+        
+        // encode to OutputStream and reconstruct
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        kp.writeTo(bos);
+        ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
+        EncryptionKeyPair kp3 = new EncryptionKeyPair(bis, params);
+        assertEquals(kp, kp3);
     }
 }
