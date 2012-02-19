@@ -56,6 +56,7 @@ public class EncryptionPublicKey {
      * Reads a polynomial <code>h</code> from an input stream and constructs a new public key
      * @param is an input stream
      * @param params the NtruEncrypt parameters to use
+     * @throws IOException
      * @see #writeTo(OutputStream)
      */
     public EncryptionPublicKey(InputStream is, EncryptionParameters params) throws IOException {

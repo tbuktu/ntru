@@ -55,6 +55,7 @@ public class SignaturePublicKey {
      * Reads a polynomial <code>h</code> from an input stream and constructs a new public key
      * @param is an input stream
      * @param params the NtruSign parameters to use
+     * @throws IOException
      */
     public SignaturePublicKey(InputStream is, SignatureParameters params) throws IOException {
         h = IntegerPolynomial.fromBinary(is, params.N, params.q);

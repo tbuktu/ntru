@@ -63,6 +63,7 @@ public class SignaturePrivateKey {
      * Constructs a new private key from an input stream
      * @param is an input stream
      * @param params the NtruSign parameters to use
+     * @throws IOException
      */
     public SignaturePrivateKey(InputStream is, SignatureParameters params) throws IOException {
         bases = new ArrayList<Basis>();
@@ -186,6 +187,7 @@ public class SignaturePrivateKey {
          * @param is an input stream
          * @param params NtruSign parameters
          * @param include_h whether to read the polynomial <code>h</code> (<code>true</code>) or only <code>f</code> and <code>f'</code> (<code>false</code>)
+         * @throws IOException
          */
         Basis(InputStream is, SignatureParameters params, boolean include_h) throws IOException {
             int N = params.N;
