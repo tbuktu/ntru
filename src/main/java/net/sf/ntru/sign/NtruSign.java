@@ -122,8 +122,10 @@ public class NtruSign {
         for (int k=params.B; k>=0; k--) {
             Basis basis = generateBoundedBasis();
             priv.add(basis);
-            if (k == 0)
+            if (k == params.B) {
                 pub = new SignaturePublicKey(basis.h, params);
+                basis.h = null;   // remove the public polynomial h from the private key
+            }
         }
         SignatureKeyPair kp = new SignatureKeyPair(priv, pub);
         return kp;
