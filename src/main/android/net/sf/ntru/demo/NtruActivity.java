@@ -22,6 +22,9 @@ import android.widget.TextView;
  * it took for each operation.
  */
 public class NtruActivity extends Activity {
+    private static final SignatureParameters SIGNATURE_PARAMS = SignatureParameters.APR2011_439_PROD;
+    private static final EncryptionParameters ENCRYPTION_PARAMS = EncryptionParameters.APR2011_439_FAST;
+    
     private LinearLayout layout;
     NtruEncrypt ntruEnc;
     NtruSign ntruSig;
@@ -38,8 +41,8 @@ public class NtruActivity extends Activity {
         layout.setOrientation(LinearLayout.VERTICAL);
         setContentView(layout);
         
-        ntruEnc = new NtruEncrypt(EncryptionParameters.APR2011_439_FAST);
-        ntruSig = new NtruSign(SignatureParameters.TEST157_PROD);
+        ntruEnc = new NtruEncrypt(ENCRYPTION_PARAMS);
+        ntruSig = new NtruSign(SIGNATURE_PARAMS);
         new EncKeyGenTask().execute();
     }
     
@@ -131,52 +134,55 @@ public class NtruActivity extends Activity {
             view.append(" done (" + (endTime-startTime) + "ms)");
             println("  After decryption: ", Color.GREEN, new String(decrypted), Color.GRAY);
             println("", Color.WHITE);
-            new SigKeyGenTask().execute();
-        }
-    }
-        
-    /** Generates an signing key pair and calls SignTask when finished */
-    private class SigKeyGenTask extends AsyncTask<Void, Void, Void> {
-        long duration;
-        TextView view;
-
-        SigKeyGenTask() {
-            println("NTRU signature", Color.WHITE);
-            
-            view = new TextView(NtruActivity.this);
-            view.setTextColor(Color.GREEN);
-            view.setText("  Generating key pair...");
-            layout.addView(view);
-        }
-        
-        @Override
-        protected Void doInBackground(Void... arg0) {
-            long startTime = SystemClock.uptimeMillis();
-            sigKP = ntruSig.generateKeyPair();
-            long endTime = SystemClock.uptimeMillis();
-            duration = endTime - startTime;
-            return null;
-        }
-        
-        @Override
-        protected void onPostExecute(Void result) {
-            view.append(" done (" + duration/1000 + "s)");
             new SignTask().execute();
         }
     }
-    
+        
     /** Signs a message and calls VerifyTask */
     private class SignTask extends AsyncTask<Void, Void, byte[]> {
         TextView view;
         long startTime;
         
         SignTask() {
+            println("NTRU signature", Color.WHITE);
+            println("  Using existing key pair", Color.GREEN);
+            sigKP = getKeyPair();
             println("  Message: ", Color.GREEN, msg, Color.GRAY);
             
             view = new TextView(NtruActivity.this);
             view.setTextColor(Color.GREEN);
             view.setText("  Signing...");
             layout.addView(view);
+        }
+        
+        private SignatureKeyPair getKeyPair() {
+            String sigKPStr = "J4OJIbN2X3IjPY2XGl/lHt6GNy/Z/EEftitY31HqqhN0qZZ+HY+sU9+mr8M52ySitkWf9cbARYeW" +
+                    "F6wQBzCHbmf1va4Iq6adLhshdVzW5p+5BpGUuIzIG9NjTmnBpD3Zo/dN8bXZMhmMp0+NBotjxrlD" +
+                    "G9alFKlArFNt8fGkKwG43gbAFcPp3cmRScPt5jEg5s6M93VHlUyE2jD0zxX4ehoQawV3IC0p5SGt" +
+                    "dR7cr1pnxSmNH/Xw5K7APIzEx1IYSAytAaY4GjxLcEGr+yqDW9oJ6FBoTutSVxNcdIIGVoT0LKNe" +
+                    "3u2vkVdXBHjAiS0ji6ZwFWuMMzy0m5KzxwwhJnqXi8QhmWgsHLkuCOYUMBAQ4G93yOObnVXf5dhV" +
+                    "mCEEZ3K36TlihD/EuYFh53mw4nrx7z1ta7Y6DUpbxgN3Jnb1Ryvv6wxc2HNXXjz6OL+GX4nbOZje" +
+                    "3Rrd8lEWR6Bx70PyFcX+S7La0nBgTNHR7exOwQYal73z+brR0ng91+5l3OALFaqT3nrUxknPqcGa" +
+                    "FRA3m+6nvNtaacfPRmKq9jiY1tPq0e0OIEEvsbSEBSkKepAkOlgURLcHL7491VJ9siCA5/Y7FPyl" +
+                    "FPCM0LPrSF826m86VSH5MNaQTldCvqRVHRiPzdzoE9tJUVl1ecmzi8udIKbzl7c6i1fcxhut/xY/" +
+                    "M7B8UuujhBhjd4u1f9W6Znxkf5zsQoGDHUzjnUha9kpT/jjAIuiIv1euiW0GSnPQ2ki53DbUgLUq" +
+                    "+7/a7opSg0sY38m1U0ImL389A2OCElhxpy0f+2+zhjMeDghoQBCwQIaHyCQqtAEKAMJAxFKXv1xm" +
+                    "M6QBctjDJaohjn10ZTMcqIEhuhERmvBEMAEoARG6wI+qAOVoSEymQhhsCAUz3gGPjFQlLYEBIGgB" +
+                    "HNaBE6JcxjSuAUCgxEJgQhW3WMY0PBiFMTICkp/ExTFHuEU2uGGWwQAY0MEc6FARHwgBFiqBEqFc" +
+                    "pS2kAQKYgAh8AIUwAOIQGAEAQAMdBOGMcTilKjCQQhY24pKxtGUwTDDDNzRyFKkAB0iBEaDSFyBY" +
+                    "gxuq4Q56RAQulgEE2MAVhIGOjYiEJU0BP7CFNADiEpjI5DVYMIQpZkGLeiAkLkfQwyV+EQ7aAANA" +
+                    "wiM0YRibdY1N/+4ZrmIWGtkYfAo/LYMWwiaKe7EieD9PmqRjb0Oa4CfzQes5Ott+cZcILRROffkC" +
+                    "akfnkWS0Uf+vVEcySkCZ32wQtwedfyS9uGQQ7bfzioXGv53rrN2+UbJT/ie6KtiIfoycutXEWfAj" +
+                    "o2xTJW+YG/AKXodCQuUa2pGrEsarMUMItXGP1D5kwZ+AryIuZBxAqRRPQabK7vg8JuBIkXckL0hs" +
+                    "SvtG0ET5IAco53wY/0ZPE9VtasRjf34/RNX9qR9tLg+SmI90j/s8D4oTp65i7e+loYQgGgfnU6e0" +
+                    "C4uemHHDtWzANGifs6vZrz8hcBr3gpydnqkvuy6qeDUPGrzWeZA9DJCyvYJtqchmo6+1OV/jUROE" +
+                    "di2J43LPq2VJFlfiY5FOn5ykSmcRSbuuto5FdfRKNovHLwHJ0tOEu6ifgQk9qrzfRnjxHsCBhclv" +
+                    "zKnT0rF3nMA2E35TJ9kN4TufPD7tCimPrGvJZuYo6E2tew40jJRgMuQtpO8jQnHO1++bHikgDzqO" +
+                    "XkK8vUlZ/94lVIGcsgpnNC70E+3JUGXMrPd9QK+alkzfjExb01AOBmQ5Y5R3eqVfHqwTSBjBICoX" +
+                    "0kaggEjQjW8fjbefC0RIbJjIDHzOPihCSG2fPb/3MSyERJNg0Fv81qbSGBsajVzeNMI3BjnAmdN+" +
+                    "4D8TQs2fVZgUUFzeSBG1w3IZZXP39ZtW0xJCyFyoKBUH8O6BRoOBRXnE9X+ulC+gSU4PwPYzt9cA" +
+                    "XnmzBcbZ26m+Q70K8XHuvGzP/kc7GYB8vvk5sjq/TiOiA1bhS9wJ";
+            return new SignatureKeyPair(Base64.decode(sigKPStr, Base64.DEFAULT), SIGNATURE_PARAMS);
         }
         
         @Override
