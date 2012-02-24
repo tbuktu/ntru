@@ -26,18 +26,17 @@ import java.util.Arrays;
 import net.sf.ntru.exception.NtruException;
 
 /**
- * An implementation of the Index Generation Function in IEEE P1363.1.
+ * An implementation of the Index Generation Function IGF-2
+ * in IEEE P1363.1 section 8.4.2.1.
  */
 class IndexGenerator {
-    private byte[] seed;
     private int N;
     private int c;
     private int minCallsR;
-    private int totLen;
+    private byte[] Z;
     private int remLen;
     private BitString buf;
     private int counter;
-    private boolean initialized;
     private MessageDigest hashAlg;
     private int hLen;
     
@@ -48,21 +47,29 @@ class IndexGenerator {
      * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
     IndexGenerator(byte[] seed, EncryptionParameters params) {
-        this.seed = seed;
         N = params.N;
         c = params.c;
         minCallsR = params.minCallsR;
         
-        totLen = 0;
-        remLen = 0;
-        counter = 0;
         try {
             hashAlg = MessageDigest.getInstance(params.hashAlg);
         } catch (NoSuchAlgorithmException e) {
             throw new NtruException(e);
         }
         hLen = hashAlg.getDigestLength();   // hash length
-        initialized = false;
+        
+        Z = seed;
+        counter = 0;
+        buf = new BitString();
+        while (counter < minCallsR) {
+            ByteBuffer hashInput = ByteBuffer.allocate(Z.length + 4);
+            hashInput.put(Z);
+            hashInput.putInt(counter);
+            byte[] H = hashAlg.digest(hashInput.array());
+            buf.appendBits(H);
+            counter++;
+        }
+        remLen = minCallsR * 8 * hLen;
     }
     
     /**
@@ -70,46 +77,26 @@ class IndexGenerator {
      * @return
      */
     int nextIndex() {
-        if (!initialized) {
-            buf = new BitString();
-            while (counter < minCallsR) {
-                ByteBuffer hashInput = ByteBuffer.allocate(seed.length + 4);
-                hashInput.put(seed);
-                hashInput.putInt(counter);
-                byte[] hash = hashAlg.digest(hashInput.array());
-                buf.appendBits(hash);
-                counter++;
-            }
-            totLen = minCallsR * 8 * hLen;
-            remLen = totLen;
-            initialized = true;
-        }
-        
         while (true) {
-            totLen += c;
-            BitString M = buf.getTrailing(remLen);
             if (remLen < c) {
+                BitString M = buf.getTrailing(remLen);
                 int tmpLen = c - remLen;
                 int cThreshold = counter + (tmpLen+hLen-1)/hLen;
-                byte[] hash = new byte[] {};
                 while (counter < cThreshold) {
-                    ByteBuffer hashInput = ByteBuffer.allocate(seed.length + 4);
-                    hashInput.put(seed);
+                    ByteBuffer hashInput = ByteBuffer.allocate(Z.length + 4);
+                    hashInput.put(Z);
                     hashInput.putInt(counter);
-                    hash = hashAlg.digest(hashInput.array());
-                    M.appendBits(hash);
+                    byte[] H = hashAlg.digest(hashInput.array());
+                    M.appendBits(H);
                     counter++;
-                    if (tmpLen > 8*hLen)
-                        tmpLen -= 8*hLen;
+                    remLen += 8 * hLen;
                 }
-                remLen = 8*hLen - tmpLen;
-                buf = new BitString();
-                buf.appendBits(hash);
+                buf = M;
             }
-            else
-                remLen -= c;
             
-            int i = M.getLeadingAsInt(c);   // assume c<32
+            int i = buf.getLeadingAsInt(c);   // assume c<32
+            buf.truncate(c);
+            remLen -= c;
             if (i < (1<<c)-((1<<c)%N))
                 return i % N;
         }
@@ -119,7 +106,9 @@ class IndexGenerator {
      * Represents a string of bits and supports appending, reading the head, and reading the tail.
      */
     static class BitString {
-        byte[] bytes = new byte[4];
+        private static int INITIAL_SIZE = 4;
+        
+        byte[] bytes = new byte[INITIAL_SIZE];
         private int numBytes;   // includes the last byte even if only some of its bits are used
         private int lastByteBits;   // lastByteBits <= 8
         
@@ -138,7 +127,7 @@ class IndexGenerator {
          */
         void appendBits(byte b) {
             if (numBytes == bytes.length)
-                bytes = Arrays.copyOf(bytes, 2*bytes.length);
+                bytes = Arrays.copyOf(bytes, Math.max(2*bytes.length, INITIAL_SIZE));
             
             if (numBytes == 0) {
                 numBytes = 1;
@@ -195,6 +184,19 @@ class IndexGenerator {
             }
             
             return sum;
+        }
+        
+        /**
+         * Removes a given number of bits from the end of the bit string.
+         * @param numBits number of bits to remove
+         */
+        void truncate(int numBits) {
+            numBytes -= numBits / 8;
+            lastByteBits -= numBits % 8;
+            if (lastByteBits < 0) {
+                lastByteBits += 8;
+                numBytes--;
+            }
         }
     }
 }
