@@ -32,7 +32,6 @@ import net.sf.ntru.exception.NtruException;
 class IndexGenerator {
     private int N;
     private int c;
-    private int minCallsR;
     private byte[] Z;
     private int remLen;
     private BitString buf;
@@ -49,7 +48,7 @@ class IndexGenerator {
     IndexGenerator(byte[] seed, EncryptionParameters params) {
         N = params.N;
         c = params.c;
-        minCallsR = params.minCallsR;
+        int minCallsR = params.minCallsR;
         
         try {
             hashAlg = MessageDigest.getInstance(params.hashAlg);
