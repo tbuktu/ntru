@@ -36,7 +36,7 @@ public class Timings {
     private static final int NUM_SIGN = 200;
     private static final int NUM_VERIFY = 200;
     
-    private byte[] plain = "test message".getBytes();
+    private byte[] plain = "test message secret test message".getBytes();
     private byte[] encrypted;
     private EncryptionKeyPair encKeyPair;
     private SignatureKeyPair sigKeyPair;
