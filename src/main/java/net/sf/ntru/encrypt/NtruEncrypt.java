@@ -258,7 +258,7 @@ public class NtruEncrypt {
             
             byte[] sData = getSeed(m, pub, b);
             
-            Polynomial r = generateBlindingPoly(sData, M);
+            Polynomial r = generateBlindingPoly(sData);
             IntegerPolynomial R = r.mult(pub, q);
             byte[] oR4 = R.toBinary4();
             IntegerPolynomial mask = MGF(oR4, N, minCallsMask, hashSeed);
@@ -305,10 +305,9 @@ public class NtruEncrypt {
     /**
      * Deterministically generates a blinding polynomial from a seed and a message representative.
      * @param seed
-     * @param M message representative
      * @return a blinding polynomial
      */
-    private Polynomial generateBlindingPoly(byte[] seed, byte[] M) {
+    private Polynomial generateBlindingPoly(byte[] seed) {
         IndexGenerator ig = new IndexGenerator(seed, params);
         
         if (params.polyType == TernaryPolynomialType.PRODUCT) {
@@ -479,7 +478,7 @@ public class NtruEncrypt {
         
         byte[] sData = getSeed(cm, pub, cb);
         
-        Polynomial cr = generateBlindingPoly(sData, cm);
+        Polynomial cr = generateBlindingPoly(sData);
         IntegerPolynomial cRPrime = cr.mult(pub);
         cRPrime.modPositive(q);
         if (!cRPrime.equals(cR))
