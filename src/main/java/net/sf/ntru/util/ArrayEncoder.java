@@ -88,7 +88,7 @@ public class ArrayEncoder {
         byte[] data = new byte[numBytes];
         int bitIndex = 0;
         int byteIndex = 0;
-        for (int i=0; i<a.length; i++) {
+        for (int i=0; i<a.length; i++)
             for (int j=0; j<bitsPerCoeff; j++) {
                 int currentBit = (a[i] >> j) & 1;
                 data[byteIndex] |= currentBit << bitIndex;
@@ -99,7 +99,6 @@ public class ArrayEncoder {
                 else
                     bitIndex++;
             }
-        }
         return data;
     }
     
