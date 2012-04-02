@@ -7,6 +7,9 @@ The NTRU Cryptosystem
   computer attacks.
   NTRU keys are longer than ECC keys; they can be longer or shorter than RSA
   keys depending on the security level.
+  NTRU's main drawback is that it is patent encumbered. This means that for
+  commercial use, a license from the patent holder may be required depending
+  on your jurisdiction.
   
   http://en.wikipedia.org/wiki/NTRUEncrypt
   http://en.wikipedia.org/wiki/NTRUSign
@@ -165,6 +168,14 @@ Maven Artifact
     <artifactId>ntru</artifactId>
     <version>1.1</version>
   </dependency>
+
+
+Other NTRU implementations
+
+  * As of Bouncy Castle 1.47 (http://bouncycastle.org/), it contains a fork of
+    this library in the bprov-ext and lcrypto jars.
+  * There is a C implementation of NTRUEncrypt at
+    https://github.com/tbuktu/libntru
 
 
 Further reading
