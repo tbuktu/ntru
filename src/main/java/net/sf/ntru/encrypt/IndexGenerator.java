@@ -177,10 +177,12 @@ class IndexGenerator {
             int startBitInStartByte = startBit % 8;
             int sum = (bytes[startByte]&0xFF) >>> startBitInStartByte;
             int shift = 8 - startBitInStartByte;
-            for (int i=startByte+1; i<numBytes; i++) {
+            for (int i=startByte+1; i<numBytes-1; i++) {
                 sum |= (bytes[i]&0xFF) << shift;
                 shift += 8;
             }
+            int finalBits = numBits - shift;   // #bits in the final byte
+            sum |= (bytes[numBytes-1] & (0xFF>>>(8-finalBits))) << shift;   // append finalBits more bits
             
             return sum;
         }
