@@ -356,12 +356,12 @@ public class NtruEncrypt {
      * An implementation of MGF-TP-1 from P1363.1 section 8.4.1.1.
      * @param seed
      * @param N
-     * @param minCallsR
+     * @param minCallsMask
      * @param hashSeed whether to hash the seed
      * @return
      * @throws NtruException if the JRE doesn't implement the specified hash algorithm
      */
-    private IntegerPolynomial MGF(byte[] seed, int N, int minCallsR, boolean hashSeed) {
+    private IntegerPolynomial MGF(byte[] seed, int N, int minCallsMask, boolean hashSeed) {
         MessageDigest hashAlg;
         try {
             hashAlg = MessageDigest.getInstance(params.hashAlg);
@@ -370,10 +370,10 @@ public class NtruEncrypt {
         }
         
         int hashLen = hashAlg.getDigestLength();
-        ByteBuffer buf = ByteBuffer.allocate(minCallsR*hashLen);
+        ByteBuffer buf = ByteBuffer.allocate(minCallsMask*hashLen);
         byte[] Z = hashSeed ? hashAlg.digest(seed) : seed;
         int counter = 0;
-        while (counter < minCallsR) {
+        while (counter < minCallsMask) {
             ByteBuffer hashInput = ByteBuffer.allocate(Z.length + 4);
             hashInput.put(Z);
             hashInput.putInt(counter);
