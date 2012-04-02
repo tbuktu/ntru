@@ -152,7 +152,7 @@ public class EncryptionParameters implements Cloneable {
         dr3 = df3;
         dg = N / 3;
         llen = 1;   // ceil(log2(maxMsgLenBytes))
-        maxMsgLenBytes = N*3/2/8 - llen - db/8 - 1;
+        maxMsgLenBytes = N*3/2/8 - llen - db/8;
         bufferLenBits = (N*3/2+7)/8*8 + 1;
         bufferLenTrits = N - 1;
         pkLen = db;
