@@ -30,7 +30,9 @@ import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.util.ArrayEncoder;
 
 /**
- * A <code>TernaryPolynomial</code> with a "low" number of nonzero coefficients.
+ * A <code>TernaryPolynomial</code> with a "low" number of nonzero coefficients.<br/>
+ * Coefficients are represented as two arrays, one containing the indices of one-values
+ * and the other containing indices of negative ones.
  */
 public class SparseTernaryPolynomial implements TernaryPolynomial {
     /** Number of bits to use for each coefficient. Determines the upper bound for <code>N</code>. */

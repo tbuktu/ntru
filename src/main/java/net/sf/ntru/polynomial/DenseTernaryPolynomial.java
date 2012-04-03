@@ -27,7 +27,9 @@ import java.util.Random;
 import net.sf.ntru.encrypt.IndexGenerator;
 
 /**
- * A <code>TernaryPolynomial</code> with a "high" number of nonzero coefficients.
+ * A <code>TernaryPolynomial</code> with a "high" number of nonzero coefficients.<br/>
+ * Coefficients are represented as an array of length <code>N</code> containing
+ * ones, negative ones, and zeros.
  */
 public class DenseTernaryPolynomial extends IntegerPolynomial implements TernaryPolynomial {
     
