@@ -288,8 +288,7 @@ public class NtruEncrypt {
     private byte[] getSeed(byte[] m, IntegerPolynomial pub, byte[] b) {
         byte[] oid = params.oid;
         
-        byte[] bh = pub.toBinary(params.q);
-        byte[] hTrunc = Arrays.copyOf(bh, params.pkLen/8);
+        byte[] hTrunc = pub.toBinaryTrunc(params.q, params.pkLen/8);
         // sData = OID|m|b|hTrunc
         byte[] sData = new byte[oid.length + m.length + b.length + hTrunc.length];
         System.arraycopy(oid, 0, sData, 0, oid.length);

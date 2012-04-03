@@ -232,6 +232,15 @@ public class IntegerPolynomial implements Polynomial {
     }
     
     /**
+     * Like {@link #toBinary(int)} but only returns the first <code>numBytes</code> bytes of the encoding.
+     * @param q
+     * @return the encoded polynomial
+     */
+    public byte[] toBinaryTrunc(int q, int numBytes) {
+    	return ArrayEncoder.encodeModQTrunc(coeffs, q, numBytes);
+    }
+    
+    /**
      * Optimized version of {@link #toBinary(int)} for <code>q=4</code>.<br/>
      * Encodes the low 2 bits of all coefficients in a byte array.
      * @return a byte array equal to what <code>toBinary(4)</code> would return

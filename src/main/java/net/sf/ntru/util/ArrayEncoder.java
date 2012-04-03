@@ -103,6 +103,36 @@ public class ArrayEncoder {
     }
     
     /**
+     * Like {@link #encodeModQ(int[], int)} but only returns the first <code>numBytes</code>
+     * bytes of the encoding.
+     * @param a the input array
+     * @param q the modulus
+     * @param numBytes
+     * @return the encoded array
+     */
+    public static byte[] encodeModQTrunc(int[] a, int q, int numBytes) {
+        int bitsPerCoeff = 31 - Integer.numberOfLeadingZeros(q);
+        byte[] data = new byte[numBytes];
+        int bitIndex = 0;
+        int byteIndex = 0;
+        for (int i=0; i<a.length; i++) {
+            for (int j=0; j<bitsPerCoeff; j++) {
+                int currentBit = (a[i] >> j) & 1;
+                data[byteIndex] |= currentBit << bitIndex;
+                if (bitIndex == 7) {
+                    bitIndex = 0;
+                    byteIndex++;
+                    if (byteIndex >= numBytes)
+                    	return data;
+                }
+                else
+                    bitIndex++;
+            }
+        }
+        return null;
+    }
+    
+    /**
      * Decodes a <code>byte</code> array encoded with {@link #encodeModQ(int[], int)} back to an <code>int</code> array.<br/>
      * <code>N</code> is the number of coefficients. <code>q</code> must be a power of <code>2</code>.<br/>
      * Ignores any excess bytes.
