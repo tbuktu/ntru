@@ -308,48 +308,20 @@ public class NtruEncrypt {
      * @return a blinding polynomial
      */
     private Polynomial generateBlindingPoly(byte[] seed) {
+        int N = params.N;
         IndexGenerator ig = new IndexGenerator(seed, params);
         
         if (params.polyType == TernaryPolynomialType.PRODUCT) {
-            SparseTernaryPolynomial r1 = new SparseTernaryPolynomial(generateBlindingCoeffs(ig, params.dr1));
-            SparseTernaryPolynomial r2 = new SparseTernaryPolynomial(generateBlindingCoeffs(ig, params.dr2));
-            SparseTernaryPolynomial r3 = new SparseTernaryPolynomial(generateBlindingCoeffs(ig, params.dr3));
+            SparseTernaryPolynomial r1 = SparseTernaryPolynomial.generateBlindingPoly(ig, N, params.dr1);
+            SparseTernaryPolynomial r2 = SparseTernaryPolynomial.generateBlindingPoly(ig, N, params.dr2);
+            SparseTernaryPolynomial r3 = SparseTernaryPolynomial.generateBlindingPoly(ig, N, params.dr3);
             return new ProductFormPolynomial(r1, r2, r3);
         }
-        else {
-            int dr = params.dr;
-            boolean sparse = params.sparse;
-            int[] r = generateBlindingCoeffs(ig, dr);
-            if (sparse)
-                return new SparseTernaryPolynomial(r);
+        else
+            if (params.sparse)
+                return SparseTernaryPolynomial.generateBlindingPoly(ig, N, params.dr);
             else
-                return new DenseTernaryPolynomial(r);
-        }
-    }
-    
-    /**
-     * Generates an <code>int</code> array containing <code>dr</code> elements equal to <code>1</code>
-     * and <code>dr</code> elements equal to <code>-1</code> using an index generator.
-     * @param ig an index generator
-     * @param dr number of ones / negative ones
-     * @return an array containing numbers between <code>-1</code> and <code>1</code>
-     */
-    private int[] generateBlindingCoeffs(IndexGenerator ig, int dr) {
-        int N = params.N;
-        
-        int[] r = new int[N];
-        for (int coeff=-1; coeff<=1; coeff+=2) {
-            int t = 0;
-            while (t < dr) {
-                int i = ig.nextIndex();
-                if (r[i] == 0) {
-                    r[i] = coeff;
-                    t++;
-                }
-            }
-        }
-        
-        return r;
+                return DenseTernaryPolynomial.generateBlindingPoly(ig, N, params.dr);
     }
     
     /**

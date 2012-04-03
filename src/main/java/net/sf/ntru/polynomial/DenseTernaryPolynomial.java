@@ -24,6 +24,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import net.sf.ntru.encrypt.IndexGenerator;
+
 /**
  * A <code>TernaryPolynomial</code> with a "high" number of nonzero coefficients.
  */
@@ -68,6 +70,41 @@ public class DenseTernaryPolynomial extends IntegerPolynomial implements Ternary
         for (int i=0; i<N; i++)
             arr[i] = list.get(i);
         return new DenseTernaryPolynomial(arr);
+    }
+    
+    /**
+     * Generates a blinding polynomial using an {@link IndexGenerator}.
+     * @param ig an Index Generator
+     * @param N the number of coefficients
+     * @param dr the number of ones / negative ones
+     * @return a blinding polynomial
+     * @see NtruEncrypt#generateBlindingPoly(byte[])
+     */
+    public static DenseTernaryPolynomial generateBlindingPoly(IndexGenerator ig, int N, int dr) {
+    	return new DenseTernaryPolynomial(generateBlindingCoeffs(ig, N, dr));
+    }
+    
+    /**
+     * Generates an <code>int</code> array containing <code>dr</code> elements equal to <code>1</code>
+     * and <code>dr</code> elements equal to <code>-1</code> using an index generator.
+     * @param ig an index generator
+     * @param dr number of ones / negative ones
+     * @return an array containing numbers between <code>-1</code> and <code>1</code>
+     */
+    private static int[] generateBlindingCoeffs(IndexGenerator ig, int N, int dr) {
+        int[] r = new int[N];
+        for (int coeff=-1; coeff<=1; coeff+=2) {
+            int t = 0;
+            while (t < dr) {
+                int i = ig.nextIndex();
+                if (r[i] == 0) {
+                    r[i] = coeff;
+                    t++;
+                }
+            }
+        }
+        
+        return r;
     }
     
     @Override

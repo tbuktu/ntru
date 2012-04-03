@@ -29,7 +29,7 @@ import net.sf.ntru.exception.NtruException;
  * An implementation of the Index Generation Function IGF-2
  * in IEEE P1363.1 section 8.4.2.1.
  */
-class IndexGenerator {
+public class IndexGenerator {
     private int N;
     private int c;
     private byte[] Z;
@@ -75,7 +75,7 @@ class IndexGenerator {
      * Returns a number <code>i</code> such that <code>0 &lt;= i &lt; N</code>.
      * @return
      */
-    int nextIndex() {
+    public int nextIndex() {
         while (true) {
             if (remLen < c) {
                 BitString M = buf.getTrailing(remLen);

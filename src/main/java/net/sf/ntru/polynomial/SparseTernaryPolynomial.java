@@ -24,6 +24,8 @@ import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Random;
 
+import net.sf.ntru.encrypt.IndexGenerator;
+import net.sf.ntru.encrypt.NtruEncrypt;
 import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.util.ArrayEncoder;
 
@@ -145,6 +147,42 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
             }
         }
         Arrays.sort(negOnes);
+        
+        return new SparseTernaryPolynomial(N, ones, negOnes);
+    }
+    
+    /**
+     * Generates a blinding polynomial using an {@link IndexGenerator}.
+     * @param ig an Index Generator
+     * @param N the number of coefficients
+     * @param dr the number of ones / negative ones
+     * @return a blinding polynomial
+     * @see NtruEncrypt#generateBlindingPoly(byte[])
+     */
+    public static SparseTernaryPolynomial generateBlindingPoly(IndexGenerator ig, int N, int dr) {
+        int[] coeffs = new int[N];   // an IntegerPolynomial-style representation of the new polynomial
+        
+        int[] ones = new int[dr];
+        int i = 0;
+        while (i < dr) {
+            int r = ig.nextIndex();
+            if (coeffs[r] == 0) {
+                ones[i] = r;
+                coeffs[r] = 1;
+                i++;
+            }
+        }
+        
+        int[] negOnes = new int[dr];
+        i = 0;
+        while (i < dr) {
+            int r = ig.nextIndex();
+            if (coeffs[r] == 0) {
+                negOnes[i] = r;
+                coeffs[r] = -1;
+                i++;
+            }
+        }
         
         return new SparseTernaryPolynomial(N, ones, negOnes);
     }
