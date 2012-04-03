@@ -79,7 +79,7 @@ public class EncryptionParameters implements Cloneable {
      * @param q            modulus
      * @param df           number of ones in the private polynomial <code>f</code>
      * @param dm0          minimum acceptable number of -1's, 0's, and 1's in the polynomial <code>m'</code> in the last encryption step
-     * @param db           number of random bits to prepend to the message
+     * @param db           number of random bits to prepend to the message; should be a multiple of 8
      * @param c            a parameter for the Index Generation Function ({@link IndexGenerator})
      * @param minCallsR    minimum number of hash calls for the IGF to make
      * @param minCallsMask minimum number of calls to generate the masking polynomial
@@ -115,7 +115,7 @@ public class EncryptionParameters implements Cloneable {
      * @param df2          number of ones in the private polynomial <code>f2</code>
      * @param df3          number of ones in the private polynomial <code>f3</code>
      * @param dm0          minimum acceptable number of -1's, 0's, and 1's in the polynomial <code>m'</code> in the last encryption step
-     * @param db           number of random bits to prepend to the message
+     * @param db           number of random bits to prepend to the message; should be a multiple of 8
      * @param c            a parameter for the Index Generation Function ({@link IndexGenerator})
      * @param minCallsR    minimum number of hash calls for the IGF to make
      * @param minCallsMask minimum number of calls to generate the masking polynomial
