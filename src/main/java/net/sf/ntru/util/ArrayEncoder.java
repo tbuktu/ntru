@@ -144,13 +144,27 @@ public class ArrayEncoder {
     public static int[] decodeModQ(byte[] data, int N, int q) {
         int[] coeffs = new int[N];
         int bitsPerCoeff = 31 - Integer.numberOfLeadingZeros(q);
-        int numBits = N * bitsPerCoeff;
-        int coeffIndex = 0;
-        for (int bitIndex=0; bitIndex<numBits; bitIndex++) {
-            if (bitIndex>0 && bitIndex%bitsPerCoeff==0)
-                coeffIndex++;
-            int bit = getBit(data, bitIndex);
-            coeffs[coeffIndex] += bit << (bitIndex%bitsPerCoeff);
+        int mask = -1 >>> (32-bitsPerCoeff);   // for truncating values to bitsPerCoeff bits
+        int byteIndex = 0;
+        int bitIndex = 0;   // next bit in data[byteIndex]
+        int coeffBuf = 0;   // contains (bitIndex) bits
+        int coeffBits = 0;   // length of coeffBuf
+        int coeffIndex = 0;   // index into coeffs
+        while (coeffIndex < N) {
+            // copy bitsPerCoeff or more into coeffBuf
+            while (coeffBits < bitsPerCoeff) {
+                coeffBuf += (data[byteIndex]&0xFF) << coeffBits;
+                coeffBits += 8 - bitIndex;
+                byteIndex++;
+                bitIndex = 0;
+            }
+            
+            // low bitsPerCoeff bits = next coefficient
+            coeffs[coeffIndex] = coeffBuf & mask;
+            coeffIndex++;
+            
+            coeffBuf >>>= bitsPerCoeff;
+            coeffBits -= bitsPerCoeff;
         }
         return coeffs;
     }
@@ -183,16 +197,17 @@ public class ArrayEncoder {
     public static int[] decodeMod3Sves(byte[] data, int N) {
         int[] coeffs = new int[N];
         int coeffIndex = 0;
-        for (int bitIndex=0; bitIndex<data.length*8; ) {
-            int bit1 = getBit(data, bitIndex++);
-            int bit2 = getBit(data, bitIndex++);
-            int bit3 = getBit(data, bitIndex++);
-            int coeffTableIndex = bit1*4 + bit2*2 + bit3;
-            coeffs[coeffIndex++] = COEFF1_TABLE[coeffTableIndex];
-            coeffs[coeffIndex++] = COEFF2_TABLE[coeffTableIndex];
-            // ignore bytes that can't fit
-            if (coeffIndex > N-2)
-                break;
+        int i = 0;
+        while (i<data.length/3*3 && coeffIndex<N-1) {
+            // process 24 bits at a time in the outer loop
+            int chunk = (data[i++]&0xFF) | ((data[i++]&0xFF)<<8) | ((data[i++]&0xFF)<<16);
+            for (int j=0; j<8 && coeffIndex<N-1; j++) {
+                // process 3 bits at a time in the inner loop
+                int coeffTableIndex = ((chunk&1)<<2) + (chunk&2) + ((chunk&4)>>2);   // low 3 bits in reverse order
+                coeffs[coeffIndex++] = COEFF1_TABLE[coeffTableIndex];
+                coeffs[coeffIndex++] = COEFF2_TABLE[coeffTableIndex];
+                chunk >>= 3;
+            }
         }
         return coeffs;
     }
@@ -289,12 +304,6 @@ public class ArrayEncoder {
         return decodeMod3Tight(arr, N);
     }
     
-    private static int getBit(byte[] arr, int bitIndex) {
-        int byteIndex = bitIndex / 8;
-        int arrElem = arr[byteIndex] & 0xFF;
-        return (arrElem >> (bitIndex%8)) & 1;
-    }
-
     /**
      * Reads a given number of bytes from an <code>InputStream</code>.
      * If there are not enough bytes in the stream, an <code>IOException</code>
