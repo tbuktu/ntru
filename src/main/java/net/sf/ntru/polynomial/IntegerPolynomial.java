@@ -237,7 +237,7 @@ public class IntegerPolynomial implements Polynomial {
      * @return the encoded polynomial
      */
     public byte[] toBinaryTrunc(int q, int numBytes) {
-    	return ArrayEncoder.encodeModQTrunc(coeffs, q, numBytes);
+        return ArrayEncoder.encodeModQTrunc(coeffs, q, numBytes);
     }
     
     /**

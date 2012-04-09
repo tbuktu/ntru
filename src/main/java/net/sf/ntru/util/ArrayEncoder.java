@@ -123,7 +123,7 @@ public class ArrayEncoder {
                     bitIndex = 0;
                     byteIndex++;
                     if (byteIndex >= numBytes)
-                    	return data;
+                        return data;
                 }
                 else
                     bitIndex++;

@@ -83,7 +83,7 @@ public class DenseTernaryPolynomial extends IntegerPolynomial implements Ternary
      * @see NtruEncrypt#generateBlindingPoly(byte[])
      */
     public static DenseTernaryPolynomial generateBlindingPoly(IndexGenerator ig, int N, int dr) {
-    	return new DenseTernaryPolynomial(generateBlindingCoeffs(ig, N, dr));
+        return new DenseTernaryPolynomial(generateBlindingCoeffs(ig, N, dr));
     }
     
     /**
