@@ -18,6 +18,7 @@
 
 package net.sf.ntru.encrypt;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayOutputStream;
@@ -26,22 +27,34 @@ import java.math.BigInteger;
 import java.util.Random;
 import java.util.zip.GZIPOutputStream;
 
+import org.junit.Before;
 import org.junit.Test;
 
 public class IndexGeneratorTest {
+    private EncryptionParameters params;
+    private byte[] seed;
+    private IndexGenerator ig;
+    private int[] indices;
     
-    /** Tests the output of {@link IndexGenerator} for randomness. */
-    @Test
-    public void test() throws IOException {
-        byte[] seed = new byte[100];
+    @Before
+    public void setup() {
+        seed = new byte[100];
         new Random().nextBytes(seed);
-        EncryptionParameters params = EncryptionParameters.APR2011_743;
-        IndexGenerator ig = new IndexGenerator(seed, params);
-        
+        params = EncryptionParameters.APR2011_743;
+        ig = new IndexGenerator(seed, params);
+        indices = initIndices();
+    }
+    
+    private int[] initIndices() {
         int[] indices = new int[1000];
         for (int i=0; i<indices.length; i++)
             indices[i] = ig.nextIndex();
-        
+        return indices;
+    }
+    
+    /** Tests the output of {@link IndexGenerator} for randomness. */
+    @Test
+    public void testRandomness() throws IOException {
         // test compressibility
         BigInteger N = BigInteger.valueOf(params.N);
         BigInteger b = BigInteger.ZERO;
@@ -70,5 +83,18 @@ public class IndexGeneratorTest {
         dev /= indices.length - 1;
         dev = Math.sqrt(dev);
         assertTrue(Math.abs(params.N/Math.sqrt(12)-dev) < 15);
+    }
+    
+    @Test
+    public void testRepeatability() {
+        ig = new IndexGenerator(seed, params);
+        int[] indices2 = initIndices();
+        assertArrayEquals(indices, indices2);
+    }
+    
+    @Test
+    public void testRange() {
+        for (int i: indices)
+            assertTrue(i>=0 && i<params.N);
     }
 }
