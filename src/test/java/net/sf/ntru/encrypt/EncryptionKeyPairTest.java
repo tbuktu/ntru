@@ -74,14 +74,14 @@ public class EncryptionKeyPairTest {
         
         // encode to byte[] and reconstruct
         byte[] enc = kp.getEncoded();
-        EncryptionKeyPair kp2 = new EncryptionKeyPair(enc, params);
+        EncryptionKeyPair kp2 = new EncryptionKeyPair(enc);
         assertEquals(kp, kp2);
         
         // encode to OutputStream and reconstruct
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         kp.writeTo(bos);
         ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-        EncryptionKeyPair kp3 = new EncryptionKeyPair(bis, params);
+        EncryptionKeyPair kp3 = new EncryptionKeyPair(bis);
         assertEquals(kp, kp3);
     }
 }

@@ -26,7 +26,6 @@ import java.util.Arrays;
 
 import net.sf.ntru.arith.IntEuclidean;
 import net.sf.ntru.encrypt.EncryptionParameters.TernaryPolynomialType;
-import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.polynomial.IntegerPolynomial;
 import net.sf.ntru.polynomial.ProductFormPolynomial;
 
@@ -48,31 +47,20 @@ public class EncryptionKeyPair {
     /**
      * Constructs a new key pair from a byte array
      * @param b an encoded key pair
-     * @param params the NtruEncrypt parameters to use
      */
-    public EncryptionKeyPair(byte[] b, EncryptionParameters params) {
+    public EncryptionKeyPair(byte[] b) {
         ByteArrayInputStream is = new ByteArrayInputStream(b);
-        try {
-            pub = new EncryptionPublicKey(is, params);
-            priv = new EncryptionPrivateKey(is, params);
-        } catch (IOException e) {
-            throw new NtruException(e);
-        }
+        pub = new EncryptionPublicKey(is);
+        priv = new EncryptionPrivateKey(is);
     }
     
     /**
      * Constructs a new key pair from an input stream
      * @param is an input stream
-     * @param params the NtruEncrypt parameters to use
-     * @throws IOException
      */
-    public EncryptionKeyPair(InputStream is, EncryptionParameters params) throws IOException {
-        try {
-            pub = new EncryptionPublicKey(is, params);
-            priv = new EncryptionPrivateKey(is, params);
-        } catch (IOException e) {
-            throw new NtruException(e);
-        }
+    public EncryptionKeyPair(InputStream is) {
+        pub = new EncryptionPublicKey(is);
+        priv = new EncryptionPrivateKey(is);
     }
     
     /**
@@ -97,14 +85,16 @@ public class EncryptionKeyPair {
      * @return <code>true</code> if the key pair is valid, <code>false</code> otherwise
      */
     public boolean isValid() {
-        EncryptionParameters params = priv.params;
-        if (!params.equals(pub.params))
+        int N = priv.N;
+        int q = priv.q;
+        TernaryPolynomialType polyType = priv.polyType;
+        
+        if (pub.N != N)
+            return false;
+        if (pub.q != q)
             return false;
         
-        int N = params.N;
-        int q = params.q;
-        
-        if (priv.t.toIntegerPolynomial().coeffs.length != params.N)
+        if (priv.t.toIntegerPolynomial().coeffs.length != N)
             return false;
         IntegerPolynomial h = pub.h.toIntegerPolynomial();
         if (h.coeffs.length != N)
@@ -114,13 +104,13 @@ public class EncryptionKeyPair {
             return false;
         
         IntegerPolynomial f = priv.t.toIntegerPolynomial();
-        if (params.polyType==TernaryPolynomialType.SIMPLE && !f.isTernary())
+        if (polyType==TernaryPolynomialType.SIMPLE && !f.isTernary())
             return false;
         // if t is a ProductFormPolynomial, ternarity of f1,f2,f3 doesn't need to be verified
-        if (params.polyType==TernaryPolynomialType.PRODUCT && !(priv.t instanceof ProductFormPolynomial))
+        if (polyType==TernaryPolynomialType.PRODUCT && !(priv.t instanceof ProductFormPolynomial))
             return false;
         
-        if (params.polyType == TernaryPolynomialType.PRODUCT) {
+        if (polyType == TernaryPolynomialType.PRODUCT) {
             f.mult(3);
             f.coeffs[0] += 1;
             f.modPositive(q);
@@ -134,9 +124,10 @@ public class EncryptionKeyPair {
         g.modCenter(q);
         if (!g.isTernary())
             return false;
-        if (g.count(1) != params.dg)
+        int dg = N / 3;   // see EncryptionParameters.init()
+        if (g.count(1) != dg)
             return false;
-        if (g.count(-1) != params.dg-1)
+        if (g.count(-1) != dg-1)
             return false;
         return true;
     }

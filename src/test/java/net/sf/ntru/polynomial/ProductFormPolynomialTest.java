@@ -52,7 +52,7 @@ public class ProductFormPolynomialTest {
     public void testFromToBinary() {
         ProductFormPolynomial p1 = ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1, rng);
         byte[] bin1 = p1.toBinary();
-        ProductFormPolynomial p2 = ProductFormPolynomial.fromBinary(bin1, N, df1, df2, df3, df3-1);
+        ProductFormPolynomial p2 = ProductFormPolynomial.fromBinary(bin1, N);
         assertEquals(p1, p2);
     }
     

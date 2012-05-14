@@ -192,14 +192,11 @@ public class SignaturePrivateKey {
         Basis(InputStream is, SignatureParameters params, boolean include_h) throws IOException {
             int N = params.N;
             int q = params.q;
-            int d1 = params.d1;
-            int d2 = params.d2;
-            int d3 = params.d3;
             boolean sparse = params.sparse;
             this.params = params;
             
             if (params.polyType == TernaryPolynomialType.PRODUCT)
-                f = ProductFormPolynomial.fromBinary(is, N, d1, d2, d3+1, d3);
+                f = ProductFormPolynomial.fromBinary(is, N);
             else {
                 IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Tight(is, N);
                 f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
@@ -213,7 +210,7 @@ public class SignaturePrivateKey {
             }
             else
                 if (params.polyType == TernaryPolynomialType.PRODUCT)
-                    fPrime = ProductFormPolynomial.fromBinary(is, N, d1, d2, d3+1, d3);
+                    fPrime = ProductFormPolynomial.fromBinary(is, N);
                 else
                     fPrime = IntegerPolynomial.fromBinary3Tight(is, N);
             

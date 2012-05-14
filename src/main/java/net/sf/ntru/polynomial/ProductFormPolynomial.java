@@ -33,12 +33,28 @@ import net.sf.ntru.exception.NtruException;
 public class ProductFormPolynomial implements Polynomial {
     private SparseTernaryPolynomial f1, f2, f3;
     
+    /**
+     * Constructs a new polynomial from three sparsely populated ternary polynomials.
+     * @param f1
+     * @param f2
+     * @param f3
+     */
     public ProductFormPolynomial(SparseTernaryPolynomial f1, SparseTernaryPolynomial f2, SparseTernaryPolynomial f3) {
         this.f1 = f1;
         this.f2 = f2;
         this.f3 = f3;
     }
     
+    /**
+     * Generates a <code>ProductFormPolynomial</code> from three random ternary polynomials.
+     * @param N number of coefficients
+     * @param df1 number of ones in the first polynomial; also the number of negative ones
+     * @param df2 number of ones in the second polynomial; also the number of negative ones
+     * @param df3Ones number of ones in the third polynomial
+     * @param df3NegOnes number of negative ones in the third polynomial
+     * @param rng a random number generator
+     * @return a random <code>ProductFormPolynomial</code>
+     */
     public static ProductFormPolynomial generateRandom(int N, int df1, int df2, int df3Ones, int df3NegOnes, Random rng) {
         SparseTernaryPolynomial f1 = SparseTernaryPolynomial.generateRandom(N, df1, df1, rng);
         SparseTernaryPolynomial f2 = SparseTernaryPolynomial.generateRandom(N, df2, df2, rng);
@@ -46,22 +62,38 @@ public class ProductFormPolynomial implements Polynomial {
         return new ProductFormPolynomial(f1, f2, f3);
     }
     
-    public static ProductFormPolynomial fromBinary(byte[] data, int N, int df1, int df2, int df3Ones, int df3NegOnes) {
-        return fromBinary(new ByteArrayInputStream(data), N, df1, df2, df3Ones, df3NegOnes);
+    /**
+     * Decodes a byte array encoded with {@link #toBinary()} to a polynomial.
+     * @param data an encoded <code>ProductFormPolynomial</code>
+     * @param N number of coefficients in the polynomial
+     * @return the decoded polynomial
+     */
+    public static ProductFormPolynomial fromBinary(byte[] data, int N) {
+        return fromBinary(new ByteArrayInputStream(data), N);
     }
     
-    public static ProductFormPolynomial fromBinary(InputStream is, int N, int df1, int df2, int df3Ones, int df3NegOnes) {
+    /**
+     * Decodes a polynomial encoded with {@link #toBinary()}.
+     * @param is an input stream containing an encoded polynomial
+     * @param N number of coefficients in the polynomial
+     * @return the decoded polynomial
+     */
+    public static ProductFormPolynomial fromBinary(InputStream is, int N) {
         SparseTernaryPolynomial f1;
         try {
-            f1 = SparseTernaryPolynomial.fromBinary(is, N, df1, df1);
-            SparseTernaryPolynomial f2 = SparseTernaryPolynomial.fromBinary(is, N, df2, df2);
-            SparseTernaryPolynomial f3 = SparseTernaryPolynomial.fromBinary(is, N, df3Ones, df3NegOnes);
+            f1 = SparseTernaryPolynomial.fromBinary(is, N);
+            SparseTernaryPolynomial f2 = SparseTernaryPolynomial.fromBinary(is, N);
+            SparseTernaryPolynomial f3 = SparseTernaryPolynomial.fromBinary(is, N);
             return new ProductFormPolynomial(f1, f2, f3);
         } catch (IOException e) {
             throw new NtruException(e);
         }
     }
     
+    /**
+     * Encodes the polynomial to a byte array.
+     * @return the encoded polynomial
+     */
     public byte[] toBinary() {
         byte[] f1Bin = f1.toBinary();
         byte[] f2Bin = f2.toBinary();

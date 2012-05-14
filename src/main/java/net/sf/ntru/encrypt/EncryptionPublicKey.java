@@ -18,66 +18,76 @@
 
 package net.sf.ntru.encrypt;
 
+import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.polynomial.IntegerPolynomial;
+import net.sf.ntru.util.ArrayEncoder;
 
 /**
  * A NtruEncrypt public key is essentially a polynomial named <code>h</code>.
  */
 public class EncryptionPublicKey {
-    EncryptionParameters params;
+    int N;
+    int q;
     IntegerPolynomial h;
 
     /**
      * Constructs a new public key from a polynomial
      * @param h the polynomial <code>h</code> which determines the key
-     * @param params the NtruEncrypt parameters to use
+     * @param N the number of coefficients in the polynomial <code>h</code>
+     * @param q the "big" NtruEncrypt modulus
      */
-    EncryptionPublicKey(IntegerPolynomial h, EncryptionParameters params) {
+    EncryptionPublicKey(IntegerPolynomial h, int N, int q) {
         this.h = h;
-        this.params = params;
+        this.N = N;
+        this.q = q;
     }
     
     /**
      * Converts a byte array to a polynomial <code>h</code> and constructs a new public key
      * @param b an encoded polynomial
-     * @param params the NtruEncrypt parameters to use
      * @see #getEncoded()
      */
-    public EncryptionPublicKey(byte[] b, EncryptionParameters params) {
-        this.params = params;
-        h = IntegerPolynomial.fromBinary(b, params.N, params.q);
+    public EncryptionPublicKey(byte[] b) {
+        this(new ByteArrayInputStream(b));
     }
     
     /**
      * Reads a polynomial <code>h</code> from an input stream and constructs a new public key
      * @param is an input stream
-     * @param params the NtruEncrypt parameters to use
-     * @throws IOException
+     * @throws NtruException if an {@link IOException} occurs
      * @see #writeTo(OutputStream)
      */
-    public EncryptionPublicKey(InputStream is, EncryptionParameters params) throws IOException {
-        this.params = params;
-        h = IntegerPolynomial.fromBinary(is, params.N, params.q);
+    public EncryptionPublicKey(InputStream is) {
+        DataInputStream dataStream = new DataInputStream(is);
+        try {
+            N = dataStream.readShort();
+            q = dataStream.readShort();
+            h = IntegerPolynomial.fromBinary(dataStream, N, q);
+        } catch (IOException e) {
+            throw new NtruException(e);
+        }
     }
     
     /**
      * Converts the key to a byte array
      * @return the encoded key
-     * @see #EncryptionPublicKey(byte[], EncryptionParameters)
+     * @see #EncryptionPublicKey(byte[])
      */
     public byte[] getEncoded() {
-        return h.toBinary(params.q);
+        return ArrayEncoder.concatenate(ArrayEncoder.toByteArray(N), ArrayEncoder.toByteArray(q), h.toBinary(q));
     }
     
     /**
      * Writes the key to an output stream
      * @param os an output stream
      * @throws IOException
-     * @see #EncryptionPublicKey(InputStream, EncryptionParameters)
+     * @see #EncryptionPublicKey(InputStream)
      */
     public void writeTo(OutputStream os) throws IOException {
         os.write(getEncoded());
@@ -87,29 +97,29 @@ public class EncryptionPublicKey {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
+        result = prime * result + N;
         result = prime * result + ((h == null) ? 0 : h.hashCode());
-        result = prime * result + ((params == null) ? 0 : params.hashCode());
+        result = prime * result + q;
         return result;
     }
-    
+
     @Override
     public boolean equals(Object obj) {
         if (this == obj)
             return true;
         if (obj == null)
             return false;
-        if (!(obj instanceof EncryptionPublicKey))
+        if (getClass() != obj.getClass())
             return false;
         EncryptionPublicKey other = (EncryptionPublicKey) obj;
+        if (N != other.N)
+            return false;
         if (h == null) {
             if (other.h != null)
                 return false;
         } else if (!h.equals(other.h))
             return false;
-        if (params == null) {
-            if (other.params != null)
-                return false;
-        } else if (!params.equals(other.params))
+        if (q != other.q)
             return false;
         return true;
     }

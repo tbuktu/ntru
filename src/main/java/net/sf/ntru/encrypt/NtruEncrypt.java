@@ -125,6 +125,7 @@ public class NtruEncrypt {
         int df3 = params.df3;
         boolean fastFp = params.fastFp;
         boolean sparse = params.sparse;
+        TernaryPolynomialType polyType = params.polyType;
         
         Polynomial t;
         IntegerPolynomial fq;
@@ -154,7 +155,7 @@ public class NtruEncrypt {
             // choose random t, calculate f and fp
             if (fastFp) {
                 // if fastFp=true, f is always invertible mod 3
-                t = params.polyType==TernaryPolynomialType.SIMPLE ?
+                t = polyType==TernaryPolynomialType.SIMPLE ?
                         PolynomialGenerator.generateRandomTernary(N, df, df, sparse, rngf) :
                         ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3, rngf);
                 f = t.toIntegerPolynomial();
@@ -162,7 +163,7 @@ public class NtruEncrypt {
                 f.coeffs[0] += 1;
             }
             else {
-                t = params.polyType==TernaryPolynomialType.SIMPLE ?
+                t = polyType==TernaryPolynomialType.SIMPLE ?
                         PolynomialGenerator.generateRandomTernary(N, df, df-1, sparse, rngf) :
                         ProductFormPolynomial.generateRandom(N, df1, df2, df3, df3-1, rngf);
                 f = t.toIntegerPolynomial();
@@ -196,8 +197,8 @@ public class NtruEncrypt {
         g.clear();
         fq.clear();
         
-        EncryptionPrivateKey priv = new EncryptionPrivateKey(t, fp, params);
-        EncryptionPublicKey pub = new EncryptionPublicKey(h, params);
+        EncryptionPrivateKey priv = new EncryptionPrivateKey(t, fp, N, q, sparse, fastFp, polyType);
+        EncryptionPublicKey pub = new EncryptionPublicKey(h, N, q);
         return new EncryptionKeyPair(priv, pub);
     }
     

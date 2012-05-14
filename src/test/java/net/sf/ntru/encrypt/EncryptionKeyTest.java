@@ -39,7 +39,7 @@ public class EncryptionKeyTest {
         EncryptionKeyPair kp = ntru.generateKeyPair();
         byte[] priv = kp.priv.getEncoded();
         byte[] pub = kp.pub.getEncoded();
-        EncryptionKeyPair kp2 = new EncryptionKeyPair(new EncryptionPrivateKey(priv, params), new EncryptionPublicKey(pub, params));
+        EncryptionKeyPair kp2 = new EncryptionKeyPair(new EncryptionPrivateKey(priv), new EncryptionPublicKey(pub));
         assertEquals(kp.pub, kp2.pub);
         assertEquals(kp.priv, kp2.priv);
         
@@ -49,7 +49,7 @@ public class EncryptionKeyTest {
         kp.pub.writeTo(bos2);
         ByteArrayInputStream bis1 = new ByteArrayInputStream(bos1.toByteArray());
         ByteArrayInputStream bis2 = new ByteArrayInputStream(bos2.toByteArray());
-        EncryptionKeyPair kp3 = new EncryptionKeyPair(new EncryptionPrivateKey(bis1, params), new EncryptionPublicKey(bis2, params));
+        EncryptionKeyPair kp3 = new EncryptionKeyPair(new EncryptionPrivateKey(bis1), new EncryptionPublicKey(bis2));
         assertEquals(kp.pub, kp3.pub);
         assertEquals(kp.priv, kp3.priv);
     }

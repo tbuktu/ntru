@@ -18,6 +18,8 @@
 
 package net.sf.ntru.polynomial;
 
+import static net.sf.ntru.util.ArrayEncoder.toByteArray;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -92,15 +94,16 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
     }
     
     /**
-     * Decodes a byte array encoded with {@link #toBinary()} to a ploynomial.
+     * Decodes a polynomial encoded with {@link #toBinary()}.
      * @param is an input stream containing an encoded polynomial
-     * @param N number of coefficients including zeros
-     * @param numOnes number of coefficients equal to 1
-     * @param numNegOnes number of coefficients equal to -1
+     * @param N number of coefficients in the polynomial
      * @return the decoded polynomial
      * @throws IOException 
      */
-    static SparseTernaryPolynomial fromBinary(InputStream is, int N, int numOnes, int numNegOnes) throws IOException {
+    static SparseTernaryPolynomial fromBinary(InputStream is, int N) throws IOException {
+        int numOnes = readShort(is);   // number of coefficients equal to 1
+        int numNegOnes = readShort(is);   // number of coefficients equal to -1
+        
         int maxIndex = 1 << BITS_PER_INDEX;
         int bitsPerIndex = 32 - Integer.numberOfLeadingZeros(maxIndex-1);
         
@@ -113,6 +116,16 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         int[] negOnes = ArrayEncoder.decodeModQ(data2, numNegOnes, maxIndex);
         
         return new SparseTernaryPolynomial(N, ones, negOnes);
+    }
+    
+    /**
+     * Reads two bytes from an <code>InputStream</code> into an <code>int</code>.
+     * @param is an input stream
+     * @return a number containing two bytes from the input stream
+     * @throws IOException
+     */
+    private static int readShort(InputStream is) throws IOException {
+        return is.read()*256 + is.read();
     }
     
     /**
@@ -277,8 +290,7 @@ public class SparseTernaryPolynomial implements TernaryPolynomial {
         byte[] bin1 = ArrayEncoder.encodeModQ(ones, maxIndex);
         byte[] bin2 = ArrayEncoder.encodeModQ(negOnes, maxIndex);
         
-        byte[] bin = Arrays.copyOf(bin1, bin1.length+bin2.length);
-        System.arraycopy(bin2, 0, bin, bin1.length, bin2.length);
+        byte[] bin = ArrayEncoder.concatenate(toByteArray(ones.length), toByteArray(negOnes.length), bin1, bin2);
         return bin;
     }
     

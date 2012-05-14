@@ -50,9 +50,10 @@ public class SparseTernaryPolynomialTest {
     @Test
     public void testFromToBinary() throws IOException {
         Random rng = new SecureRandom();
-        SparseTernaryPolynomial poly1 = SparseTernaryPolynomial.generateRandom(1000, 100, 101, rng);
+        int N = 1000;
+        SparseTernaryPolynomial poly1 = SparseTernaryPolynomial.generateRandom(N, 100, 101, rng);
         ByteArrayInputStream poly1Stream = new ByteArrayInputStream(poly1.toBinary());
-        SparseTernaryPolynomial poly2 = SparseTernaryPolynomial.fromBinary(poly1Stream, 1000, 100, 101);
+        SparseTernaryPolynomial poly2 = SparseTernaryPolynomial.fromBinary(poly1Stream, N);
         assertEquals(poly1, poly2);
     }
     

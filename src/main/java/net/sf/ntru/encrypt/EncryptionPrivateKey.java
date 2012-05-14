@@ -19,6 +19,7 @@
 package net.sf.ntru.encrypt;
 
 import java.io.ByteArrayInputStream;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -30,6 +31,7 @@ import net.sf.ntru.polynomial.IntegerPolynomial;
 import net.sf.ntru.polynomial.Polynomial;
 import net.sf.ntru.polynomial.ProductFormPolynomial;
 import net.sf.ntru.polynomial.SparseTernaryPolynomial;
+import net.sf.ntru.util.ArrayEncoder;
 
 /**
  * A NtruEncrypt private key is essentially a polynomial named <code>f</code>
@@ -38,7 +40,11 @@ import net.sf.ntru.polynomial.SparseTernaryPolynomial;
  * The inverse of <code>f</code> modulo <code>p</code> is precomputed on initialization.
  */
 public class EncryptionPrivateKey {
-    EncryptionParameters params;
+    int N;
+    int q;
+    TernaryPolynomialType polyType;
+    private boolean sparse;
+    private boolean fastFp;
     Polynomial t;
     IntegerPolynomial fp;
 
@@ -46,45 +52,52 @@ public class EncryptionPrivateKey {
      * Constructs a new private key from a polynomial
      * @param t the polynomial which determines the key: if <code>fastFp=true</code>, <code>f=1+3t</code>; otherwise, <code>f=t</code>
      * @param fp the inverse of <code>f</code>
-     * @param params the NtruEncrypt parameters to use
+     * @param N the number of polynomial coefficients
+     * @param q the "big" NtruEncrypt modulus
+     * @param sparse whether the polynomial <code>t</code> is sparsely or densely populated
+     * @param fastFp whether <code>fp=1</code>
+     * @param polyType type of the polynomial <code>t</code>
      */
-    EncryptionPrivateKey(Polynomial t, IntegerPolynomial fp, EncryptionParameters params) {
+    EncryptionPrivateKey(Polynomial t, IntegerPolynomial fp, int N, int q, boolean sparse, boolean fastFp, TernaryPolynomialType polyType) {
         this.t = t;
         this.fp = fp;
-        this.params = params;
+        this.N = N;
+        this.q = q;
+        this.sparse = sparse;
+        this.fastFp = fastFp;
+        this.polyType = polyType;
     }
     
     /**
      * Converts a byte array to a polynomial <code>f</code> and constructs a new private key
      * @param b an encoded polynomial
-     * @param params the NtruEncrypt parameters to use
      * @see #getEncoded()
      */
-    public EncryptionPrivateKey(byte[] b, EncryptionParameters params) {
-        this(new ByteArrayInputStream(b), params);
+    public EncryptionPrivateKey(byte[] b) {
+        this(new ByteArrayInputStream(b));
     }
     
     /**
      * Reads a polynomial <code>f</code> from an input stream and constructs a new private key
      * @param is an input stream
-     * @param params the NtruEncrypt parameters to use
      * @throws NtruException if an {@link IOException} occurs
      * @see #writeTo(OutputStream)
      */
-    public EncryptionPrivateKey(InputStream is, EncryptionParameters params) {
-        this.params = params;
+    public EncryptionPrivateKey(InputStream is) {
+        DataInputStream dataStream = new DataInputStream(is);
         try {
-            if (params.polyType == TernaryPolynomialType.PRODUCT) {
-                int N = params.N;
-                int df1 = params.df1;
-                int df2 = params.df2;
-                int df3Ones = params.df3;
-                int df3NegOnes = params.fastFp ? params.df3 : params.df3-1;
-                t = ProductFormPolynomial.fromBinary(is, N, df1, df2, df3Ones, df3NegOnes);
+            N = dataStream.readShort();
+            q = dataStream.readShort();
+            byte flags = dataStream.readByte();
+            sparse = (flags&1) != 0;
+            fastFp = (flags&2) != 0;
+            polyType = (flags&4)==0 ? TernaryPolynomialType.SIMPLE : TernaryPolynomialType.PRODUCT;
+            if (polyType == TernaryPolynomialType.PRODUCT) {
+                t = ProductFormPolynomial.fromBinary(dataStream, N);
             }
             else {
-                IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Tight(is, params.N);
-                t = params.sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
+                IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Tight(dataStream, N);
+                t = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
             }
         }
         catch (IOException e) {
@@ -97,8 +110,8 @@ public class EncryptionPrivateKey {
      * Initializes <code>fp</code> from t.
      */
     private void init() {
-        if (params.fastFp) {
-            fp = new IntegerPolynomial(params.N);
+        if (fastFp) {
+            fp = new IntegerPolynomial(N);
             fp.coeffs[0] = 1;
         }
         else
@@ -108,20 +121,26 @@ public class EncryptionPrivateKey {
     /**
      * Converts the key to a byte array
      * @return the encoded key
-     * @see #EncryptionPrivateKey(byte[], EncryptionParameters)
+     * @see #EncryptionPrivateKey(byte[])
      */
     public byte[] getEncoded() {
+        int flags = (sparse?1:0) + (fastFp?2:0) + (polyType==TernaryPolynomialType.PRODUCT?4:0);
+        byte[] flagsByte = new byte[] {(byte)flags};
+        
+        byte[] tBin;
         if (t instanceof ProductFormPolynomial)
-            return ((ProductFormPolynomial)t).toBinary();
+            tBin = ((ProductFormPolynomial)t).toBinary();
         else
-            return t.toIntegerPolynomial().toBinary3Tight();
+            tBin = t.toIntegerPolynomial().toBinary3Tight();
+        
+        return ArrayEncoder.concatenate(ArrayEncoder.toByteArray(N), ArrayEncoder.toByteArray(q), flagsByte, tBin);
     }
     
     /**
      * Writes the key to an output stream
      * @param os an output stream
      * @throws IOException
-     * @see #EncryptionPrivateKey(InputStream, EncryptionParameters)
+     * @see #EncryptionPrivateKey(InputStream)
      */
     public void writeTo(OutputStream os) throws IOException {
         os.write(getEncoded());
@@ -131,7 +150,13 @@ public class EncryptionPrivateKey {
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((params == null) ? 0 : params.hashCode());
+        result = prime * result + N;
+        result = prime * result + (fastFp ? 1231 : 1237);
+        result = prime * result + ((fp == null) ? 0 : fp.hashCode());
+        result = prime * result
+                + ((polyType == null) ? 0 : polyType.hashCode());
+        result = prime * result + q;
+        result = prime * result + (sparse ? 1231 : 1237);
         result = prime * result + ((t == null) ? 0 : t.hashCode());
         return result;
     }
@@ -142,13 +167,23 @@ public class EncryptionPrivateKey {
             return true;
         if (obj == null)
             return false;
-        if (!(obj instanceof EncryptionPrivateKey))
+        if (getClass() != obj.getClass())
             return false;
         EncryptionPrivateKey other = (EncryptionPrivateKey) obj;
-        if (params == null) {
-            if (other.params != null)
+        if (N != other.N)
+            return false;
+        if (fastFp != other.fastFp)
+            return false;
+        if (fp == null) {
+            if (other.fp != null)
                 return false;
-        } else if (!params.equals(other.params))
+        } else if (!fp.equals(other.fp))
+            return false;
+        if (polyType != other.polyType)
+            return false;
+        if (q != other.q)
+            return false;
+        if (sparse != other.sparse)
             return false;
         if (t == null) {
             if (other.t != null)

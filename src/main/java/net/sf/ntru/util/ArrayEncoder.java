@@ -319,4 +319,32 @@ public class ArrayEncoder {
             throw new IOException("Not enough bytes to read.");
         return arr;
     }
+    
+    /** Concatenates two or more <code>byte</code> arrays. */
+    public static byte[] concatenate(byte[]... arrays) {
+        int totalLength = 0;
+        for (byte[] arr: arrays)
+            totalLength += arr.length;
+        byte[] bigArr = new byte[totalLength];
+        
+        int idx = 0;
+        for (byte[] arr: arrays) {
+            System.arraycopy(arr, 0, bigArr, idx, arr.length);
+            idx += arr.length;
+        }
+        
+        return bigArr;
+    }
+    
+    /**
+     * Copies the lower two bytes of an <code>int</code> into a <code>byte</code> array.
+     * @param i
+     * @return
+     */
+    public static byte[] toByteArray(int i) {
+        byte[] arr = new byte[2];
+        arr[0] = (byte)(i>>>8);
+        arr[1] = (byte)(i&0xFF);
+        return arr;
+    }
 }
