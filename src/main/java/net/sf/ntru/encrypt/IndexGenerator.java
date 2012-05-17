@@ -101,8 +101,7 @@ public class IndexGenerator {
                 buf = M;
             }
             
-            int i = buf.getLeadingAsInt(c);   // assume c<32
-            buf.truncate(c);
+            int i = buf.pop(c);   // assume c<32
             remLen -= c;
             if (i < (1<<c)-((1<<c)%N))
                 return i % N;
@@ -171,6 +170,18 @@ public class IndexGenerator {
             }
             
             return newStr;
+        }
+        
+        /**
+         * Returns up to 32 bits from the beginning of the bit string,
+         * and removes those bits from the bit string.
+         * @param numBits number of bits
+         * @return an <code>int</code> whose lower <code>numBits</code> bits are the beginning of the bit string
+         */
+        int pop(int numBits) {
+            int i = getLeadingAsInt(numBits);
+            truncate(numBits);
+            return i;
         }
         
         /**
