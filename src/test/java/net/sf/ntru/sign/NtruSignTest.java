@@ -79,6 +79,8 @@ public class NtruSignTest {
         
         SignatureKeyPair kp = ntru.generateKeyPair();
         
+        assertEquals(params.B+1, kp.priv.getNumBases());
+        
         Random rng = new Random();
         byte[] msg = new byte[10+rng.nextInt(1000)];
         rng.nextBytes(msg);
