@@ -47,7 +47,6 @@ import net.sf.ntru.polynomial.Resultant;
 import net.sf.ntru.sign.SignatureParameters.BasisType;
 import net.sf.ntru.sign.SignatureParameters.KeyGenAlg;
 import net.sf.ntru.sign.SignatureParameters.TernaryPolynomialType;
-import net.sf.ntru.sign.SignaturePrivateKey.Basis;
 
 /**
  * Signs, verifies data and generates key pairs.

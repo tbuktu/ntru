@@ -25,7 +25,6 @@ import java.io.OutputStream;
 import java.util.Arrays;
 
 import net.sf.ntru.exception.NtruException;
-import net.sf.ntru.sign.SignaturePrivateKey.Basis;
 
 /** Contains a public and a private signature key */
 public class SignatureKeyPair {
