@@ -1101,7 +1101,7 @@ public class IntegerPolynomial implements Polynomial {
         for (int i=0; i<coeffs.length; i++)
             coeffs[i] = 0;
     }
-    
+
     @Override
     public IntegerPolynomial toIntegerPolynomial() {
         return clone();
@@ -1110,6 +1110,11 @@ public class IntegerPolynomial implements Polynomial {
     @Override
     public IntegerPolynomial clone() {
         return new IntegerPolynomial(coeffs.clone());
+    }
+    
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(coeffs);
     }
     
     @Override
