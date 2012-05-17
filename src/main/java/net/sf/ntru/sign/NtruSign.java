@@ -118,18 +118,19 @@ public class NtruSign {
      * @return a key pair
      */
     public SignatureKeyPair generateKeyPairSingleThread() {
-        int B = params.B;
-        
         SignaturePrivateKey priv = new SignaturePrivateKey(params);
         SignaturePublicKey pub = null;
-        for (int k=B; k>=0; k--) {
+        
+        Basis pubBasis = generateBoundedBasis();
+        pub = new SignaturePublicKey(pubBasis.h, params.q);
+        pubBasis.h = null;   // remove the public polynomial h from the private key
+        priv.add(pubBasis);
+        
+        for (int k=params.B; k>0; k--) {
             Basis basis = generateBoundedBasis();
             priv.add(basis);
-            if (k == B) {
-                pub = new SignaturePublicKey(basis.h, params.q);
-                basis.h = null;   // remove the public polynomial h from the private key
-            }
         }
+        
         SignatureKeyPair kp = new SignatureKeyPair(priv, pub);
         return kp;
     }
