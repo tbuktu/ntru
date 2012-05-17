@@ -48,7 +48,7 @@ public class SignaturePrivateKey {
     private boolean sparse;
     private TernaryPolynomialType polyType;
     private BasisType basisType;
-    private double keyNormBoundSq;
+    private float keyNormBoundSq;
     private List<Basis> bases;
     
     /**
@@ -77,7 +77,7 @@ public class SignaturePrivateKey {
             sparse = (flags&1) != 0;
             polyType = (flags&4)==0 ? TernaryPolynomialType.SIMPLE : TernaryPolynomialType.PRODUCT;
             basisType = ((flags&8)==0) ? BasisType.STANDARD : BasisType.TRANSPOSE;
-            keyNormBoundSq = dataStream.readDouble();
+            keyNormBoundSq = dataStream.readFloat();
             
             int numBases = is.read();
             for (int i=0; i<numBases; i++)
@@ -141,7 +141,7 @@ public class SignaturePrivateKey {
             flags |= basisType==BasisType.TRANSPOSE ? 8 : 0;
             dataStream.write(flags);
             
-            dataStream.writeDouble(keyNormBoundSq);
+            dataStream.writeFloat(keyNormBoundSq);
             dataStream.write(numBases);   // 1 byte
             
             for (int i=0; i<numBases; i++)

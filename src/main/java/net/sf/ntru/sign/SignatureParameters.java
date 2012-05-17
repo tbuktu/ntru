@@ -33,21 +33,21 @@ import net.sf.ntru.polynomial.SparseTernaryPolynomial;
  */
 public class SignatureParameters implements Cloneable {
     /** Gives 128 bits of security */
-    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165, 400, 280, false, true, KeyGenAlg.RESULTANT, "SHA-256");
+    public static final SignatureParameters APR2011_439 = new SignatureParameters(439, 2048, 146, 1, BasisType.TRANSPOSE, 0.165f, 400, 280, false, true, KeyGenAlg.RESULTANT, "SHA-256");
     
     /** Like <code>APR2011_439</code>, this parameter set gives 128 bits of security but uses product-form polynomials */
-    public static final SignatureParameters APR2011_439_PROD = new SignatureParameters(439, 2048, 9, 8, 5, 1, BasisType.TRANSPOSE, 0.165, 400, 280, false, true, KeyGenAlg.RESULTANT, "SHA-256");
+    public static final SignatureParameters APR2011_439_PROD = new SignatureParameters(439, 2048, 9, 8, 5, 1, BasisType.TRANSPOSE, 0.165f, 400, 280, false, true, KeyGenAlg.RESULTANT, "SHA-256");
     
     /** Gives 256 bits of security */
-    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127, 405, 360, true, false, KeyGenAlg.RESULTANT, "SHA-512");
+    public static final SignatureParameters APR2011_743 = new SignatureParameters(743, 2048, 248, 1, BasisType.TRANSPOSE, 0.127f, 405, 360, true, false, KeyGenAlg.RESULTANT, "SHA-512");
     
     /** Like <code>APR2011_439</code>, this parameter set gives 256 bits of security but uses product-form polynomials */
-    public static final SignatureParameters APR2011_743_PROD = new SignatureParameters(743, 2048, 11, 11, 15, 1, BasisType.TRANSPOSE, 0.127, 405, 360, true, false, KeyGenAlg.RESULTANT, "SHA-512");
+    public static final SignatureParameters APR2011_743_PROD = new SignatureParameters(743, 2048, 11, 11, 15, 1, BasisType.TRANSPOSE, 0.127f, 405, 360, true, false, KeyGenAlg.RESULTANT, "SHA-512");
     
     /** Generates key pairs quickly. Use for testing only. */
-    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38, 200, 80, false, false, KeyGenAlg.RESULTANT, "SHA-256");
+    public static final SignatureParameters TEST157 = new SignatureParameters(157, 256, 29, 1, BasisType.TRANSPOSE, 0.38f, 200, 80, false, false, KeyGenAlg.RESULTANT, "SHA-256");
     /** Generates key pairs quickly. Use for testing only. */
-    public static final SignatureParameters TEST157_PROD = new SignatureParameters(157, 256, 5, 5, 8, 1, BasisType.TRANSPOSE, 0.38, 200, 80, false, false, KeyGenAlg.RESULTANT, "SHA-256");
+    public static final SignatureParameters TEST157_PROD = new SignatureParameters(157, 256, 5, 5, 8, 1, BasisType.TRANSPOSE, 0.38f, 200, 80, false, false, KeyGenAlg.RESULTANT, "SHA-256");
     
     public enum BasisType {STANDARD, TRANSPOSE};
     public enum KeyGenAlg {RESULTANT, FLOAT};
@@ -56,9 +56,9 @@ public class SignatureParameters implements Cloneable {
     public int N;
     int q;
     public int d, d1, d2, d3, B;
-    double beta, betaSq, normBound, normBoundSq;
+    float beta, betaSq, normBound, normBoundSq;
     int signFailTolerance = 100;
-    double keyNormBound, keyNormBoundSq;
+    float keyNormBound, keyNormBoundSq;
     boolean primeCheck;   // true if N and 2N+1 are prime
     BasisType basisType;
     int bitsF = 6;   // max #bits needed to encode one coefficient of the polynomial F
@@ -82,7 +82,7 @@ public class SignatureParameters implements Cloneable {
      * @param keyGenAlg    <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster. <code>RESULTANT</code> follows the EESS standard while <code>FLOAT</code> is described in Hoffstein et al: An Introduction to Mathematical Cryptography.
      * @param hashAlg      a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>. The <code>MessageDigest</code> must support the <code>getDigestLength()</code> method.
      */
-    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, double beta, double normBound, double keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg, String hashAlg) {
+    public SignatureParameters(int N, int q, int d, int B, BasisType basisType, float beta, float normBound, float keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg, String hashAlg) {
         this.N = N;
         this.q = q;
         this.d = d;
@@ -116,7 +116,7 @@ public class SignatureParameters implements Cloneable {
      * @param keyGenAlg    <code>RESULTANT</code> produces better bases, <code>FLOAT</code> is slightly faster. <code>RESULTANT</code> follows the EESS standard while <code>FLOAT</code> is described in Hoffstein et al: An Introduction to Mathematical Cryptography.
      * @param hashAlg      a valid identifier for a <code>java.security.MessageDigest</code> instance such as <code>SHA-256</code>. The <code>MessageDigest</code> must support the <code>getDigestLength()</code> method.
      */
-    public SignatureParameters(int N, int q, int d1, int d2, int d3, int B, BasisType basisType, double beta, double normBound, double keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg, String hashAlg) {
+    public SignatureParameters(int N, int q, int d1, int d2, int d3, int B, BasisType basisType, float beta, float normBound, float keyNormBound, boolean primeCheck, boolean sparse, KeyGenAlg keyGenAlg, String hashAlg) {
         this.N = N;
         this.q = q;
         this.d1 = d1;
@@ -156,9 +156,9 @@ public class SignatureParameters implements Cloneable {
         d3 = dis.readInt();
         B = dis.readInt();
         basisType = BasisType.values()[dis.readInt()];
-        beta = dis.readDouble();
-        normBound = dis.readDouble();
-        keyNormBound = dis.readDouble();
+        beta = dis.readFloat();
+        normBound = dis.readFloat();
+        keyNormBound = dis.readFloat();
         signFailTolerance = dis.readInt();
         primeCheck = dis.readBoolean();
         sparse = dis.readBoolean();
@@ -195,9 +195,9 @@ public class SignatureParameters implements Cloneable {
         dos.writeInt(d3);
         dos.writeInt(B);
         dos.writeInt(basisType.ordinal());
-        dos.writeDouble(beta);
-        dos.writeDouble(normBound);
-        dos.writeDouble(keyNormBound);
+        dos.writeFloat(beta);
+        dos.writeFloat(normBound);
+        dos.writeFloat(keyNormBound);
         dos.writeInt(signFailTolerance);
         dos.writeBoolean(primeCheck);
         dos.writeBoolean(sparse);
@@ -223,9 +223,9 @@ public class SignatureParameters implements Cloneable {
         result = prime * result + N;
         result = prime * result + ((basisType == null) ? 0 : basisType.hashCode());
         long temp;
-        temp = Double.doubleToLongBits(beta);
+        temp = Float.floatToIntBits(beta);
         result = prime * result + (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(betaSq);
+        temp = Float.floatToIntBits(betaSq);
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + bitsF;
         result = prime * result + d;
@@ -234,13 +234,13 @@ public class SignatureParameters implements Cloneable {
         result = prime * result + d3;
         result = prime * result + ((hashAlg == null) ? 0 : hashAlg.hashCode());
         result = prime * result + ((keyGenAlg == null) ? 0 : keyGenAlg.hashCode());
-        temp = Double.doubleToLongBits(keyNormBound);
+        temp = Float.floatToIntBits(keyNormBound);
         result = prime * result + (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(keyNormBoundSq);
+        temp = Float.floatToIntBits(keyNormBoundSq);
         result = prime * result + (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(normBound);
+        temp = Float.floatToIntBits(normBound);
         result = prime * result + (int) (temp ^ (temp >>> 32));
-        temp = Double.doubleToLongBits(normBoundSq);
+        temp = Float.floatToIntBits(normBoundSq);
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + ((polyType == null) ? 0 : polyType.hashCode());
         result = prime * result + (primeCheck ? 1231 : 1237);
@@ -268,9 +268,9 @@ public class SignatureParameters implements Cloneable {
                 return false;
         } else if (!basisType.equals(other.basisType))
             return false;
-        if (Double.doubleToLongBits(beta) != Double.doubleToLongBits(other.beta))
+        if (Float.floatToIntBits(beta) != Float.floatToIntBits(other.beta))
             return false;
-        if (Double.doubleToLongBits(betaSq) != Double.doubleToLongBits(other.betaSq))
+        if (Float.floatToIntBits(betaSq) != Float.floatToIntBits(other.betaSq))
             return false;
         if (bitsF != other.bitsF)
             return false;
@@ -292,13 +292,13 @@ public class SignatureParameters implements Cloneable {
                 return false;
         } else if (!keyGenAlg.equals(other.keyGenAlg))
             return false;
-        if (Double.doubleToLongBits(keyNormBound) != Double.doubleToLongBits(other.keyNormBound))
+        if (Float.floatToIntBits(keyNormBound) != Float.floatToIntBits(other.keyNormBound))
             return false;
-        if (Double.doubleToLongBits(keyNormBoundSq) != Double.doubleToLongBits(other.keyNormBoundSq))
+        if (Float.floatToIntBits(keyNormBoundSq) != Float.floatToIntBits(other.keyNormBoundSq))
             return false;
-        if (Double.doubleToLongBits(normBound) != Double.doubleToLongBits(other.normBound))
+        if (Float.floatToIntBits(normBound) != Float.floatToIntBits(other.normBound))
             return false;
-        if (Double.doubleToLongBits(normBoundSq) != Double.doubleToLongBits(other.normBoundSq))
+        if (Float.floatToIntBits(normBoundSq) != Float.floatToIntBits(other.normBoundSq))
             return false;
         if (polyType == null) {
             if (other.polyType != null)
