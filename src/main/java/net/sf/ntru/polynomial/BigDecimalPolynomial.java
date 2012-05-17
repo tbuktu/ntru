@@ -1,19 +1,27 @@
 /**
- * This software is dual-licensed. You may choose either the
- * Non-Profit Open Software License version 3.0, or any license
- * agreement into which you enter with Security Innovation, Inc.
- * 
- * Use of this code, or certain portions thereof, implements
- * inventions covered by claims of one or more of the following
- * U.S. Patents and/or foreign counterpart patents, owned by
- * Security Innovation, Inc.:
- * 7,308,097, 7,031,468, 6,959,085, 6,298,137, and 6,081,597.
- * Practice or sale of the inventions embodied in the code hereof
- * requires a license from Security Innovation Inc. at:
- * 
- * 187 Ballardvale St, Suite A195
- * Wilmington, MA 01887
- * USA
+ * Copyright (c) 2011, Tim Buktu
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 package net.sf.ntru.polynomial;
