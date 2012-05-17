@@ -49,8 +49,8 @@ public class EncryptionPublicKey {
     }
     
     /**
-     * Converts a byte array to a polynomial <code>h</code> and constructs a new public key
-     * @param b an encoded polynomial
+     * Reconstructs a public key from its <code>byte</code> array representation.
+     * @param b an encoded key
      * @see #getEncoded()
      */
     public EncryptionPublicKey(byte[] b) {
@@ -58,8 +58,8 @@ public class EncryptionPublicKey {
     }
     
     /**
-     * Reads a polynomial <code>h</code> from an input stream and constructs a new public key
-     * @param is an input stream
+     * Reconstructs a public key from its <code>byte</code> array representation.
+     * @param is an input stream containing an encoded key
      * @throws NtruException if an {@link IOException} occurs
      * @see #writeTo(OutputStream)
      */

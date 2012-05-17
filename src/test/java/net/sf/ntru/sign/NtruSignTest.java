@@ -99,8 +99,8 @@ public class NtruSignTest {
         assertFalse(valid);
         
         // encode, decode keypair, test
-        SignaturePrivateKey priv = new SignaturePrivateKey(kp.priv.getEncoded(), params);
-        SignaturePublicKey pub = new SignaturePublicKey(kp.pub.getEncoded(), params);
+        SignaturePrivateKey priv = new SignaturePrivateKey(kp.priv.getEncoded());
+        SignaturePublicKey pub = new SignaturePublicKey(kp.pub.getEncoded());
         kp = new SignatureKeyPair(priv, pub);
         s = ntru.sign(msg, kp);
         valid = ntru.verify(msg, s, kp.pub);

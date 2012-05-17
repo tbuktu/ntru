@@ -18,62 +18,83 @@
 
 package net.sf.ntru.sign;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import net.sf.ntru.exception.NtruException;
 import net.sf.ntru.polynomial.IntegerPolynomial;
 
 /**
  * A NtruSign public key is essentially a polynomial named <code>h</code>.
  */
 public class SignaturePublicKey {
-    SignatureParameters params;
     IntegerPolynomial h;
+    int q;
 
     /**
      * Constructs a new public key from a polynomial
      * @param h the polynomial <code>h</code> which determines the key
-     * @param params the NtruSign parameters to use
+     * @param q the modulus
      */
-    SignaturePublicKey(IntegerPolynomial h, SignatureParameters params) {
+    SignaturePublicKey(IntegerPolynomial h, int q) {
         this.h = h;
-        this.params = params;
+        this.q = q;
     }
     
     /**
-     * Converts a byte array to a polynomial <code>h</code> and constructs a new public key
-     * @param b an encoded polynomial
-     * @param params the NtruSign parameters to use
+     * Reconstructs a public key from its <code>byte</code> array representation.
+     * @param b an encoded key
+     * @see #getEncoded()
      */
-    public SignaturePublicKey(byte[] b, SignatureParameters params) {
-        h = IntegerPolynomial.fromBinary(b, params.N, params.q);
-        this.params = params;
+    public SignaturePublicKey(byte[] b) {
+        this(new ByteArrayInputStream(b));
     }
     
     /**
-     * Reads a polynomial <code>h</code> from an input stream and constructs a new public key
-     * @param is an input stream
-     * @param params the NtruSign parameters to use
-     * @throws IOException
+     * Reconstructs a public key from its <code>byte</code> array representation.
+     * @param is an input stream containing an encoded key
+     * @throws NtruException if an {@link IOException} occurs
+     * @see #writeTo(OutputStream)
      */
-    public SignaturePublicKey(InputStream is, SignatureParameters params) throws IOException {
-        h = IntegerPolynomial.fromBinary(is, params.N, params.q);
-        this.params = params;
+    public SignaturePublicKey(InputStream is) {
+        DataInputStream dataStream = new DataInputStream(is);
+        try {
+            int N = dataStream.readShort();
+            q = dataStream.readShort();
+            h = IntegerPolynomial.fromBinary(dataStream, N, q);
+        } catch (IOException e) {
+            throw new NtruException(e);
+        }
     }
     
     /**
      * Converts the key to a byte array
      * @return the encoded key
+     * @see #SignaturePublicKey(byte[])
      */
     public byte[] getEncoded() {
-        return h.toBinary(params.q);
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        DataOutputStream dataStream = new DataOutputStream(os);
+        try {
+            dataStream.writeShort(h.coeffs.length);
+            dataStream.writeShort(q);
+            dataStream.write(h.toBinary(q));
+        } catch (IOException e) {
+            throw new NtruException(e);
+        }
+        return os.toByteArray();
     }
     
     /**
      * Writes the key to an output stream
      * @param os an output stream
      * @throws IOException
+     * @see #SignaturePublicKey(InputStream)
      */
     public void writeTo(OutputStream os) throws IOException {
         os.write(getEncoded());
@@ -84,7 +105,7 @@ public class SignaturePublicKey {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((h == null) ? 0 : h.hashCode());
-        result = prime * result + ((params == null) ? 0 : params.hashCode());
+        result = prime * result + q;
         return result;
     }
 
@@ -102,10 +123,7 @@ public class SignaturePublicKey {
                 return false;
         } else if (!h.equals(other.h))
             return false;
-        if (params == null) {
-            if (other.params != null)
-                return false;
-        } else if (!params.equals(other.params))
+        if (q != other.q)
             return false;
         return true;
     }

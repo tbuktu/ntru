@@ -48,13 +48,13 @@ public class SignatureKeyPairTest {
         }
         
         // test an invalid key pair
-        SignatureParameters params = kp.pub.params;
+        int q = kp.pub.q;
         kp.pub.h.mult(101);   // make h invalid
-        kp.pub.h.modPositive(params.q);
+        kp.pub.h.modPositive(q);
         assertFalse(kp.isValid());
-        int inv101 = IntEuclidean.calculate(101, params.q).x;
+        int inv101 = IntEuclidean.calculate(101, q).x;
         kp.pub.h.mult(inv101);   // restore h
-        kp.pub.h.modPositive(params.q);
+        kp.pub.h.modPositive(q);
         IntegerPolynomial f = kp.priv.getBasis(0).f.toIntegerPolynomial();
         f.mult(3);   // make f invalid
         kp.priv.getBasis(0).f = f;
@@ -74,14 +74,14 @@ public class SignatureKeyPairTest {
         
         // encode to byte[] and reconstruct
         byte[] enc = kp.getEncoded();
-        SignatureKeyPair kp2 = new SignatureKeyPair(enc, params);
+        SignatureKeyPair kp2 = new SignatureKeyPair(enc);
         assertEquals(kp, kp2);
         
         // encode to OutputStream and reconstruct
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         kp.writeTo(bos);
         ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
-        SignatureKeyPair kp3 = new SignatureKeyPair(bis, params);
+        SignatureKeyPair kp3 = new SignatureKeyPair(bis);
         assertEquals(kp, kp3);
     }
 }

@@ -73,7 +73,7 @@ public class NtruSign {
      */
     public SignatureKeyPair generateKeyPair() {
         int processors = Runtime.getRuntime().availableProcessors();
-        SignaturePrivateKey priv = new SignaturePrivateKey();
+        SignaturePrivateKey priv = new SignaturePrivateKey(params);
         int B = params.B;
         
         if (processors == 1)
@@ -105,7 +105,8 @@ public class NtruSign {
             priv.add(basis0);
         }
         
-        SignaturePublicKey pub = new SignaturePublicKey(priv.getBasis(0).h, params);
+        int q = params.q;
+        SignaturePublicKey pub = new SignaturePublicKey(priv.getBasis(0).h, q);
         priv.getBasis(0).h = null;   // remove the public polynomial h from the private key
         
         SignatureKeyPair kp = new SignatureKeyPair(priv, pub);
@@ -117,13 +118,15 @@ public class NtruSign {
      * @return a key pair
      */
     public SignatureKeyPair generateKeyPairSingleThread() {
-        SignaturePrivateKey priv = new SignaturePrivateKey();
+        int B = params.B;
+        
+        SignaturePrivateKey priv = new SignaturePrivateKey(params);
         SignaturePublicKey pub = null;
-        for (int k=params.B; k>=0; k--) {
+        for (int k=B; k>=0; k--) {
             Basis basis = generateBoundedBasis();
             priv.add(basis);
-            if (k == params.B) {
-                pub = new SignaturePublicKey(basis.h, params);
+            if (k == B) {
+                pub = new SignaturePublicKey(basis.h, params.q);
                 basis.h = null;   // remove the public polynomial h from the private key
             }
         }
@@ -489,7 +492,7 @@ public class NtruSign {
         }
         h.modPositive(q);
         
-        return new FGBasis(f, fPrime, h, FInt, GInt, params);
+        return new FGBasis(f, fPrime, h, FInt, GInt, params.q, params.polyType, params.basisType, params.keyNormBoundSq);
     }
     
     /**
@@ -562,11 +565,15 @@ public class NtruSign {
      */
     static class FGBasis extends Basis {
         IntegerPolynomial F, G;
+        int q;
+        double keyNormBoundSq;
         
-        FGBasis(Polynomial f, Polynomial fPrime, IntegerPolynomial h, IntegerPolynomial F, IntegerPolynomial G, SignatureParameters params) {
-            super(f, fPrime, h, params);
+        FGBasis(Polynomial f, Polynomial fPrime, IntegerPolynomial h, IntegerPolynomial F, IntegerPolynomial G, int q, TernaryPolynomialType polyType, BasisType basisType, double keyNormBoundSq) {
+            super(f, fPrime, h, q, polyType, basisType, keyNormBoundSq);
             this.F = F;
             this.G = G;
+            this.q = q;
+            this.keyNormBoundSq = keyNormBoundSq;
         }
         
         /**
@@ -575,8 +582,6 @@ public class NtruSign {
          * @return
          */
         boolean isNormOk() {
-            double keyNormBoundSq = params.keyNormBoundSq;
-            int q = params.q;
             return (F.centeredNormSq(q)<keyNormBoundSq && G.centeredNormSq(q)<keyNormBoundSq);
         }
     }

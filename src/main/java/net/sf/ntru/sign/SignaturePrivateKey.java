@@ -20,6 +20,8 @@ package net.sf.ntru.sign;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -41,6 +43,12 @@ import net.sf.ntru.sign.SignatureParameters.TernaryPolynomialType;
  * except the zeroth basis for which <code>h</code> is undefined.
  */
 public class SignaturePrivateKey {
+    int N;
+    int q;
+    private boolean sparse;
+    private TernaryPolynomialType polyType;
+    private BasisType basisType;
+    private double keyNormBoundSq;
     private List<Basis> bases;
     
     /**
@@ -48,34 +56,49 @@ public class SignaturePrivateKey {
      * @param b an encoded private key
      * @param params the NtruSign parameters to use
      */
-    public SignaturePrivateKey(byte[] b, SignatureParameters params) {
-        bases = new ArrayList<Basis>();
-        ByteArrayInputStream is = new ByteArrayInputStream(b);
-        for (int i=0; i<=params.B; i++)
-            try {
-                add(new Basis(is, params, i!=0));
-            } catch (IOException e) {
-                throw new NtruException(e);
-            }
+    public SignaturePrivateKey(byte[] b) {
+        this(new ByteArrayInputStream(b));
     }
     
     /**
      * Constructs a new private key from an input stream
      * @param is an input stream
      * @param params the NtruSign parameters to use
-     * @throws IOException
+     * @throws NtruException if an {@link IOException} occurs
      */
-    public SignaturePrivateKey(InputStream is, SignatureParameters params) throws IOException {
+    public SignaturePrivateKey(InputStream is) {
         bases = new ArrayList<Basis>();
-        for (int i=0; i<=params.B; i++)
-            // include a public key h[i] in all bases except for the first one
-            add(new Basis(is, params, i!=0));
+        
+        DataInputStream dataStream = new DataInputStream(is);
+        try {
+            N = dataStream.readShort();
+            q = dataStream.readShort();
+            byte flags = dataStream.readByte();
+            sparse = (flags&1) != 0;
+            polyType = (flags&4)==0 ? TernaryPolynomialType.SIMPLE : TernaryPolynomialType.PRODUCT;
+            basisType = ((flags&8)==0) ? BasisType.STANDARD : BasisType.TRANSPOSE;
+            keyNormBoundSq = dataStream.readDouble();
+            
+            int numBases = is.read();
+            for (int i=0; i<numBases; i++)
+                // include a public key h[i] in all bases except for the first one
+                add(new Basis(is, N, q, sparse, polyType, basisType, keyNormBoundSq, i!=0));
+        } catch(IOException e) {
+            throw new NtruException(e);
+        }
     }
     
     /**
-     * Constructs an empty private key
+     * Constructs a private key that contains no bases
      */
-    SignaturePrivateKey() {
+    SignaturePrivateKey(SignatureParameters params) {
+        N = params.N;
+        q = params.q;
+        sparse = params.sparse;
+        polyType = params.polyType;
+        basisType = params.basisType;
+        keyNormBoundSq = params.keyNormBoundSq;
+        
         bases = new ArrayList<Basis>();
     }
     
@@ -96,19 +119,37 @@ public class SignaturePrivateKey {
         return bases.get(i);
     }
     
+    int getNumBases() {
+        return bases.size();
+    }
+    
     /**
      * Converts the key to a byte array
      * @return the encoded key
      */
    public byte[] getEncoded() {
+       int numBases = bases.size();
+       
         ByteArrayOutputStream os = new ByteArrayOutputStream();
-        for (int i=0; i<bases.size(); i++)
-            try {
+        DataOutputStream dataStream = new DataOutputStream(os);
+        try {
+            dataStream.writeShort(N);
+            dataStream.writeShort(q);
+            
+            int flags = sparse ? 1 : 0;
+            flags |= polyType==TernaryPolynomialType.PRODUCT ? 4 : 0;
+            flags |= basisType==BasisType.TRANSPOSE ? 8 : 0;
+            dataStream.write(flags);
+            
+            dataStream.writeDouble(keyNormBoundSq);
+            dataStream.write(numBases);   // 1 byte
+            
+            for (int i=0; i<numBases; i++)
                 // all bases except for the first one contain a public key
                 bases.get(i).encode(os, i!=0);
-            } catch (IOException e) {
-                throw new NtruException(e);
-            }
+        } catch (IOException e) {
+            throw new NtruException(e);
+        }
         return os.toByteArray();
     }
     
@@ -126,8 +167,6 @@ public class SignaturePrivateKey {
         final int prime = 31;
         int result = 1;
         result = prime * result + ((bases == null) ? 0 : bases.hashCode());
-        for (Basis basis: bases)
-            result += basis.hashCode();
         return result;
     }
     
@@ -143,21 +182,8 @@ public class SignaturePrivateKey {
         if (bases == null) {
             if (other.bases != null)
                 return false;
-        }
-        if (bases.size() != other.bases.size())
+        } else if (!bases.equals(other.bases))
             return false;
-        for (int i=0; i<bases.size(); i++) {
-            Basis basis1 = bases.get(i);
-            Basis basis2 = other.bases.get(i);
-            if (!basis1.f.equals(basis2.f))
-                return false;
-            if (!basis1.fPrime.equals(basis2.fPrime))
-                return false;
-            if (i!=0 && !basis1.h.equals(basis2.h))   // don't compare h for the 0th basis
-                return false;
-            if (!basis1.params.equals(basis2.params))
-                return false;
-        }
         return true;
     }
 
@@ -166,7 +192,11 @@ public class SignaturePrivateKey {
         Polynomial f;
         Polynomial fPrime;
         IntegerPolynomial h;
-        SignatureParameters params;
+        int N;
+        int q;
+        private TernaryPolynomialType polyType;
+        private BasisType basisType;
+        private double keyNormBoundSq;
         
         /**
          * Constructs a new basis from polynomials <code>f, f', h</code>.
@@ -175,11 +205,15 @@ public class SignaturePrivateKey {
          * @param h
          * @param params NtruSign parameters
          */
-        Basis(Polynomial f, Polynomial fPrime, IntegerPolynomial h, SignatureParameters params) {
+        Basis(Polynomial f, Polynomial fPrime, IntegerPolynomial h, int q, TernaryPolynomialType polyType, BasisType basisType, double keyNormBoundSq) {
             this.f = f;
             this.fPrime = fPrime;
             this.h = h;
-            this.params = params;
+            this.N = h.coeffs.length;
+            this.q = q;
+            this.polyType = polyType;
+            this.basisType = basisType;
+            this.keyNormBoundSq = keyNormBoundSq;
         }
         
         /**
@@ -189,27 +223,28 @@ public class SignaturePrivateKey {
          * @param include_h whether to read the polynomial <code>h</code> (<code>true</code>) or only <code>f</code> and <code>f'</code> (<code>false</code>)
          * @throws IOException
          */
-        Basis(InputStream is, SignatureParameters params, boolean include_h) throws IOException {
-            int N = params.N;
-            int q = params.q;
-            boolean sparse = params.sparse;
-            this.params = params;
-            
-            if (params.polyType == TernaryPolynomialType.PRODUCT)
+        Basis(InputStream is, int N, int q, boolean sparse, TernaryPolynomialType polyType, BasisType basisType, double keyNormBoundSq, boolean include_h) throws IOException {
+            this.N = N;
+            this.q = q;
+            this.polyType = polyType;
+            this.basisType = basisType;
+            this.keyNormBoundSq = keyNormBoundSq;
+
+            if (polyType == TernaryPolynomialType.PRODUCT)
                 f = ProductFormPolynomial.fromBinary(is, N);
             else {
                 IntegerPolynomial fInt = IntegerPolynomial.fromBinary3Tight(is, N);
                 f = sparse ? new SparseTernaryPolynomial(fInt) : new DenseTernaryPolynomial(fInt);
             }
             
-            if (params.basisType == BasisType.STANDARD) {
+            if (basisType == BasisType.STANDARD) {
                 IntegerPolynomial fPrimeInt = IntegerPolynomial.fromBinary(is, N, q);
                 for (int i=0; i<fPrimeInt.coeffs.length; i++)
                     fPrimeInt.coeffs[i] -= q/2;
                 fPrime = fPrimeInt;
             }
             else
-                if (params.polyType == TernaryPolynomialType.PRODUCT)
+                if (polyType == TernaryPolynomialType.PRODUCT)
                     fPrime = ProductFormPolynomial.fromBinary(is, N);
                 else
                     fPrime = IntegerPolynomial.fromBinary3Tight(is, N);
@@ -225,10 +260,8 @@ public class SignaturePrivateKey {
          * @throws IOException
          */
         void encode(OutputStream os, boolean include_h) throws IOException {
-            int q = params.q;
-            
             os.write(getEncoded(f));
-            if (params.basisType == BasisType.STANDARD) {
+            if (basisType == BasisType.STANDARD) {
                 IntegerPolynomial fPrimeInt = fPrime.toIntegerPolynomial();
                 for (int i=0; i<fPrimeInt.coeffs.length; i++)
                     fPrimeInt.coeffs[i] += q/2;
@@ -253,9 +286,6 @@ public class SignaturePrivateKey {
          * @return <code>true</code> if the basis is valid, <code>false</code> otherwise
          */
         boolean isValid(IntegerPolynomial h) {
-            int N = params.N;
-            int q = params.q;
-            
             if (f.toIntegerPolynomial().coeffs.length != N)
                 return false;
             if (fPrime.toIntegerPolynomial().coeffs.length != N)
@@ -265,17 +295,17 @@ public class SignaturePrivateKey {
                 return false;
             
             // determine F, G, g from f, fPrime, h using the eqn. fG-Fg=q
-            Polynomial FPoly = params.basisType==BasisType.STANDARD ? fPrime : f.mult(h, q);
+            Polynomial FPoly = basisType==BasisType.STANDARD ? fPrime : f.mult(h, q);
             IntegerPolynomial F = FPoly.toIntegerPolynomial();
             IntegerPolynomial fq = f.toIntegerPolynomial().invertFq(q);
-            Polynomial g = params.basisType==BasisType.STANDARD ? f.mult(h, q) : fPrime;
+            Polynomial g = basisType==BasisType.STANDARD ? f.mult(h, q) : fPrime;
             IntegerPolynomial G = g.mult(F);
             G.coeffs[0] -= q;
             G = G.mult(fq, q);
             G.modCenter(q);
             
             // check norms of F and G
-            if (!new FGBasis(f, fPrime, h, F, G, params).isNormOk())
+            if (!new FGBasis(f, fPrime, h, F, G, q, polyType, basisType, keyNormBoundSq).isNormOk())
                 return false;
             // check norms of f and g
             int factor = N / 24;
@@ -285,7 +315,7 @@ public class SignaturePrivateKey {
                 return false;
             
             // check ternarity
-            if (params.polyType == TernaryPolynomialType.SIMPLE) {
+            if (polyType == TernaryPolynomialType.SIMPLE) {
                 if (!f.toIntegerPolynomial().isTernary())
                     return false;
                 if (!g.toIntegerPolynomial().isTernary())
@@ -300,15 +330,24 @@ public class SignaturePrivateKey {
             
             return true;
         }
-        
+
         @Override
         public int hashCode() {
             final int prime = 31;
             int result = 1;
+            result = prime * result + N;
+            result = prime * result
+                    + ((basisType == null) ? 0 : basisType.hashCode());
             result = prime * result + ((f == null) ? 0 : f.hashCode());
-            result = prime * result + ((fPrime == null) ? 0 : fPrime.hashCode());
+            result = prime * result
+                    + ((fPrime == null) ? 0 : fPrime.hashCode());
             result = prime * result + ((h == null) ? 0 : h.hashCode());
-            result = prime * result + ((params == null) ? 0 : params.hashCode());
+            long temp;
+            temp = Double.doubleToLongBits(keyNormBoundSq);
+            result = prime * result + (int) (temp ^ (temp >>> 32));
+            result = prime * result
+                    + ((polyType == null) ? 0 : polyType.hashCode());
+            result = prime * result + q;
             return result;
         }
 
@@ -321,6 +360,10 @@ public class SignaturePrivateKey {
             if (!(obj instanceof Basis))
                 return false;
             Basis other = (Basis) obj;
+            if (N != other.N)
+                return false;
+            if (basisType != other.basisType)
+                return false;
             if (f == null) {
                 if (other.f != null)
                     return false;
@@ -336,10 +379,12 @@ public class SignaturePrivateKey {
                     return false;
             } else if (!h.equals(other.h))
                 return false;
-            if (params == null) {
-                if (other.params != null)
-                    return false;
-            } else if (!params.equals(other.params))
+            if (Double.doubleToLongBits(keyNormBoundSq) != Double
+                    .doubleToLongBits(other.keyNormBoundSq))
+                return false;
+            if (polyType != other.polyType)
+                return false;
+            if (q != other.q)
                 return false;
             return true;
         }

@@ -40,9 +40,9 @@ public class SignatureKeyTest {
         SignatureKeyPair kp = ntru.generateKeyPair();
         
         // encode to byte[] and reconstruct
-        byte[] priv = kp.priv.getEncoded();
         byte[] pub = kp.pub.getEncoded();
-        SignatureKeyPair kp2 = new SignatureKeyPair(new SignaturePrivateKey(priv, params), new SignaturePublicKey(pub, params));
+        byte[] priv = kp.priv.getEncoded();
+        SignatureKeyPair kp2 = new SignatureKeyPair(new SignaturePrivateKey(priv), new SignaturePublicKey(pub));
         assertEquals(kp.pub, kp2.pub);
         assertEquals(kp.priv, kp2.priv);
         
@@ -53,7 +53,7 @@ public class SignatureKeyTest {
         kp.pub.writeTo(bos2);
         ByteArrayInputStream bis1 = new ByteArrayInputStream(bos1.toByteArray());
         ByteArrayInputStream bis2 = new ByteArrayInputStream(bos2.toByteArray());
-        SignatureKeyPair kp3 = new SignatureKeyPair(new SignaturePrivateKey(bis1, params), new SignaturePublicKey(bis2, params));
+        SignatureKeyPair kp3 = new SignatureKeyPair(new SignaturePrivateKey(bis1), new SignaturePublicKey(bis2));
         assertEquals(kp.pub, kp3.pub);
         assertEquals(kp.priv, kp3.priv);
         assertNull(kp3.priv.getBasis(0).h);

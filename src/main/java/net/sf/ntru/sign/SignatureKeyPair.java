@@ -45,31 +45,19 @@ public class SignatureKeyPair {
     /**
      * Constructs a new key pair from a byte array
      * @param b an encoded key pair
-     * @param params the NtruSign parameters to use
      */
-    public SignatureKeyPair(byte[] b, SignatureParameters params) {
-        ByteArrayInputStream is = new ByteArrayInputStream(b);
-        try {
-            pub = new SignaturePublicKey(is, params);
-            priv = new SignaturePrivateKey(is, params);
-        } catch (IOException e) {
-            throw new NtruException(e);
-        }
+    public SignatureKeyPair(byte[] b) {
+        this(new ByteArrayInputStream(b));
     }
     
     /**
      * Constructs a new key pair from an input stream
      * @param is an input stream
-     * @param params the NtruSign parameters to use
-     * @throws IOException
+     * @throws NtruException if an {@link IOException} occurs
      */
-    public SignatureKeyPair(InputStream is, SignatureParameters params) throws IOException {
-        try {
-            pub = new SignaturePublicKey(is, params);
-            priv = new SignaturePrivateKey(is, params);
-        } catch (IOException e) {
-            throw new NtruException(e);
-        }
+    public SignatureKeyPair(InputStream is) {
+        pub = new SignaturePublicKey(is);
+        priv = new SignaturePrivateKey(is);
     }
     
     /**
@@ -93,12 +81,14 @@ public class SignatureKeyPair {
      * @return <code>true</code> if the key pair is valid, <code>false</code> otherwise
      */
     public boolean isValid() {
-        SignatureParameters params = pub.params;
-
-        for (int i=0; i<=params.B; i++) {
+        if (priv.N != pub.h.coeffs.length)
+            return false;
+        if (priv.q != pub.q)
+            return false;
+        
+        int B = priv.getNumBases() - 1;
+        for (int i=0; i<=B; i++) {
             Basis basis = priv.getBasis(i);
-            if (!basis.params.equals(params))
-                return false;
             if (!basis.isValid(i==0 ? pub.h : basis.h))
                 return false;
         }
