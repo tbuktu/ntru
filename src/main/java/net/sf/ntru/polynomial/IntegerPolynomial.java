@@ -160,10 +160,11 @@ public class IntegerPolynomial implements Polynomial {
      * Ignores any excess bytes.
      * @param data an encoded ternary polynomial
      * @param N number of coefficients
+     * @param skipFirst whether to leave the constant coefficient zero and start populating at the linear coefficient
      * @return the decoded polynomial
      */
-    public static IntegerPolynomial fromBinary3Sves(byte[] data, int N) {
-        return new IntegerPolynomial(ArrayEncoder.decodeMod3Sves(data, N));
+    public static IntegerPolynomial fromBinary3Sves(byte[] data, int N, boolean skipFirst) {
+        return new IntegerPolynomial(ArrayEncoder.decodeMod3Sves(data, N, skipFirst));
     }
     
     /**
@@ -216,10 +217,11 @@ public class IntegerPolynomial implements Polynomial {
      * Encodes a polynomial with ternary coefficients to binary.
      * <code>coeffs[2*i]</code> and <code>coeffs[2*i+1]</code> must not both equal -1 for any integer </code>i<code>,
      * so this method is only safe to use with polynomials produced by <code>fromBinary3Sves()</code>.
+     * @param skipFirst whether to skip the constant coefficient
      * @return the encoded polynomial
      */
-    public byte[] toBinary3Sves() {
-        return ArrayEncoder.encodeMod3Sves(coeffs);
+    public byte[] toBinary3Sves(boolean skipFirst) {
+        return ArrayEncoder.encodeMod3Sves(coeffs, skipFirst);
     }
     
     /**

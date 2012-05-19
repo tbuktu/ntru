@@ -48,11 +48,16 @@ public class ArrayEncoderTest {
     @Test
     public void testEncodeDecodeMod3Sves() {
         Random rng = new Random();
-        byte[] data = new byte[180];
-        rng.nextBytes(data);
-        int[] coeffs = ArrayEncoder.decodeMod3Sves(data, 960);
-        byte[] data2 = ArrayEncoder.encodeMod3Sves(coeffs);
-        assertArrayEquals(data, data2);
+        for (boolean skipFirst: new boolean[] {true, false})
+            for (int i=0; i<10; i++) {
+                int N = (rng.nextInt(1000)+100) * 16;
+                byte[] data = new byte[N*3/16];
+                rng.nextBytes(data);
+                data[data.length-1] = 0;
+                int[] coeffs = ArrayEncoder.decodeMod3Sves(data, N, skipFirst);
+                byte[] data2 = ArrayEncoder.encodeMod3Sves(coeffs, skipFirst);
+                assertArrayEquals(data, data2);
+            }
     }
     
     @Test

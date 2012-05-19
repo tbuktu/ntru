@@ -241,6 +241,7 @@ public class NtruEncrypt {
         int db = params.db;
         int bufferLenBits = params.bufferLenBits;
         int dm0 = params.dm0;
+        int maxM1 = params.maxM1;
         int minCallsMask = params.minCallsMask;
         boolean hashSeed = params.hashSeed;
         
@@ -263,7 +264,7 @@ public class NtruEncrypt {
             mBuf.put(p0);
             byte[] M = mBuf.array();
             
-            IntegerPolynomial mTrin = IntegerPolynomial.fromBinary3Sves(M, N);
+            IntegerPolynomial mTrin = IntegerPolynomial.fromBinary3Sves(M, N, maxM1>0);   // don't use the constant coeff if maxM1 is set; see below
             
             byte[] sData = getSeed(m, pub, b);
             
@@ -272,6 +273,17 @@ public class NtruEncrypt {
             byte[] oR4 = R.toBinary4();
             IntegerPolynomial mask = MGF(oR4, N, minCallsMask, hashSeed);
             mTrin.add(mask);
+            
+            // If df and dr are close to N/3, and the absolute value of mTrin.sumCoeffs() is
+            // large enough, the message becomes vulnerable to a meet-in-the-middle attack.
+            // To prevent this, we set the constant coefficient to zero but first check to ensure
+            // sumCoeffs() is small enough to keep the likelihood of a decryption failure low.
+            if (maxM1 > 0) {
+                if (mTrin.sumCoeffs()>maxM1)
+                    continue;
+                mTrin.coeffs[0] = 0;
+            }
+            
             mTrin.mod3();
             
             if (mTrin.count(-1) < dm0)
@@ -415,6 +427,7 @@ public class NtruEncrypt {
         int db = params.db;
         int maxMsgLenBytes = params.maxMsgLenBytes;
         int dm0 = params.dm0;
+        int maxM1 = params.maxM1;
         int minCallsMask = params.minCallsMask;
         boolean hashSeed = params.hashSeed;
         
@@ -441,7 +454,7 @@ public class NtruEncrypt {
         IntegerPolynomial cMTrin = ci;
         cMTrin.sub(mask);
         cMTrin.mod3();
-        byte[] cM = cMTrin.toBinary3Sves();
+        byte[] cM = cMTrin.toBinary3Sves(maxM1>0);
         
         ByteBuffer buf = ByteBuffer.wrap(cM);
         byte[] cb = new byte[bLen];

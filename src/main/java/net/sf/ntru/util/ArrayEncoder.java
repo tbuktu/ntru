@@ -200,11 +200,12 @@ public class ArrayEncoder {
      * See P1363.1 section 9.2.2.
      * @param data an encoded ternary polynomial
      * @param N number of coefficients
+     * @param skipFirst whether to leave the constant coefficient zero and start populating at the linear coefficient
      * @return the decoded coefficients
      */
-    public static int[] decodeMod3Sves(byte[] data, int N) {
+    public static int[] decodeMod3Sves(byte[] data, int N, boolean skipFirst) {
         int[] coeffs = new int[N];
-        int coeffIndex = 0;
+        int coeffIndex = skipFirst ? 1 : 0;
         int i = 0;
         while (i<data.length/3*3 && coeffIndex<N-1) {
             // process 24 bits at a time in the outer loop
@@ -226,16 +227,19 @@ public class ArrayEncoder {
      * so this method is only safe to use with arrays produced by {@link #decodeMod3Sves(byte[], int)}.<br/>
      * See P1363.1 section 9.2.3.
      * @param arr
+     * @param skipFirst whether to skip the constant coefficient
      * @return the encoded array
      * @throws NtruException if <code>(-1,-1)</code> is encountered
      */
-    public static byte[] encodeMod3Sves(int[] arr) {
+    public static byte[] encodeMod3Sves(int[] arr, boolean skipFirst) {
         int numBits = (arr.length*3+1) / 2;
         int numBytes = (numBits+7) / 8;
         byte[] data = new byte[numBytes];
         int bitIndex = 0;
         int byteIndex = 0;
-        for (int i=0; i<arr.length/2*2; ) {   // if length is an odd number, throw away the highest coeff
+        int start = skipFirst ? 1 : 0;
+        int end = skipFirst ? (arr.length-1)|1 : arr.length/2*2;   // if there is an odd number of coeffs, throw away the highest one
+        for (int i=start; i<end; ) {
             int coeff1 = arr[i++] + 1;
             int coeff2 = arr[i++] + 1;
             if (coeff1==0 && coeff2==0)
