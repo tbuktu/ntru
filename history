@@ -1,0 +1,52 @@
+1.2
+New:
+ - methods for verifying key pairs
+ - _FAST variants of the EES encryption parameter sets
+ - performance improvements
+ - new sample programs: an Android sample app, and a program that demonstrates
+   how to encrypt messages of arbitrary length using NTRUEncrypt and AES
+ - protection against meet-in-the-middle attacks on the message when df and
+   dr are close to N/3 (as is the case with the APR_ parameter sets)
+ - license change to BSD
+ - the constructors for loading a key from an input stream or byte array no
+   longer require a parameter set to be passed in
+Bug fixes:
+ - fixed a critical bug in the NTRUSign key generator that negated the
+   security-enhancing effect of perturbations
+ - NTRUEncrypt implemented IEEE 1363.1 incorrectly in two places; this has
+   been fixed
+Note:
+   Due to some of the above mentioned changes, data produced with this version
+   is not compatible to earlier versions.
+
+1.1
+This release adds the ability to deterministically generate NtruEncrypt keys
+from a passphrase and improves performance in several areas.
+
+1.0
+This release adds support for product-form signing keys, fixes several bugs,
+improves performance, and allows to choose what hash function to use.
+
+0.7
+This release adds support for product-form and 1+pF encryption keys, improves
+64 bit performance, and adds better Javadoc. A potential bug in the NtruSign
+key generator was fixed.
+
+0.6
+This release improves performance and adds the ability to import and export
+parameters. Also, signing and verifying can now be done in pieces via the new
+initSign/initVerify and update methods. Note that signatures and encrypted
+data created with this version are incompatible to older versions.
+
+0.5
+This release improves performance and introduces API changes to make it more OO.
+
+0.4
+This release introduces some optimizations, a pom.xml, and a license change to
+NP-OSL 3.
+
+0.2, 0.3
+NTRUSign was added in one of these two.
+
+0.1
+Initial release. Only NTRUEncrypt is implemented.
