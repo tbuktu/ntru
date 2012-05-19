@@ -235,26 +235,31 @@ public class ArrayEncoder {
         int numBits = (arr.length*3+1) / 2;
         int numBytes = (numBits+7) / 8;
         byte[] data = new byte[numBytes];
-        int bitIndex = 0;
         int byteIndex = 0;
         int start = skipFirst ? 1 : 0;
         int end = skipFirst ? (arr.length-1)|1 : arr.length/2*2;   // if there is an odd number of coeffs, throw away the highest one
-        for (int i=start; i<end; ) {
-            int coeff1 = arr[i++] + 1;
-            int coeff2 = arr[i++] + 1;
-            if (coeff1==0 && coeff2==0)
-                throw new NtruException("Illegal encoding!");
-            int bitTableIndex = coeff1*3 + coeff2;
-            int[] bits = new int[] {BIT1_TABLE[bitTableIndex], BIT2_TABLE[bitTableIndex], BIT3_TABLE[bitTableIndex]};
-            for (int j=0; j<3; j++) {
-                data[byteIndex] |= bits[j] << bitIndex;
-                if (bitIndex == 7) {
-                    bitIndex = 0;
-                    byteIndex++;
-                }
-                else
-                    bitIndex++;
+        int i = start;
+        while (i < end) {
+            // process 24 bits at a time in the outer loop
+            int chunk = 0;
+            int chunkBits = 0;   // #bits in the chunk
+            while (chunkBits<24 && i<end) {
+                int coeff1 = arr[i++] + 1;
+                int coeff2 = arr[i++] + 1;
+                if (coeff1==0 && coeff2==0)
+                    throw new NtruException("Illegal encoding!");
+                
+                int bitTableIndex = coeff1*3 + coeff2;
+                chunk |= BIT1_TABLE[bitTableIndex] << chunkBits++;
+                chunk |= BIT2_TABLE[bitTableIndex] << chunkBits++;
+                chunk |= BIT3_TABLE[bitTableIndex] << chunkBits++;
             }
+            
+            data[byteIndex++] = (byte)(chunk & 0xFF);
+            if (byteIndex < data.length)
+                data[byteIndex++] = (byte)((chunk>>8) & 0xFF);
+            if (byteIndex < data.length)
+                data[byteIndex++] = (byte)((chunk>>16) & 0xFF);
         }
         return data;
     }
