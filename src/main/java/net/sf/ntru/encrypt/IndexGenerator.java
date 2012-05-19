@@ -81,7 +81,7 @@ public class IndexGenerator {
     
     /**
      * Returns a number <code>i</code> such that <code>0 &lt;= i &lt; N</code>.
-     * @return
+     * @return the next pseudo-random index
      */
     public int nextIndex() {
         while (true) {

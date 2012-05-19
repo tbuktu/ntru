@@ -194,7 +194,7 @@ public class ArrayEncoder {
     }
     
     /**
-     * Decodes a <code>byte</code> array encoded with {@link #encodeMod3Sves(int[])} back to an <code>int</code> array
+     * Decodes a <code>byte</code> array encoded with {@link #encodeMod3Sves(int[], boolean)} back to an <code>int</code> array
      * with <code>N</code> coefficients between <code>-1</code> and <code>1</code>.<br/>
      * Ignores any excess bytes.<br/>
      * See P1363.1 section 9.2.2.
@@ -224,7 +224,7 @@ public class ArrayEncoder {
     /**
      * Encodes an <code>int</code> array whose elements are between <code>-1</code> and <code>1</code>, to a byte array.
      * <code>coeffs[2*i]</code> and <code>coeffs[2*i+1]</code> must not both equal -1 for any integer </code>i<code>,
-     * so this method is only safe to use with arrays produced by {@link #decodeMod3Sves(byte[], int)}.<br/>
+     * so this method is only safe to use with arrays produced by {@link #decodeMod3Sves(byte[], int, boolean)}.<br/>
      * See P1363.1 section 9.2.3.
      * @param arr
      * @param skipFirst whether to skip the constant coefficient
@@ -356,7 +356,7 @@ public class ArrayEncoder {
     /**
      * Copies the lower two bytes of an <code>int</code> into a <code>byte</code> array.
      * @param i
-     * @return
+     * @return a byte array
      */
     public static byte[] toByteArray(int i) {
         byte[] arr = new byte[2];

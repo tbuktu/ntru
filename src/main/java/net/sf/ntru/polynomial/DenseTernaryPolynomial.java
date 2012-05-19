@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Random;
 
 import net.sf.ntru.encrypt.IndexGenerator;
+import net.sf.ntru.encrypt.NtruEncrypt;
 
 /**
  * A <code>TernaryPolynomial</code> with a "high" number of nonzero coefficients.<br/>

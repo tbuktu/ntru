@@ -56,7 +56,6 @@ public class SignaturePrivateKey {
     /**
      * Constructs a new private key from a byte array
      * @param b an encoded private key
-     * @param params the NtruSign parameters to use
      */
     public SignaturePrivateKey(byte[] b) {
         this(new ByteArrayInputStream(b));
@@ -65,7 +64,6 @@ public class SignaturePrivateKey {
     /**
      * Constructs a new private key from an input stream
      * @param is an input stream
-     * @param params the NtruSign parameters to use
      * @throws NtruException if an {@link IOException} occurs
      */
     public SignaturePrivateKey(InputStream is) {
