@@ -384,14 +384,14 @@ public class NtruEncrypt {
                 
                 for (int terIdx=0; terIdx<4; terIdx++) {
                     int rem3 = O % 3;
-                    i.coeffs[cur] = rem3 - 1;
+                    i.coeffs[cur] = rem3==2 ? -1 : rem3;   /* reduce to [-1..1] */
                     cur++;
                     if (cur == N)
                         return i;
                     O = (O-rem3) / 3;
                 }
                 
-                i.coeffs[cur] = O - 1;
+                i.coeffs[cur] = O==2 ? -1 : O;   /* reduce to [-1..1] */
                 cur++;
                 if (cur == N)
                     return i;
