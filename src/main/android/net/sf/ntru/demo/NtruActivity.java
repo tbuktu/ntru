@@ -182,33 +182,34 @@ public class NtruActivity extends Activity {
         }
         
         private SignatureKeyPair getKeyPair() {
-            String sigKPStr = "J4OJIbN2X3IjPY2XGl/lHt6GNy/Z/EEftitY31HqqhN0qZZ+HY+sU9+mr8M52ySitkWf9cbARYeW" +
-                    "F6wQBzCHbmf1va4Iq6adLhshdVzW5p+5BpGUuIzIG9NjTmnBpD3Zo/dN8bXZMhmMp0+NBotjxrlD" +
-                    "G9alFKlArFNt8fGkKwG43gbAFcPp3cmRScPt5jEg5s6M93VHlUyE2jD0zxX4ehoQawV3IC0p5SGt" +
-                    "dR7cr1pnxSmNH/Xw5K7APIzEx1IYSAytAaY4GjxLcEGr+yqDW9oJ6FBoTutSVxNcdIIGVoT0LKNe" +
-                    "3u2vkVdXBHjAiS0ji6ZwFWuMMzy0m5KzxwwhJnqXi8QhmWgsHLkuCOYUMBAQ4G93yOObnVXf5dhV" +
-                    "mCEEZ3K36TlihD/EuYFh53mw4nrx7z1ta7Y6DUpbxgN3Jnb1Ryvv6wxc2HNXXjz6OL+GX4nbOZje" +
-                    "3Rrd8lEWR6Bx70PyFcX+S7La0nBgTNHR7exOwQYal73z+brR0ng91+5l3OALFaqT3nrUxknPqcGa" +
-                    "FRA3m+6nvNtaacfPRmKq9jiY1tPq0e0OIEEvsbSEBSkKepAkOlgURLcHL7491VJ9siCA5/Y7FPyl" +
-                    "FPCM0LPrSF826m86VSH5MNaQTldCvqRVHRiPzdzoE9tJUVl1ecmzi8udIKbzl7c6i1fcxhut/xY/" +
-                    "M7B8UuujhBhjd4u1f9W6Znxkf5zsQoGDHUzjnUha9kpT/jjAIuiIv1euiW0GSnPQ2ki53DbUgLUq" +
-                    "+7/a7opSg0sY38m1U0ImL389A2OCElhxpy0f+2+zhjMeDghoQBCwQIaHyCQqtAEKAMJAxFKXv1xm" +
-                    "M6QBctjDJaohjn10ZTMcqIEhuhERmvBEMAEoARG6wI+qAOVoSEymQhhsCAUz3gGPjFQlLYEBIGgB" +
-                    "HNaBE6JcxjSuAUCgxEJgQhW3WMY0PBiFMTICkp/ExTFHuEU2uGGWwQAY0MEc6FARHwgBFiqBEqFc" +
-                    "pS2kAQKYgAh8AIUwAOIQGAEAQAMdBOGMcTilKjCQQhY24pKxtGUwTDDDNzRyFKkAB0iBEaDSFyBY" +
-                    "gxuq4Q56RAQulgEE2MAVhIGOjYiEJU0BP7CFNADiEpjI5DVYMIQpZkGLeiAkLkfQwyV+EQ7aAANA" +
-                    "wiM0YRibdY1N/+4ZrmIWGtkYfAo/LYMWwiaKe7EieD9PmqRjb0Oa4CfzQes5Ott+cZcILRROffkC" +
-                    "akfnkWS0Uf+vVEcySkCZ32wQtwedfyS9uGQQ7bfzioXGv53rrN2+UbJT/ie6KtiIfoycutXEWfAj" +
-                    "o2xTJW+YG/AKXodCQuUa2pGrEsarMUMItXGP1D5kwZ+AryIuZBxAqRRPQabK7vg8JuBIkXckL0hs" +
-                    "SvtG0ET5IAco53wY/0ZPE9VtasRjf34/RNX9qR9tLg+SmI90j/s8D4oTp65i7e+loYQgGgfnU6e0" +
-                    "C4uemHHDtWzANGifs6vZrz8hcBr3gpydnqkvuy6qeDUPGrzWeZA9DJCyvYJtqchmo6+1OV/jUROE" +
-                    "di2J43LPq2VJFlfiY5FOn5ykSmcRSbuuto5FdfRKNovHLwHJ0tOEu6ifgQk9qrzfRnjxHsCBhclv" +
-                    "zKnT0rF3nMA2E35TJ9kN4TufPD7tCimPrGvJZuYo6E2tew40jJRgMuQtpO8jQnHO1++bHikgDzqO" +
-                    "XkK8vUlZ/94lVIGcsgpnNC70E+3JUGXMrPd9QK+alkzfjExb01AOBmQ5Y5R3eqVfHqwTSBjBICoX" +
-                    "0kaggEjQjW8fjbefC0RIbJjIDHzOPihCSG2fPb/3MSyERJNg0Fv81qbSGBsajVzeNMI3BjnAmdN+" +
-                    "4D8TQs2fVZgUUFzeSBG1w3IZZXP39ZtW0xJCyFyoKBUH8O6BRoOBRXnE9X+ulC+gSU4PwPYzt9cA" +
-                    "XnmzBcbZ26m+Q70K8XHuvGzP/kc7GYB8vvk5sjq/TiOiA1bhS9wJ";
-            return new SignatureKeyPair(Base64.decode(sigKPStr, Base64.DEFAULT), SIGNATURE_PARAMS);
+            String sigKPStr = "AbcIAIL1Qobon5XHmjNxKglpn1C9uHRdHgdG++sRW4ujoG5gp57hVpIxqZBU/tcP7elkNLbAMrks" +
+                "K2l2LHLPdfZqrfo/vVF5WwQdP8IyBpx0fcYxsvz7IGP09YORwufaTkmoY3pRn3wl9XUAzAZedXhD" +
+                "S5/y9aT8TWhB6lLCSa8nTvNgtAe+W/Ru591ttP4kBtr7yLnz0+MWE82a1Fwc1ytD78qw8IXiSW0o" +
+                "DYE7TZbCDHeaGR9iHw8/NbUMl0Az9E7hvdKMvlNXhSzIsxzT29P1KCW48sm0NJoRwK7nKpREbMpn" +
+                "580vM8qWEd3vbh2ccB/LOn3LDAB24NQvMQM/c0gV+1gCUy9qjelPZAlCr2g6XKrj9OHcBucA0cWA" +
+                "6k9Gn4T2H3/z87Jenu+I9GNHkZVW7A1GHqR+evoxrsFRYISGrHc+hDmnNgvUo6hzg8FIxFFS4VBI" +
+                "YxcRxmtqr6/nYCuULHW0AQtQ7S7Qtc1F4hZ06igc9Ew2mPPbFDYCMABCdKgVCP+bzXiAmJljSLzC" +
+                "2tqbI+EZHN/8lZatxCngCAt73gLpKivliJuvhY8wbVMXrpZfdDn2JVun55gKH5u4+XDWLzVfBkEg" +
+                "BoM9wjWrNaTaMyHgoGpVAiiQXnnq5ul+UXzsrWaAWefR2ZQW7/o9dVwFlS3p4tmVLdaymCev8sQR" +
+                "jJ1zrfPn1wmitvqeRWjmn1mI9Usvh1cw9Oq8Zsg/aSbwHqKslVMG5HJajwmVc2gOCZkh1NfHxbs1" +
+                "t2EHFmVb3pYdeDE9IcZZZSBn4kU+Vk0nXqLXMcnjmYxw0TYHQwkBtwgADUeZIAACAAkACVTgxTO0" +
+                "gZGaNKUthQES0IEuhjENcwgFM6EBAAgACDGwAh6kgRW7bCY0MthBIhghiV2Y5DIABgAFCBCFREQC" +
+                "lrEAhxCKWhRjGwAJAAkrsIIbbOENiYiEL7UBGNgAGECRDIPoZDSlAQAIAAglcEIa4pEVsQBGMhxg" +
+                "AyAsQQ1y7CMjAAYABUkAAy2AUZGTADC4Rjj6IRMACQAJJJgDUYoClba8RTOdAQK4AArocIi+COY0" +
+                "sgEACAAIVRjHOwDCFbAYBjIv4EEUqJCFgGiFNAAGAAUqeEQ1sgEQjgAiiAU9EpIWAAkACQMYgi0S" +
+                "shOj+GUymwEhMEM09mEQqGxlNK8BAAgACAfIgRNUkQ54jCQsH3gBH3ohkrGQhjYABgAFOnDEI+5h" +
+                "lMUArkDHQiiiFyJ6FG2e0sVos6FxsWgNwouRiHOSze24MFVnXVDUq94rycpGY69uuPY7QOD6VEey" +
+                "sbP6K4j508LBeUHVkSIUnfSrYlvXRHaYp2iTHuZWEZQ5HX7YSeLCDVDMb7GsfIqXSP3NSyfFO9Am" +
+                "SmY6wTiUykOWPbyQP8kU2a7rOBpLNy7lQO0wR0nNUBcPKeu+thivAm5DQgv7ZSIVcz4aDKkzAqIl" +
+                "9dSmI5VFBGlCf9NVtU20a3S0txGjDt7aI0EiE/96WBvS+VI3bndxK9Y+ir6Nf5wAZ9iKGZKsRJkD" +
+                "9tlmERgL0w56QjQxqear5AcXCykxSzqvDnF128krEVnNGmZfWqA49H+C8NYZmJgQh9M1LUsoKUWt" +
+                "4ETETj/5THBrLkTlzt8dXe3JF71hh18h/m81Vxq3GXP6mEZsblC49EPokfguATnDlpWIySZ23i+h" +
+                "lI9oVHpUINNyJvp3EsffKbtT/2CC8JW6Js2L5dw/jRi754UJHDOB76Cn4IF1kaOoifD84MRtb1WA" +
+                "6k2O2g1JOexXU/vnI/Yr13rcqrt7EJJCL0OVvLlSxpJLR8wqv0z91F8NGhXwzS1fVwSqcRAU6NnR" +
+                "LWtGjV4NbdD1lZ1BCtC5VqCs/PXL4iXWvEW27YSJX+Dk9WCtvds/OFV07j6daRpPeehcbAYtQQ12" +
+                "y62sMrvRlSakD4eEioOk/Hj2eSKbmCtswYpSdcRbaiponZv77Gf3dSWRuK1pSV9nhPp5na08X6Ta" +
+                "HKvSNIz98Bt9zzT37Qvz4cVDLxUrPfVrMxYwvmTAm1ejkP6V1Kw8Kp3K4RQ=";
+            return new SignatureKeyPair(Base64.decode(sigKPStr, Base64.DEFAULT));
         }
         
         @Override
