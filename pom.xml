@@ -3,7 +3,7 @@
   <groupId>net.sf.ntru</groupId>
   <artifactId>ntru</artifactId>
   <packaging>jar</packaging>
-  <version>1.1-SNAPSHOT</version>
+  <version>1.2</version>
   <name>NTRU</name>
   <description>Java implementation of NTRUEncrypt and NTRUSign</description>
   <url>http://tbuktu.github.com/ntru/</url>
