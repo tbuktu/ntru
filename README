@@ -153,8 +153,8 @@ Sample Programs
       src/main/android/AndroidManifest.xml
    4) Replace the generated NtruActivity.java with the NTRU version from
       src/main/android/net/sf/ntru/demo/NtruActivity.java
-   5) Go to Project -> Properties -> Java Build Path, and either add the NTRU
-      sources on the Source tab, or add the NTRU .jar on the Libraries tab.
+   5) Create a folder named libs in your Eclipse project and copy the NTRU
+      .jar into the new folder, then refresh the project in Eclipse.
    6) In the package explorer, right click on your project and select
       Run As -> Android Application.
 
