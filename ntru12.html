@@ -42,7 +42,7 @@ Released   : 20110123
 			<div id="page-bgbtm">
 				<div id="menu">
 					<ul>
-						<li class="current_page_item"><a href="#">Home</a></li>
+						<li class="current_page_item"><a href="index.html">Home</a></li>
 						<li><a href="https://sourceforge.net/projects/ntru/">SF Project Page</a></li>
 						<li><a href="https://sourceforge.net/projects/ntru/files/">Downloads</a></li>
 						<li><a href="https://github.com/tbuktu/ntru">GitHub</a></li>
@@ -51,24 +51,40 @@ Released   : 20110123
 				<!-- end #menu -->
 				<div id="content">
 					<div class="post">
-						<h2 class="title"><a href="#">The NTRU Project</a></h2>
+						<h2 class="title"><a href="#">NTRU 1.2 Release</a></h2>
 <!--
 						<p class="meta">Posted by <a href="#">Someone</a> on March 10, 2010
 							&nbsp;&bull;&nbsp; <a href="#" class="comments">Comments (64)</a> &nbsp;&bull;&nbsp; <a href="#" class="permalink">Full article</a></p>
 -->
 						<div class="entry">
-							<p><img src="images/ntru120.png" width="120" height="120" alt="" class="alignleft border" /><strong>NTRU</strong> is a public key cryptosystem consisting of <a href="http://en.wikipedia.org/wiki/NTRUEncrypt">NTRUEncrypt</a>, a public-key encryption scheme, and <a href="http://en.wikipedia.org/wiki/NTRUSign">NTRUSign</a>, a digital signature scheme.</p>
-							<p>NTRU is <a href="http://en.wikipedia.org/wiki/Lattice-based_cryptography">lattice-based</a> and not known to be breakable even with <a href="http://en.wikipedia.org/wiki/Quantum_computer">quantum computers</a>. Commonly used cryptosystems like <a href="http://en.wikipedia.org/wiki/Rsa">RSA</a> or <a href="http://en.wikipedia.org/wiki/Elliptic_curve_cryptography">ECC</a>, on the other hand, will be broken if and when quantum computers become available.<br/>
+							<p>Version 1.2 of NTRU was released May 20, 2012.<br/>
+							<b>New:</b>
+							<ul>
+								<li>methods for verifying key pairs</li>
+								<li>_FAST variants of the EES encryption parameter sets</li>
+								<li>performance improvements</li>
+								<li>new sample programs: an Android sample app, and a program that demonstrates how to encrypt messages of arbitrary length using NTRUEncrypt and AES</li>
+								<li>protection against meet-in-the-middle attacks on the message when df and dr are close to N/3 (as is the case with the APR_ parameter sets)</li>
+								<li>license change to BSD</li>
+								<li>the constructors for loading a key from an input stream or byte array no longer require a parameter set to be passed in</li>
+							</ul>
+							<b>Bug fixes:</b>
+							<ul>
+								<li>fixed a critical bug in the NTRUSign key generator that negated the security-enhancing effect of perturbations</li>
+								<li>NTRUEncrypt implemented IEEE 1363.1 incorrectly in two places; this has been fixed</li>
+							</ul>
+							<b>Note:</b>
+							Due to some of the above mentioned changes, output from this version is not compatible to earlier versions and vice versa.
+							<p><br/>
+							Download NTRU 1.2:<br/>
+							<img src="images/download.png">
+							<a href="http://sourceforge.net/projects/ntru/files/NTRU%201.2/ntru-1.2.jar/download">Compiled .jar library</a><br/>
+							<img src="images/download.png">
+							<a href="http://sourceforge.net/projects/ntru/files/NTRU%201.2/ntru-1.2-src.jar/download">Java sources</a><br/>
+							<img src="images/download.png">
+							<a href="http://sourceforge.net/projects/ntru/files/NTRU%201.2/ntru-1.2-javadoc.jar/download">JavaDoc</a><br/>
 							</p><p>
-							In addition, NTRU is significantly faster than other public-key cryptosystems.
-							The following chart shows results for an Intel E2160 processor running at 1.8 GHz. The data was generated with the benchmark program that is included in the <a href="https://sourceforge.net/projects/ntru/files/">NTRU library</a>.<br/>
-							Mouse over to switch between 32 and 64 bits:
-							</p><p>
-							<img src="images/bench32.png" onmouseover="this.src='images/bench64.png';" onmouseout="this.src='images/bench32.png';"/><br/>
-							</p><p>
-							For an in-depth description and cryptographic analysis please refer to the "Resources" section to the right.
-							</p><p>
-							Java source code and compiled jars are available on the <a href="https://sourceforge.net/projects/ntru/files/">download page</a>. A C implementation of NTRUEncrypt is available <a href="libntru.html">here</a>.
+							Or view the <a href="http://sourceforge.net/projects/ntru/files/NTRU%201.2/">download folder</a> where you'll also find a README file.
 							</p>
 						</div>
 					</div>
@@ -104,10 +120,10 @@ Released   : 20110123
 						<li>
 							<h2>News</h2>
 							<ul>
-								<li><a href="ntru12.html">5-20-2012: NTRU 1.2 released</a></li>
-                                                                <li><a href="bc.html">3-21-2012: NTRU in Bouncy Castle</a></li>
-                                                                <li><a href="libntru.html">3-19-2012: libntru 0.1 released</a></li>
-								<li><a href="ntru11.html">12-2-2011: NTRU 1.1 released</a></li>
+								<li>5-20-2012: NTRU 1.2 released</li>
+								<li><a href="bc.html">3-21-2012: NTRU in Bouncy Castle</a></li>
+								<li><a href="libntru.html">3-19-2012: libntru 0.1 released</a></li>
+								<li><a href="ntru12.html">12-2-2011: NTRU 1.1 released</a></li>
 							</ul>
 						</li>
 						<li>
