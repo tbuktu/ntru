@@ -433,8 +433,10 @@ public class IntegerPolynomial implements Polynomial {
                 b = c;
                 c = temp;
             }
-            f.add(g, 2);
-            b.add(c, 2);
+            f.add(g);
+            f.mod2();
+            b.add(c);
+            b.mod2();
         }
         
         if (b.coeffs[N] != 0)
