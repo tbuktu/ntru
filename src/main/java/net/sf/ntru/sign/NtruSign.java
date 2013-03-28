@@ -58,7 +58,12 @@ import net.sf.ntru.sign.SignatureParameters.TernaryPolynomialType;
 
 /**
  * Signs, verifies data and generates key pairs.
+ * @deprecated the NtruSign algorithm was broken in 2012 by Ducas and Nguyen. See
+ *             <a href="http://www.di.ens.fr/~ducas/NTRUSign_Cryptanalysis/DucasNguyen_Learning.pdf">
+ *             http://www.di.ens.fr/~ducas/NTRUSign_Cryptanalysis/DucasNguyen_Learning.pdf</a>
+ *             for details.
  */
+@Deprecated
 public class NtruSign {
     private SignatureParameters params;
     private MessageDigest hashAlg;
@@ -68,6 +73,7 @@ public class NtruSign {
     /**
      * Constructs a new instance with a set of signature parameters.
      * @param params signature parameters
+     * @deprecated the NtruSign algorithm is broken
      */
     public NtruSign(SignatureParameters params) {
         this.params = params;

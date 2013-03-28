@@ -7,9 +7,11 @@ The NTRU Cryptosystem
   computer attacks.
   NTRU keys are longer than ECC keys; they can be longer or shorter than RSA
   keys depending on the security level.
-  NTRU's main drawback is that it is patent encumbered. This means that for
-  commercial use, a license from the patent holder may be required depending
-  on your jurisdiction.
+  The NTRUSign algorithm has been broken and is included only for historical
+  interest.
+  NTRUEncrypt remains unbroken; its main drawback is that it is patent
+  encumbered. This means that for commercial use, a license from the patent
+  holder may be required depending on your jurisdiction.
   
   http://en.wikipedia.org/wiki/NTRUEncrypt
   http://en.wikipedia.org/wiki/NTRUSign
@@ -56,44 +58,11 @@ NtruEncrypt Usage
 
 NtruSign Usage
   
-  The first step is always to create an NtruSign instance by calling the
-  constructor with an SignatureParameters object representing the desired
-  algorithm parameters.
-  It is recommended to use one of the predefined parameter sets which are
-  available as constants in SignatureParameters, but new ones can be created
-  as well.
+  The NtruSign algorithm was broken in 2012 by Ducas and Nguyen; it should not
+  be used. See
+  http://www.di.ens.fr/~ducas/NTRUSign_Cryptanalysis/DucasNguyen_Learning.pdf
+  for details.
   
-  After the NtruSign constructor is called, the NtruSign instance can be
-  used to generate new key pairs, sign messages, and verify signatures.
-  
-  There are two ways of signing a message. It can be done in one step by
-  calling sign(byte[], SignatureKeyPair) which takes the following parameters:
-
-    1. the message itself as a byte array. Strings can be signed after
-       converting them to byte[] via getBytes()
-    2. a SignatureKeyPair, which can be generated via
-       NtruSign.generateKeyPair() or an existing key pair can be reconstructed
-       from a byte array using the SignaturePrivateKey(byte[]) and
-       SignaturePublicKey(byte[]) constructors.
-       Note: Depending on the parameters, it can take a minute or more to
-       generate a new key pair.
-  
-  The signature is returned as a byte array.
-
-  The other way is to call initSign with a SignatureKeyPair, then
-  update(byte[]) zero or more times, and finally sign(byte[]). This way,
-  long messages can be broken up rather than signing them in one piece.
-  
-  Just like signing, verifying a message can be done in one step or in several
-  parts.
-  The one-step variant works by calling NtruSign.verify() which takes the
-  message, the signature, and the SignaturePublicKey. The parameters used for
-  verifying must be the same as the ones used to create the signature; the
-  same goes for the public key.
-  The multi-step variant works by calling initSign with a SignaturePublicKey,
-  then calling update(byte[]) zero or more times, and finally calling
-  verify(byte[]).
-
 
 Key Import / Export
 
@@ -120,9 +89,8 @@ Key Import / Export
 Parameter Sets
 
   It is generally recommended to use the APR2011_439_FAST or APR2011_743_FAST
-  parameter set for encryption, and APR2011_439_PROD or APR2011_743_PROD for
-  signatures. The security levels are 128 bits for the "439" parameters and
-  256 bits for the "743" parameters.
+  parameter set for encryption. The security levels are 128 and 256 bits,
+  respectively.
 
 
 Error Conditions
