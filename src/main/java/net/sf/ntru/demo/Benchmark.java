@@ -45,6 +45,8 @@ import net.sf.ntru.encrypt.NtruEncrypt;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
+import djb.Curve25519;
+
 /**
  * Benchmarks NTRUEncrypt against ECC and RSA.
  */
@@ -61,6 +63,9 @@ public class Benchmark {
         System.out.println("  rsa15360gen");
         System.out.println("  rsa15360enc");
         System.out.println("  rsa15360dec");
+        System.out.println("  curve25519gen");
+        System.out.println("  curve25519enc");
+        System.out.println("  curve25519dec");
         System.out.println("  ecc256gen");
         System.out.println("  ecc256enc");
         System.out.println("  ecc256dec");
@@ -83,6 +88,9 @@ public class Benchmark {
             rsa3072gen();
             rsa3072enc();
             rsa3072dec();
+            curve25519gen();
+            curve25519enc();
+            curve25519dec();
             ecc256gen();
             ecc256enc();
             ecc256dec();
@@ -108,6 +116,9 @@ public class Benchmark {
                 else if ("rsa15360gen".equals(arg)) rsa15360gen();
                 else if ("rsa15360enc".equals(arg)) rsa15360enc();
                 else if ("rsa15360dec".equals(arg)) rsa15360dec();
+                else if ("curve25519gen".equals(arg))  curve25519gen();
+                else if ("curve25519enc".equals(arg))  curve25519enc();
+                else if ("curve25519dec".equals(arg))  curve25519dec();
                 else if ("ecc256gen".equals(arg))   ecc256gen();
                 else if ("ecc256enc".equals(arg))   ecc256enc();
                 else if ("ecc256dec".equals(arg))   ecc256dec();
@@ -153,6 +164,18 @@ public class Benchmark {
     
     private static void rsa15360dec() throws Exception {
         new RsaBenchmark(15360, 3, 6).decryptBench();
+    }
+    
+    private static void curve25519gen() throws Exception {
+        new Curve25519Benchmark(3000, 6000).keyGenBench();
+    }
+    
+    private static void curve25519enc() throws Exception {
+        new Curve25519Benchmark(1500, 3000).encryptBench();
+    }
+    
+    private static void curve25519dec() throws Exception {
+        new Curve25519Benchmark(3000, 6000).decryptBench();
     }
     
     private static void ecc256gen() throws Exception {
@@ -298,6 +321,92 @@ public class Benchmark {
         }
     }
 
+    private static class Curve25519Benchmark {
+        private int warmupIterations;
+        private int benchIterations;
+
+        private Curve25519Benchmark(int warmupIterations, int benchIterations) throws Exception {
+            this.warmupIterations = warmupIterations;
+            this.benchIterations = benchIterations;
+        }
+        
+        private void keyGenBench() throws Exception {
+            System.out.println("Warming up curve25519...");
+            curve25519KeyGenIterations(warmupIterations);
+            System.out.println("Finished warming up curve25519");
+            System.out.println("Benchmarking curve25519 key generation...");
+            long t1 = System.nanoTime();
+            curve25519KeyGenIterations(benchIterations);
+            long t2 = System.nanoTime();
+            printResults("curve25519 key generation", t2-t1, benchIterations);
+        }
+        
+        private void curve25519KeyGenIterations(int iterations) throws Exception {
+            byte[] pub = new byte[32];
+            byte[] priv = new byte[32];
+            new SecureRandom().nextBytes(priv);
+            
+            for (int i=0; i<iterations; i++)
+                Curve25519.keygen(pub, null, priv);
+        }
+        
+        public void encryptBench() throws Exception {
+            byte[] pub = new byte[32];
+            byte[] priv = new byte[32];
+            new SecureRandom().nextBytes(priv);
+            Curve25519.keygen(pub, null, priv);
+            
+            System.out.println("Warming up curve25519...");
+            curve25519EncryptIterations(warmupIterations, pub);
+            System.out.println("Finished warming up curve25519");
+            System.out.println("Benchmarking curve25519 encryption...");
+            long t1 = System.nanoTime();
+            curve25519EncryptIterations(benchIterations, pub);
+            long t2 = System.nanoTime();
+            printResults("curve25519 encryption", t2-t1, benchIterations);
+        }
+        
+        private void curve25519EncryptIterations(int iterations, byte[] pub) throws Exception {
+            byte[] ephPub = new byte[32];
+            byte[] ephPriv = new byte[32];
+            new SecureRandom().nextBytes(ephPriv);
+            byte[] sharedSecret = new byte[32];
+            
+            for (int i=0; i<iterations; i++) {
+                // generate an ephemeral key and do a key agreement with pub
+                Curve25519.keygen(ephPub, null, ephPriv);
+                Curve25519.curve(sharedSecret, pub, ephPriv);
+            }
+        }
+        
+        public void decryptBench() throws Exception {
+            byte[] pub = new byte[32];
+            byte[] priv = new byte[32];
+            new SecureRandom().nextBytes(priv);
+            Curve25519.keygen(pub, null, priv);
+            byte[] ephPub = new byte[32];
+            byte[] ephPriv = new byte[32];
+            new SecureRandom().nextBytes(ephPriv);
+            Curve25519.keygen(ephPub, null, ephPriv);
+            
+            System.out.println("Warming up curve25519...");
+            curve25519DecryptIterations(warmupIterations, priv, ephPub);
+            System.out.println("Finished warming up curve25519");
+            System.out.println("Benchmarking curve25519 decryption...");
+            long t1 = System.nanoTime();
+            curve25519DecryptIterations(benchIterations, priv, ephPub);
+            long t2 = System.nanoTime();
+            printResults("curve25519 decryption", t2-t1, benchIterations);
+        }
+
+        private void curve25519DecryptIterations(int iterations, byte[] priv, byte[] ephPub) throws Exception {
+            byte[] sharedSecret = new byte[32];
+            
+            for (int i=0; i<iterations; i++)
+                Curve25519.curve(sharedSecret, priv, ephPub);
+        }
+    }
+    
     private static class EcdhBenchmark {
         private int keySize;
         private int warmupIterations;

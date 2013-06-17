@@ -1,3 +1,7 @@
+With the exception of the file src/main/java/djb/Curve25519.java which is
+under the Apache 2.0 license, this project is covered by the following license:
+
+
 Copyright (c) 2012, Tim Buktu
 All rights reserved.
 
