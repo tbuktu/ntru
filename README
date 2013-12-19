@@ -10,8 +10,9 @@ The NTRU Cryptosystem
   The NTRUSign algorithm has been broken and is included only for historical
   interest.
   NTRUEncrypt remains unbroken; its main drawback is that it is patent
-  encumbered. This means that for commercial use, a license from the patent
-  holder may be required depending on your jurisdiction.
+  encumbered. It is safe to use NTRUEncrypt under the GPL (see
+  https://github.com/NTRUOpenSourceProject/ntru-crypto#is-ntru-patented) but
+  if you choose any other license, you should talk to the patent holder first.
   
   http://en.wikipedia.org/wiki/NTRUEncrypt
   http://en.wikipedia.org/wiki/NTRUSign
@@ -144,6 +145,8 @@ Other NTRU implementations
     this library in the bprov-ext and lcrypto jars.
   * There is a C implementation of NTRUEncrypt at
     https://github.com/tbuktu/libntru
+  * and another one at
+    https://github.com/NTRUOpenSourceProject/ntru-crypto
 
 
 Further reading
