@@ -43,24 +43,32 @@ Released   : 20110123
 				<div id="menu">
 					<ul>
 						<li class="current_page_item"><a href="index.html">Home</a></li>
-						<li><a href="https://sourceforge.net/projects/ntru/">SF Project Page</a></li>
-						<li><a href="https://sourceforge.net/projects/ntru/files/">Downloads</a></li>
-						<li><a href="https://github.com/tbuktu/ntru">GitHub</a></li>
+						<li><a href="https://github.com/tbuktu/ntru">Java Implementation</a></li>
+						<li><a href="https://github.com/tbuktu/libntru">C Implementation</a></li>
 					</ul>
 				</div>
 				<!-- end #menu -->
 				<div id="content">
 					<div class="post">
-						<h2 class="title"><a href="#">libntru 0.1</a></h2>
+						<h2 class="title"><a href="#">libntru 0.2</a></h2>
 <!--
 						<p class="meta">Posted by <a href="#">Someone</a> on March 10, 2010
 							&nbsp;&bull;&nbsp; <a href="#" class="comments">Comments (64)</a> &nbsp;&bull;&nbsp; <a href="#" class="permalink">Full article</a></p>
 -->
 						<div class="entry">
-							<p>libntru is a C implementation of NTRUEncrypt. Version 0.1 was released Mar 19, 2012.</p>
+							<p>Version 0.2 of libntru was released Mar 30, 2014.</p>
 							<p>
+							Changes since 0.1:<br/>
+							<ul>
+							<li>supports all EES parameter sets</li>
+							<li>supports deterministic encryption and key generation</li>
+							<li>works on Windows now (MinGW)</li>
+							<li>no longer depends on OpenSSL</li>
+							<li>several bugs fixed</li>
+							<li>performance improvements</li>
+							</ul>
 							<img src="images/download.png">
-							Download the sources at <a href="https://github.com/tbuktu/libntru/downloads">https://github.com/tbuktu/libntru/downloads</a>.
+							Download the sources at <a href="https://github.com/tbuktu/libntru/releases/tag/0.2">https://github.com/tbuktu/libntru/releases/tag/0.2</a>.
 							</p><p>
 							Or go to the GitHub repo at <a href="https://github.com/tbuktu/libntru">https://github.com/tbuktu/libntru</a>.
 							</p><p>
@@ -98,9 +106,10 @@ Released   : 20110123
 						<li>
 							<h2>News</h2>
 							<ul>
+                                                                <li>3-30-2014: libntru 0.2 released</li>
 								<li><a href="ntru12.html">5-20-2012: NTRU 1.2 released</a></li>
                                                                 <li><a href="bc.html">3-21-2012: NTRU in Bouncy Castle</a></li>
-								<li>3-19-2012: libntru 0.1 released</li>
+								<li><a href="libntru-0.1.html">3-19-2012: libntru 0.1 released</a></li>
 								<li><a href="ntru11.html">12-2-2011: NTRU 1.1 released</a></li>
 							</ul>
 						</li>
@@ -111,6 +120,7 @@ Released   : 20110123
 								<li><a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.25.8422&rep=rep1&type=pdf">A Ring Based Public Key Cryptosystem</a></li>
 								<li><a href="http://www.ntru.com/uploads/Crypto/TECH_ARTICLE_OPT.pdf">Optimizations for NTRU</a></li>
 								<li><a href="http://grouper.ieee.org/groups/1363/lattPK/submissions/EESS1v2.pdf">EESS</a></li>
+								<li><a href="http://grouper.ieee.org/groups/1363/lattPK/submissions/ChoosingNewParameters.pdf">Hybrid Lattice Reduction and Meet in the Middle Resistant Parameter selection for NTRUEncrypt</a></li>
 							</ul>
 						</li>
 						<li>
@@ -120,6 +130,7 @@ Released   : 20110123
 								<li><a href="http://www.ntru.com/uploads/Crypto/NTRUSign-preV2.pdf">NTRUSign: Digital Signatures Using the NTRU Lattice</a></li>
 								<li><a href="http://www.ntru.com/uploads/Crypto/NTRUSignParams-2005-08.pdf">Performance Improvements and Parameter Generation</a></li>
 								<li><a href="http://grouper.ieee.org/groups/1363/lattPK/submissions/EESS1v2.pdf">EESS</a></li>
+								<li><a href="http://www.di.ens.fr/~ducas/NTRUSign_Cryptanalysis/DucasNguyen_Learning.pdf">Learning a Zonotope and More: Cryptanalysis of NTRUSign Countermeasures</a></li>
 							</ul>
 						</li>
 <!--
