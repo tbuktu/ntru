@@ -42,7 +42,7 @@ Released   : 20110123
 			<div id="page-bgbtm">
 				<div id="menu">
 					<ul>
-						<li class="current_page_item"><a href="#">Home</a></li>
+						<li class="current_page_item"><a href="index.html">Home</a></li>
 						<li><a href="https://github.com/tbuktu/ntru">Java Implementation</a></li>
 						<li><a href="https://github.com/tbuktu/libntru">C Implementation</a></li>
 					</ul>
@@ -50,26 +50,26 @@ Released   : 20110123
 				<!-- end #menu -->
 				<div id="content">
 					<div class="post">
-						<h2 class="title"><a href="#">The NTRU Project</a></h2>
+						<h2 class="title"><a href="#">libntru 0.3</a></h2>
 <!--
 						<p class="meta">Posted by <a href="#">Someone</a> on March 10, 2010
 							&nbsp;&bull;&nbsp; <a href="#" class="comments">Comments (64)</a> &nbsp;&bull;&nbsp; <a href="#" class="permalink">Full article</a></p>
 -->
 						<div class="entry">
-							<p><img src="images/ntru120.png" width="120" height="120" alt="" class="alignleft border" /><strong>NTRU</strong> implements the <a href="http://en.wikipedia.org/wiki/NTRUEncrypt">NTRUEncrypt</a> public key encryption algorithm in Java and C.</p>
-							<p>NTRUEncrypt is <a href="http://en.wikipedia.org/wiki/Lattice-based_cryptography">lattice-based</a> and not known to be breakable even with <a href="http://en.wikipedia.org/wiki/Quantum_computer">quantum computers</a>. Commonly used cryptosystems like <a href="http://en.wikipedia.org/wiki/Rsa">RSA</a> or <a href="http://en.wikipedia.org/wiki/Elliptic_curve_cryptography">ECC</a>, on the other hand, will be broken if and when quantum computers become available.<br/>
+							<p>Version 0.3 of libntru was released Nov 14, 2014.</p>
+							<p>
+							Changes since 0.2:<br/>
+							<ul>
+							<li>option to exclude code that is patented beyond 2017</li>
+							<li>RNG-related API changes for thread safety and closeability of OS handles</li>
+							<li>several bugs fixed</li>
+							<li>sample code for NTRU+AES encryption</li>
+							</ul>
+							<img src="images/download.png">
+							Download the sources at <a href="https://github.com/tbuktu/libntru/releases/tag/0.3">https://github.com/tbuktu/libntru/releases/tag/0.3</a>.
 							</p><p>
-							In addition, NTRU is significantly faster than other public-key cryptosystems (rivaled only by Curve25519).
-							The following chart shows results for an Intel i3 processor running at 3.1 GHz. The data was generated with the benchmark program that is included in the <a href="https://github.com/tbuktu/ntru">Java implementation</a> running under Java 7.<br/>
-							Mouse over to switch between 32 and 64 bits:
+							Or go to the GitHub repo at <a href="https://github.com/tbuktu/libntru">https://github.com/tbuktu/libntru</a>.
 							</p><p>
-							<img src="images/bench32.png" onmouseover="this.src='images/bench64.png';" onmouseout="this.src='images/bench32.png';"/><br/>
-							</p><p>
-							For an in-depth description and cryptographic analysis please refer to the "Resources" section to the right.
-							</p><p>
-							Java source code is available on <a href="https://github.com/tbuktu/ntru">GitHub</a>; compiled jars can be downloaded from <a href="https://sourceforge.net/projects/ntru/files/">SourceForge</a>.<br/>
-The C source code is available on <a href="https://github.com/tbuktu/libntru">GitHub</a>.
-							</p>
 						</div>
 					</div>
 <!--
@@ -104,11 +104,11 @@ The C source code is available on <a href="https://github.com/tbuktu/libntru">Gi
 						<li>
 							<h2>News</h2>
 							<ul>
-								<li><a href="libntru-0.3.html">11-14-2014: libntru 0.3 released</a></li>
-                                                                <li><a href="libntru-0.2.html">3-30-2014: libntru 0.2 released</a></li>
+                                                                <li>11-14-2014: libntru 0.3 released</li>
+								<li><a href="libntru-0.2.html">3-30-2014: libntru 0.2 released</a></li>
 								<li><a href="ntru12.html">5-20-2012: NTRU 1.2 released</a></li>
                                                                 <li><a href="bc.html">3-21-2012: NTRU in Bouncy Castle</a></li>
-                                                                <li><a href="libntru-0.1.html">3-19-2012: libntru 0.1 released</a></li>
+								<li><a href="libntru-0.1.html">3-19-2012: libntru 0.1 released</a></li>
 								<li><a href="ntru11.html">12-2-2011: NTRU 1.1 released</a></li>
 							</ul>
 						</li>
