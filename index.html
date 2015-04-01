@@ -56,14 +56,13 @@ Released   : 20110123
 							&nbsp;&bull;&nbsp; <a href="#" class="comments">Comments (64)</a> &nbsp;&bull;&nbsp; <a href="#" class="permalink">Full article</a></p>
 -->
 						<div class="entry">
-							<p><img src="images/ntru120.png" width="120" height="120" alt="" class="alignleft border" /><strong>NTRU</strong> implements the <a href="http://en.wikipedia.org/wiki/NTRUEncrypt">NTRUEncrypt</a> public key encryption algorithm in Java and C.</p>
-							<p>NTRUEncrypt is <a href="http://en.wikipedia.org/wiki/Lattice-based_cryptography">lattice-based</a> and not known to be breakable even with <a href="http://en.wikipedia.org/wiki/Quantum_computer">quantum computers</a>. Commonly used cryptosystems like <a href="http://en.wikipedia.org/wiki/Rsa">RSA</a> or <a href="http://en.wikipedia.org/wiki/Elliptic_curve_cryptography">ECC</a>, on the other hand, will be broken if and when quantum computers become available.<br/>
+							<p><img src="images/ntru120.png" width="120" height="120" alt="" class="alignleft border" /><strong>NTRU</strong> implements the <a href="https://en.wikipedia.org/wiki/NTRUEncrypt">NTRUEncrypt</a> public key encryption algorithm in Java and C</p>
+							<p>NTRUEncrypt is <a href="https://en.wikipedia.org/wiki/Lattice-based_cryptography">lattice-based</a> and not known to be breakable even with <a href="https://en.wikipedia.org/wiki/Quantum_computer">quantum computers</a>. Commonly used cryptosystems like <a href="https://en.wikipedia.org/wiki/Rsa">RSA</a> or <a href="https://en.wikipedia.org/wiki/Elliptic_curve_cryptography">ECC</a>, on the other hand, will be broken if and when quantum computers become available.<br/>
 							</p><p>
-							In addition, NTRU is significantly faster than other public-key cryptosystems (rivaled only by Curve25519).
-							The following chart shows results for an Intel i3 processor running at 3.1 GHz. The data was generated with the benchmark program that is included in the <a href="https://github.com/tbuktu/ntru">Java implementation</a> running under Java 7.<br/>
-							Mouse over to switch between 32 and 64 bits:
+							In addition, NTRU is significantly faster than other public-key cryptosystems.
+							The chart below compares <a href="https://github.com/tbuktu/libntru">the C implementation (libntru)</a> against other cryptosystems and against the NTRU reference implementation.<br/>
 							</p><p>
-							<img src="images/bench32.png" onmouseover="this.src='images/bench64.png';" onmouseout="this.src='images/bench32.png';"/><br/>
+							<img src="images/bench.png"/><br/>
 							</p><p>
 							For an in-depth description and cryptographic analysis please refer to the "Resources" section to the right.
 							</p><p>
@@ -115,9 +114,9 @@ The C source code is available on <a href="https://github.com/tbuktu/libntru">Gi
 						<li>
 							<h2>NTRUEncrypt Resources</h2>
 							<ul>
-								<li><a href="http://en.wikipedia.org/wiki/NTRUEncrypt">Wikipedia article</a></li>
-								<li><a href="http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.25.8422&rep=rep1&type=pdf">A Ring Based Public Key Cryptosystem</a></li>
-								<li><a href="https://www.securityinnovation.com/uploads/Crypto/TECH_ARTICLE_OPT.pdf">Optimizations for NTRU</a></li>
+								<li><a href="https://en.wikipedia.org/wiki/NTRUEncrypt">Wikipedia article</a></li>
+								<li><a href="https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.25.8422&rep=rep1&type=pdf">A Ring Based Public Key Cryptosystem</a></li>
+								<li><a href="https://www.securityinnovation.com/products/encryption-libraries/ntru-crypto/ntru-resources.html">NTRU articles</a></li>
 								<li><a href="http://grouper.ieee.org/groups/1363/lattPK/submissions/EESS1v2.pdf">EESS</a></li>
 								<li><a href="http://grouper.ieee.org/groups/1363/lattPK/submissions/ChoosingNewParameters.pdf">Hybrid Lattice Reduction and Meet in the Middle Resistant Parameter selection for NTRUEncrypt</a></li>
 							</ul>
@@ -125,11 +124,11 @@ The C source code is available on <a href="https://github.com/tbuktu/libntru">Gi
 						<li>
 							<h2>NTRUSign Resources</h2>
 							<ul>
-								<li><a href="http://en.wikipedia.org/wiki/NTRUSign">Wikipedia article</a></li>
+								<li><a href="https://en.wikipedia.org/wiki/NTRUSign">Wikipedia article</a></li>
 								<li><a href="http://www.math.brown.edu/~jpipher/NTRUSign-preV2.pdf">NTRUSign: Digital Signatures Using the NTRU Lattice</a></li>
 								<li><a href="https://securityinnovation.com/uploads/Crypto/NTRUSignParams-2005-08.pdf">Performance Improvements and Parameter Generation</a></li>
 								<li><a href="http://grouper.ieee.org/groups/1363/lattPK/submissions/EESS1v2.pdf">EESS</a></li>
-								<li><a href="http://www.di.ens.fr/~ducas/NTRUSign_Cryptanalysis/DucasNguyen_Learning.pdf">Learning a Zonotope and More: Cryptanalysis of NTRUSign Countermeasures</a></li>
+								<li><a href="https://www.di.ens.fr/~ducas/NTRUSign_Cryptanalysis/DucasNguyen_Learning.pdf">Learning a Zonotope and More: Cryptanalysis of NTRUSign Countermeasures</a></li>
 							</ul>
 						</li>
 <!--
