@@ -50,17 +50,32 @@ Released   : 20110123
 				<!-- end #menu -->
 				<div id="content">
 					<div class="post">
-						<h2 class="title"><a href="#">NTRU Now Part of Bouncy Castle</a></h2>
+						<h2 class="title"><a href="#">libntru 0.4</a></h2>
 <!--
 						<p class="meta">Posted by <a href="#">Someone</a> on March 10, 2010
 							&nbsp;&bull;&nbsp; <a href="#" class="comments">Comments (64)</a> &nbsp;&bull;&nbsp; <a href="#" class="permalink">Full article</a></p>
 -->
 						<div class="entry">
+							<p>Version 0.4 of libntru was released May 4, 2015.</p>
 							<p>
-							As of <a href="https://bouncycastle.org/java.html">Bouncy Castle</a> 1.47, the <a href="https://bouncycastle.org/latest_releases.html"><b>bcprov-ext</b> and <b>lcrypto</b> releases</a> of Bouncy Castle contain an NTRU implementation. It is based on version 1.0 of this library.<p/>
-							<p>Note that the regular <b>bcprov-jdk</b> release does not provide NTRU due to patent restrictions.</p>
-							<p><img src="images/download.png">
-							<a href="https://bouncycastle.org/latest_releases.html">Bouncy Castle download page</a><br/>
+							Changes since 0.3:<br/>
+							<ul>
+							<li>massive performance improvements</li>
+							<li>new Makefile targets for distros (thanks Julian Ospald)</li>
+							<li>made the library C++ friendly (thanks Ruben De Smet)</li>
+							<li>new functions: ntru_params_from_key_pair() and ntru_params_from_priv_key()</li>
+							<li>fixed a memory leak</li>
+							<li>fixed parameter values</li>
+							<li>fixed data-dependent branches</li>
+							</ul>
+							</p><p>
+							Benchmark results:<br/>
+							<img src="images/bench.png"/>
+							</p><p>
+							<img src="images/download.png">
+							Download the sources at <a href="https://github.com/tbuktu/libntru/releases/tag/0.4">https://github.com/tbuktu/libntru/releases/tag/0.4</a>.
+							</p><p>
+							Or go to the GitHub repo at <a href="https://github.com/tbuktu/libntru">https://github.com/tbuktu/libntru</a>.
 							</p><p>
 						</div>
 					</div>
@@ -96,13 +111,13 @@ Released   : 20110123
 						<li>
 							<h2>News</h2>
 							<ul>
-								<li><a href="libntru-0.4.html">5-4-2015: libntru 0.4 released</a></li>
+                                                                <li>5-4-2015: libntru 0.4 released</li>
 								<li><a href="libntru-0.3.html">11-14-2014: libntru 0.3 released</a></li>
-                                                                <li><a href="libntru-0.2.html">3-30-2014: libntru 0.2 released</a></li>
+								<li><a href="libntru-0.2.html">3-30-2014: libntru 0.2 released</a></li>
 								<li><a href="ntru12.html">5-20-2012: NTRU 1.2 released</a></li>
-                                                                <li>3-21-2012: NTRU in Bouncy Castle</li>
-                                                                <li><a href="libntru-0.1.html">3-19-2012: libntru 0.1 released</a></li>
-                                                                <li><a href="ntru11.html">12-2-2011: NTRU 1.1 released</a></li>
+                                                                <li><a href="bc.html">3-21-2012: NTRU in Bouncy Castle</a></li>
+								<li><a href="libntru-0.1.html">3-19-2012: libntru 0.1 released</a></li>
+								<li><a href="ntru11.html">12-2-2011: NTRU 1.1 released</a></li>
 							</ul>
 						</li>
 						<li>
