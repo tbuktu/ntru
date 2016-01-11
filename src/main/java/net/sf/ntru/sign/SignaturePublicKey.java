@@ -92,6 +92,7 @@ public class SignaturePublicKey {
             dataStream.writeShort(h.coeffs.length);
             dataStream.writeShort(q);
             dataStream.write(h.toBinary(q));
+            dataStream.close();
         } catch (IOException e) {
             throw new NtruException(e);
         }

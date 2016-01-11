@@ -147,6 +147,7 @@ public class SignaturePrivateKey {
             for (int i=0; i<numBases; i++)
                 // all bases except for the first one contain a public key
                 bases.get(i).encode(os, i!=0);
+            dataStream.close();
         } catch (IOException e) {
             throw new NtruException(e);
         }

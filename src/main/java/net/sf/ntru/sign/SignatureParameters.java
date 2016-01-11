@@ -213,6 +213,7 @@ public class SignatureParameters implements Cloneable {
         dos.write(keyGenAlg.ordinal());
         dos.writeUTF(hashAlg);
         dos.write(polyType.ordinal());
+        dos.flush();
     }
 
     @Override
