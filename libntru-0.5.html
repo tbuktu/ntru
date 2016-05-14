@@ -42,7 +42,7 @@ Released   : 20110123
 			<div id="page-bgbtm">
 				<div id="menu">
 					<ul>
-						<li class="current_page_item"><a href="#">Home</a></li>
+						<li class="current_page_item"><a href="index.html">Home</a></li>
 						<li><a href="https://github.com/tbuktu/ntru">Java Implementation</a></li>
 						<li><a href="https://github.com/tbuktu/libntru">C Implementation</a></li>
 					</ul>
@@ -50,25 +50,42 @@ Released   : 20110123
 				<!-- end #menu -->
 				<div id="content">
 					<div class="post">
-						<h2 class="title"><a href="#">The NTRU Project</a></h2>
+						<h2 class="title"><a href="#">libntru 0.5</a></h2>
 <!--
 						<p class="meta">Posted by <a href="#">Someone</a> on March 10, 2010
 							&nbsp;&bull;&nbsp; <a href="#" class="comments">Comments (64)</a> &nbsp;&bull;&nbsp; <a href="#" class="permalink">Full article</a></p>
 -->
 						<div class="entry">
-							<p><img src="images/ntru120.png" width="120" height="120" alt="" class="alignleft border" /><strong>NTRU</strong> implements the <a href="https://en.wikipedia.org/wiki/NTRUEncrypt">NTRUEncrypt</a> public key encryption algorithm in Java and C</p>
-							<p>NTRUEncrypt is <a href="https://en.wikipedia.org/wiki/Lattice-based_cryptography">lattice-based</a> and not known to be breakable even with <a href="https://en.wikipedia.org/wiki/Quantum_computer">quantum computers</a>. Commonly used cryptosystems like <a href="https://en.wikipedia.org/wiki/Rsa">RSA</a> or <a href="https://en.wikipedia.org/wiki/Elliptic_curve_cryptography">ECC</a>, on the other hand, will be broken if and when quantum computers become available.<br/>
+							<p>Version 0.5 of libntru was released May 14, 2016.</p>
+							<p>
+							Changes since 0.4:<br/>
+							<ul>
+							<li>RNGs: NTRU_RNG_DEFAULT uses CTR_DRBG now, NTRU_RNG_CTR_DRBG replaces NTRU_RNG_IGF2<br>This change breaks the API!</li>
+							<li>Denser encoding of private keys<br>This change breaks binary compatibility!</li>
+							<li>new API feature: multiple public keys for the same private key</li>
+							<li>new parameter sets: EES443EP1 and EES587EP1</li>
+							<li>new #defines for referencing param sets by strength: NTRU_DEFAULT_PARAMS_xxx_BITS</li>
+							<li>BSD support</li>
+							<li>bug fixes:</li>
+							<ul>
+								<li>fixed deterministic encryption on big-endian machines</li>
+								<li>fixed some incorrect error codes when key generation failed</li>
+								<li>fixed generation of polynomial g which deviated from the standard</li>
+								<li>fixed SSE detection on BSD</li>
+								<li>fixed buffer overruns (thanks Jeffrey Quesnelle)</li>
+								<li>fixed a resource leak</li>
+								<li>fixed tests on ARMv6</li>
+								<li>fixed calculation of M_len</li>
+							</ul>
+							<li>AVX2 optimizations (thanks Shay Gueron and Fabian Schlieker)</li>
+							<li>minor optimizations</li>
+							</ul>
 							</p><p>
-							In addition, NTRU is significantly faster than other public-key cryptosystems.
-							The chart below compares <a href="https://github.com/tbuktu/libntru">the C implementation (libntru)</a> against other cryptosystems and against the NTRU reference implementation.<br/>
+							<img src="images/download.png">
+							Download the sources at <a href="https://github.com/tbuktu/libntru/releases/tag/0.5">https://github.com/tbuktu/libntru/releases/tag/0.5</a>.
 							</p><p>
-							<img src="images/bench.png"/><br/>
+							Or go to the GitHub repo at <a href="https://github.com/tbuktu/libntru">https://github.com/tbuktu/libntru</a>.
 							</p><p>
-							For an in-depth description and cryptographic analysis please refer to the "Resources" section to the right.
-							</p><p>
-							Java source code is available on <a href="https://github.com/tbuktu/ntru">GitHub</a>; compiled jars can be downloaded from <a href="https://sourceforge.net/projects/ntru/files/">SourceForge</a>.<br/>
-The C source code is available on <a href="https://github.com/tbuktu/libntru">GitHub</a>.
-							</p>
 						</div>
 					</div>
 <!--
@@ -103,13 +120,13 @@ The C source code is available on <a href="https://github.com/tbuktu/libntru">Gi
 						<li>
 							<h2>News</h2>
 							<ul>
-								<li><a href="libntru-0.5.html">5-14-2016: libntru 0.5 released</a></li>
+                                                                <li>5-14-2016: libntru 0.5 released</li>
 								<li><a href="libntru-0.4.html">5-4-2015: libntru 0.4 released</a></li>
 								<li><a href="libntru-0.3.html">11-14-2014: libntru 0.3 released</a></li>
-                                                                <li><a href="libntru-0.2.html">3-30-2014: libntru 0.2 released</a></li>
+								<li><a href="libntru-0.2.html">3-30-2014: libntru 0.2 released</a></li>
 								<li><a href="ntru12.html">5-20-2012: NTRU 1.2 released</a></li>
                                                                 <li><a href="bc.html">3-21-2012: NTRU in Bouncy Castle</a></li>
-                                                                <li><a href="libntru-0.1.html">3-19-2012: libntru 0.1 released</a></li>
+								<li><a href="libntru-0.1.html">3-19-2012: libntru 0.1 released</a></li>
 								<li><a href="ntru11.html">12-2-2011: NTRU 1.1 released</a></li>
 							</ul>
 						</li>
